@@ -1,9 +1,9 @@
-# 🏢 Safety Intelligence: Plataforma de Análise de Potencial Imobiliário
+#  Safety Intelligence: Plataforma de Análise de Potencial Imobiliário
 
 > **Projeto Integrador (PI)** - Solução de inteligência de dados para suporte à tomada de decisão estratégica no setor de construção civil e investimentos imobiliários.
 
 
-## 📝 Sobre o Projeto
+## Sobre o Projeto
 
 O setor imobiliário depende criticamente da confiança de investidores para viabilizar grandes construções. O problema central é que a escolha de um terreno ainda é cercada de incertezas e, muitas vezes, baseada em análises superficiais que ignoram riscos sociais e de segurança.
 
@@ -11,7 +11,7 @@ O **Safety Intelligence** foi desenvolvido para auxiliar na inteligência de dad
 
 ---
 
-## 🚀 Funcionalidades
+##  Funcionalidades
 
 * **Mapeamento de Segurança:** Integração de dados de Boletins de Ocorrência (roubos, furtos e outros incidentes) para análise de risco local.
 * **Indicadores Socioeconômicos:** Consulta automatizada do IDH (Índice de Desenvolvimento Humano) por região.
@@ -31,7 +31,7 @@ O **Safety Intelligence** foi desenvolvido para auxiliar na inteligência de dad
 
 ---
 
-## ⚙️ Arquitetura do Sistema ( Semelhente a ETL)
+##  Arquitetura do Sistema ( Semelhente a ETL)
 
 O software opera como um motor de processamento de dados dividido em três etapas:
 
@@ -41,7 +41,7 @@ O software opera como um motor de processamento de dados dividido em três etapa
 
 ---
 
-## 🎯 Objetivos de Aprendizado (Soft & Hard Skills)
+##  Objetivos de Aprendizado (Soft & Hard Skills)
 
 Além do desenvolvimento técnico, este projeto visa consolidar:
 * **Experiência B2B:** Entendimento de um problema *core* de um setor de alto valor agregado.
