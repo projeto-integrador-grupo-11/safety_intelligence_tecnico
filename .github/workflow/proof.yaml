@@ -1,0 +1,19 @@
+name: Proof HTML
+
+on:
+  pull_request:
+    branches: [ main ] 
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4  
+
+      - name: Proof HTML
+        uses: anishathalye/proof-html@v1.1.0
+        with:
+          directory: ./app
+          
