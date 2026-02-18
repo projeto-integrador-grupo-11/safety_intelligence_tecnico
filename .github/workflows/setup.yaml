@@ -24,6 +24,10 @@ jobs:
           npm install
 
       - name: Start Server and Test
+        env:
+          AMBIENTE_PROCESSO=desenvolvimento
+          APP_PORT=3333
+          APP_HOST=localhost
         run: |
           npm start & 
 
