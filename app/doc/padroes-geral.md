@@ -1,6 +1,6 @@
-# 💻 Visão Geral da Aplicação
+#  Visão Geral da Aplicação
 
-A Whis{key} visa aprimorar o controle de temperatura e umidade durante a maturação do whisky para ajudar nossos parceiros na tomada de decisões.
+A Safety Inteligency visa fornecer uma aplicação baseado em ETL, fornecendo dados que auxilie na tomada de decisões.
 
 ## Começando com o projeto
 
@@ -8,9 +8,13 @@ Para instalar a aplicação em sua maquina, execute os seguintes comandos:
 
 ```bash
 
-git clone https://github.com/Whis-key-SPTech/Whis-key-Group.git
+git clone https://github.com/projeto-integrador-grupo-11/safety_intelligence_tecnico
 
-cd Whis-key-Group
+cd safety_intelligence_tecnico
+
+npm install 
+
+npm start
 
 ```
 
@@ -36,6 +40,19 @@ Cria commits para subir posteriormente, adione no texto alterações feitas seja
 Enviar alteração para o github.
 
 #### `git push`
+
+Lista todas as branches locais. A branch em que você está atualmente será marcada com um asterisco (*).
+
+#### `git branch`
+
+Cria uma nova branch e já muda para ela automaticamente. 
+
+#### `git checkout -b nome-da-branch`
+
+Alterna entre branches já existentes.
+
+#### `git checkout nome-da-branch`
+
 
 #  🧱 Padrões de Nomenclatura
 
