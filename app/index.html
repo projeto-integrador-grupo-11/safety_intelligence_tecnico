@@ -1,11 +1,268 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <link rel="stylesheet" href="../app/public/css/index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <title>satety Intelligence</title>
 </head>
+
 <body>
-    <h1>safety intelligence</h1>
+
+    <!--nav bar-->
+    <header id="home" class="fundoNav">
+        <nav class="navbar">
+            <div class="logoNav">
+                <img class="logo" src="../app/public/img/marca.png">
+            </div>
+            <div class="botao">
+                <button id="cadastrar-seinv"><span></span></button>
+            </div>
+            <li><a href="#home">Quem somos?</a></li>
+            <li><a href="#sobre">Valores</a></li>
+            <li><a href="#empresas">Ferramentas</a></li>
+            <li><a>|</a></li>
+            <li><a href="#login">Login</a></li>
+            <div class="botao">
+                <button class="cadastrar" id="cadastrar-se"><span> Cadastrar-se </span></button>
+            </div>
+        </nav>
+    </header>
+    <script>
+        const cadastro = document.getElementById('cadastrar');
+        cadastro.addEventListener('click', () => {
+            setTimeout(() => {
+                window.location.href = 'cadastro.html';
+            }, 2000);
+        });
+
+        function apagarSession() {
+            sessionStorage.clear();
+        }
+    </script>
+
+    <div class="imagem_fundo1">
+        <img src="../app/public/img/imagem de fundo da home.png">
+        <div class="hero">
+            <div class="hero-text">
+                <h1>
+                    Otimize sua <span style="color: #4DA3D9;">gestão</span> com
+                    <span style="color: #4DA3D9;">Inteligência</span> Territorial.
+                </h1>
+                <p>
+                    Reduza riscos e tome decisões mais seguras baseadas em dados geoespaciais.
+                </p>
+                <button class="btn">Conheça sua solução</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="degrade1">
+        <img src="../app/public/img/camada1.png">
+    </div>
+
+    <div class="sobre_nos">
+        <div class="textos">
+            <h1 style="color: #4DA3D9;">SOBRE</h1>
+            <h2>
+                Desenvolvida para apoiar o setor imobiliário na tomada de decisões mais seguras e fundamentadas.
+            </h2>
+            <p>
+                Transformamos dados públicos de segurança e indicadores socioeconômicos em análises estratégicas claras
+                e acessíveis.
+            </p>
+            <p>
+                Nossa missão é fornecer inteligência geográfica de alta precisão para o setor imobiliário, mitigando
+                riscos e validando investimentos por meio da ciência de dados.</p>
+        </div>
+        <div class="sobre_img">
+            <img src="../app/public/img/sobre.png">
+        </div>
+    </div>
+
+    <div id="degrade2">
+        <img src="../app/public/img/camada1.png">
+    </div>
+
+    <div class="imagem_fundo2">
+        <img src="../app/public/img/ideais.png">
+
+        <div class="ideais">
+
+            <!-- VISÃO -->
+            <div class="visao">
+                <div class="img_ideais">
+                    <img src="../app/public/img/visao.png">
+                </div>
+                <h2>Visão</h2>
+                <p>Ser referência nacional em análise geográfica de risco e valorização imobiliária baseada em dados,
+                    promovendo decisões mais inteligentes e sustentáveis no setor.</p>
+            </div>
+
+            <!-- MISSÃO -->
+            <div class="missao">
+                <div class="img_ideais">
+                    <img src="../app/public/img/missao.png">
+                </div>
+                <h2>Missão</h2>
+                <p>Transformar dados de segurança pública e indicadores socioeconômicos em inteligência territorial
+                    estratégica, apoiando decisões mais seguras e fundamentadas no mercado imobiliário.</p>
+            </div>
+
+            <!-- VALORES -->
+            <div class="valores">
+                <div class="img_ideais">
+                    <img src="../app/public/img/valores.png">
+                </div>
+                <h2>Valores</h2>
+                <p>Como valores temos Transparência, Inovação, Confiabilidade, Responsabilidade, Estratégia.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="degrade3">
+        <img src="../app/public/img/camada1.png">
+    </div>
+
+    <div class="potencial">
+        <h1>Revele o verdadeiro potencial de cada região
+            use o poder dos dados ao seu favor
+        </h1>
+        <p>Otimize seu planejamento estratégico com nossa plataforma de inteligência de dados. Garanta decisões mais
+            seguras, reduza riscos de investimento e identifique as melhores oportunidades de mercado. <b>Veja como
+                nossa solução pode apoiar:</b></p>
+        <div class="potenciais">
+            <div class="card">
+                <img src="../app/public/img/vizualizar.png">
+                <div class="certinho">
+                    <img src="../app/public/img/certinho.png">
+                    <p><b>Visualizar</b> áres críticas.</p>
+                </div>    
+                    <div class="texto-escondido" >
+                    <p>Com nossa plataforma, o cliente identifica rapidamente regiões com maiores índices de ocorrência, facilitando a compreensão de padrões e tendências. Essa visualização estratégica permite agir de forma preventiva, direcionando recursos e investimentos para onde realmente há necessidade.</p>
+                    </div>
+            </div>
+            <div class="card">
+                <img src="../app/public/img/comparar.png">
+                <div class="certinho">
+                    <img src="../app/public/img/certinho.png">
+                    <p><b>Comparar</b> regiões para investimentos.</p>
+                </div> 
+                    <div class="texto-escondido" >
+                    <p>A ferramenta permite comparar diferentes regiões com base em dados reais e atualizados. Assim, o cliente consegue avaliar riscos, oportunidades e potencial de crescimento antes de investir, garantindo decisões mais seguras e fundamentadas.</p>
+                    </div>
+            </div>
+            <div class="card">
+                <img src="../app/public/img/medir.png">
+                <div class="certinho">
+                    <img src="../app/public/img/certinho.png">
+                    <p><b>Medir</b> a exposição ao risco.</p>
+                </div>  
+                    <div class="texto-escondido" >
+                    <p>Nosso sistema transforma dados complexos em indicadores claros de risco. Isso possibilita que empresas e investidores entendam o nível de exposição de cada região, reduzindo incertezas e aumentando a segurança nas tomadas de decisão.</p>
+                    </div>
+            </div>
+        </div>
+        <div class="potenciais">
+            <div class="card">
+                <img src="../app/public/img/apoiar.png">
+                <div class="certinho">
+                    <img src="../app/public/img/certinho.png">
+                    <p><b>Apoiar</b> negociações investidores.</p>
+                </div>
+                    <div class="texto-escondido" >
+                    <p>Ao substituir suposições por dados concretos, o cliente ganha mais precisão estratégica. A análise estruturada permite decisões mais assertivas, planejamento eficiente e redução de prejuízos causados por escolhas mal fundamentadas.</p>
+                    </div>
+            </div>
+            <div class="card">
+                <img src="../app/public/img/tomar.png">
+                <div class="certinho">
+                    <img src="../app/public/img/certinho.png">
+                    <p><b>Tomar</b> decições baseadas em dados reais.</p>
+                </div>   
+                    <div class="texto-escondido" >
+                    <p>Com relatórios e análises confiáveis em mãos, o cliente fortalece seu posicionamento em reuniões e negociações. Dados sólidos aumentam a credibilidade, transmitem segurança e agregam valor à apresentação de projetos e propostas.</p>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cliente">
+        <div class="marca">
+            <img src="../app/public/img/marca.png">
+        </div>
+        <p>Transformando dados em inteligência
+            para uma segurança mais eficiente.</p>
+        <div class="btns">
+            <button class="btn" id="login" >Conheça sua solução
+            </button>
+            <button class="btn1" id="saiba"><span> Saiba Mais </span></button>
+        </div>
+    </div>
+
+        <footer class="footer">
+            <div class="footer-container">
+              <div class="footer-section equipe">
+                <h3>COLABORADORES</h3>
+                <div class="membros">
+                  <div class="membro">
+                    <img src="../app/public/img/lulu.jpg">
+                    <p>Luana<br>Tejon</p>
+                  </div>
+                  <div class="membro">
+                    <img src="../app/public/img/bigode.jpg">
+                    <p>Rafael<br>Alexandre</p>
+                  </div>
+                  <div class="membro">
+                    <img src="../app/public/img/paulo.jpg">
+                    <p>Paulo<br>Henrique</p>
+                  </div>
+                  <div class="membro">
+                    <img src="../app/public/img/leo.jpg">
+                    <p>Leonardo<br>Tomas</p>
+                  </div>
+                  <div class="membro">
+                    <img src="../app/public/img/kayke.jpg">
+                    <p>Kayke<br>Rodrigues</p>
+                  </div>
+                  <div class="membro">
+                    <img src="../app/public/img/guga.jpg">
+                    <p>Gustavo<br>Rucaglia</p>
+                  </div>
+                </div>
+              </div>
+              <div class="footer-section sitemap">
+                <h3>Sitemap</h3>
+                <ul>
+                  <li><a href="#home">Home</a></li>
+                  <li><a href="#sobre">Valores</a></li>
+                  <li><a href="#empresas">Ferramentas</a></li>
+                  <li><a href="#login">Login</a></li>
+                </ul>
+              </div>
+              <div class="footer-section contato">
+                <h3>Contato</h3>
+                <p>(11)99999-9999</p>
+                <p>Safety.Intelligence@gmail.com</p>
+                <div class="social-icons">
+                  <a href=""><img src="../app/public/img/WhatsApp.svg" alt="WhatsApp"></a>
+                  <a href=""><img src="../app/public/img/Instagram.svg" alt="Instagram"></a>
+                </div>
+              </div>
+            </div>
+
+            <div class="copyright">
+            </div>
+            </div>
+        </footer>
+
 </body>
+
 </html>
