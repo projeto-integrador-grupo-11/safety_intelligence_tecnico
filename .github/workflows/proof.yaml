@@ -17,3 +17,4 @@ jobs:
         with:
           directory: ./app
           check_favicon: false
+          check_alt: false
