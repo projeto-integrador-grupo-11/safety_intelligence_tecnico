@@ -1,0 +1,164 @@
+ @media(max-width: 768px) {
+
+    .navbar {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+        text-align: center;
+    }
+
+    .menu {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .posicao {
+        height: auto;
+        padding: 40px 20px;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 340px;
+        padding: 20px;
+    }
+
+    input {
+        font-size: 14px;
+    }
+
+    .cadastrar {
+        width: 100%;
+    }
+
+}
+
+body {
+    margin: 0;
+    font-family: "Montserrat Alternates", sans-serif;
+    background-image: url("../img/fundo-cadastro.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* NAVBAR */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px 60px;
+    background: rgba(255, 255, 255, 0.514);
+    backdrop-filter: blur(10px);
+    /* border-radius: 0 0 10px 10px; */
+                 /* cima e baixo  */
+}
+
+.logo {
+    width: 140px;
+}
+
+.menu {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+}
+
+.menu a {
+    text-decoration: none;
+    color: #0B3C5D;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.menu a:hover {
+    color: #4DA3D9;
+}
+
+/* CENTRALIZAÇÃO */
+.posicao {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 85vh;
+    margin-top: 20px;
+}
+
+/* CONTAINER */
+.container {
+    width: 320px;
+    padding: 20px;
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.445);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.712);
+    display: flex;
+    flex-direction: column;
+}
+
+/* LOGO */
+.logoCadastro {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.logoCadastro img {
+    width: 100px;
+}
+
+/* LABELS */
+label {
+    font-size: 14px;
+    margin-top: 10px;
+    color: #000000;
+}
+
+/* INPUTS */
+input {
+    margin-top: 5px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+/* BOTÃO */
+.cadastrar {
+    margin-top: 20px;
+    padding: 10px;
+    border: none;
+    border-radius: 15px;
+    background-color: #0B3C5D;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: "Montserrat Alternates", sans-serif;
+    transition: 0.3s;
+}
+
+.cadastrar:hover {
+    background-color: #1D70A2;
+    transform: scale(1.03);
+}
+
+/* TEXTOS */
+.info {
+    font-size: 12px;
+    text-align: center;
+    margin-top: 15px;
+    color: #0B3C5D;
+}
+
+.login {
+    font-size: 14px;
+    text-align: center;
+    color: #ccc;
+}
+
+.login a {
+    color: #0B3C5D;
+    font-weight: 600;
+    text-decoration: none;
+}
