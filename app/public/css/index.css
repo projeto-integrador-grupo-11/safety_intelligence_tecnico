@@ -129,6 +129,9 @@ body {
 li {
     list-style: none;
 }
+a{
+text-decoration: none;
+}
 
 .navbar li a {
     font-family: "Montserrat Alternates", sans-serif;
