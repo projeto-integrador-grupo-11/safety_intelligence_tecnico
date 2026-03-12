@@ -28,11 +28,11 @@
             </div>
 
             <ul class="nav-menu" id="nav-list">
-                <li><a href="#home">Quem somos?</a></li>
-                <li><a href="#sobre">Valores</a></li>
-                <li><a href="#empresas">Ferramentas</a></li>
+                <li><a href="#sobre">Quem somos?</a></li>
+                <li><a href="#valores">Valores</a></li>
+                <li><a href="#empresas">Ferramenta</a></li>
                 <li class="separator"><a style="cursor: default;">|</a></li>
-                <li><a href="#login">Login</a></li>
+                <li><a href="login.html">Login</a></li>
                 <li class="btn-mobile">
                     <button class="cadastrar" id="cadastrar-se"><span> Cadastrar-se </span></button>
                 </li>
@@ -45,12 +45,20 @@
     </header>
 
     <script>
-        const cadastro = document.getElementById('cadastrar-se');
+        const cadastro = document.getElementById('cadastrar-se-desk');
         if (cadastro) {
             cadastro.addEventListener('click', () => {
                 setTimeout(() => {
                     window.location.href = 'cadastro.html';
-                }, 2000);
+                }, 1000);
+            });
+        }
+        const cadastroMobile = document.getElementById('cadastrar-se');
+        if (cadastro) {
+            cadastro.addEventListener('click', () => {
+                setTimeout(() => {
+                    window.location.href = 'cadastro.html';
+                }, 1000);
             });
         }
 
@@ -59,7 +67,7 @@
         }
     </script>
 
-    <div class="imagem_fundo1">
+    <div class="imagem_fundo1" id="home">
         <img src="public/img/imagem de fundo da home.png" alt="Fundo Home">
         <div class="hero">
             <div class="hero-text">
@@ -70,16 +78,16 @@
                 <p>
                     Reduza riscos e tome decisões mais seguras baseadas em dados geoespaciais.
                 </p>
-                <button class="btn">Conheça sua solução</button>
+                <button class="btn" href="login.html">Conheça sua solução</button>
             </div>
         </div>
     </div>
 
-    <div id="degrade1">
+    <div id="degrade1" id="sobre">
         <img src="public/img/camada1.png" alt="Efeito Degradê">
     </div>
 
-    <div class="sobre_nos" id="sobre">
+    <div class="sobre_nos">
         <div class="textos">
             <h1 style="color: #4DA3D9;">SOBRE</h1>
             <h2 class="reveal reveal-left">
@@ -103,7 +111,7 @@
         <img src="public/img/camada1.png" alt="Efeito Degradê">
     </div>
 
-    <div class="imagem_fundo2">
+    <div class="imagem_fundo2" id="valores">
         <img class="bg-img" src="public/img/ideais.png" alt="Fundo Ideais">
 
         <div class="ideais">
@@ -141,7 +149,7 @@
         <img src="public/img/camada1.png" alt="Efeito Degradê">
     </div>
 
-    <div class="potencial">
+    <div class="potencial" id="empresas">
         <h1>Revele o verdadeiro potencial de cada região, use o poder dos dados ao seu favor</h1>
         <p>Otimize seu planejamento estratégico com nossa plataforma de inteligência de dados. Garanta decisões mais
             seguras, reduza riscos de investimento e identifique as melhores oportunidades de mercado. <b>Veja como
@@ -223,7 +231,7 @@
         </div>
         <p>Transformando dados em inteligência para uma segurança mais eficiente.</p>
         <div class="btns">
-            <button class="btn" id="login">Conheça sua solução</button>
+            <button class="btn" id="login" href="login.html" >Conheça sua solução</button>
             <button class="btn1" id="saiba"><span> Saiba Mais </span></button>
         </div>
     </div>
@@ -264,15 +272,15 @@
                 <h3>Sitemap</h3>
                 <ul>
                     <li><a href="#home">Home</a></li>
-                    <li><a href="#sobre">Valores</a></li>
-                    <li><a href="#empresas">Ferramentas</a></li>
-                    <li><a href="#login">Login</a></li>
+                    <li><a href="#valores">Valores</a></li>
+                    <li><a href="#empresas">Ferramenta</a></li>
+                    <li><a href="login.html">Login</a></li>
                 </ul>
             </div>
 
             <div class="footer-section contato">
                 <h3>Contato</h3>
-                <p>(11) 99999-9999</p>
+                <p>(11) 3589-4043</p>
                 <p>Safety.Intelligence@gmail.com</p>
                 <div class="social-icons">
                     <a href=""><img src="public/img/WhatsApp.svg" alt="WhatsApp"></a>

@@ -87,8 +87,8 @@ body {
 
 /* CONTAINER */
 .container {
-    width: 320px;
-    padding: 20px;
+    width: 350px;
+    padding: 25px;
     border-radius: 25px;
     background: rgba(255, 255, 255, 0.445);
     backdrop-filter: blur(12px);
