@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/public/css/index.css" />
+    <link rel="stylesheet" href="/public/css/dashboard.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <title>Dashboard</title>
+  </head>
+
+  <body>
+    <header class="fundoNav">
+      <nav class="navbar">
+        <div class="logoNav">
+          <img class="logo" src="/public/img/marca.png" alt="Logo Safety Intelligence" />
+        </div>
+
+        <ul class="nav-menu" style="margin-left: auto;">
+          <li><a href="/">Home</a></li>
+          <li><a href="/login.html">Login</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="dashboard">
+      <section class="dashboard_filtros" aria-label="Filtros">
+        <h1 class="dashboard_titulo">Dashboard</h1>
+
+        <div class="busca" id="busca_estado">
+          <label class="busca_label" for="input_estado">Pesquisar estado</label>
+          <div class="busca_campo">
+            <span class="busca_icone" aria-hidden="true">🔎</span>
+            <input
+              id="input_estado"
+              class="busca_input"
+              type="text"
+              autocomplete="off"
+              placeholder="Ex.: São Paulo ou SP"
+              aria-controls="lista_estados"
+              aria-expanded="false"
+            />
+          </div>
+
+          <div class="busca_dropdown" id="dropdown_estado" hidden>
+            <ul class="busca_lista" id="lista_estados"></ul>
+          </div>
+
+          <div class="selecionado" aria-live="polite">
+            <span class="selecionado_label">Selecionado:</span>
+            <strong class="selecionado_valor" id="estado_selecionado">—</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard_mapa" aria-label="Mapa do Brasil">
+        <div class="mapa">
+          <div class="mapa_cabecalho">
+            <h2 class="mapa_titulo">Brasil</h2>
+            <span class="mapa_dica">Clique em um estado</span>
+          </div>
+
+          <div class="mapa_conteudo" id="mapa_brasil" aria-label="Mapa interativo do Brasil"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/public/js/dashboard.js"></script>
+  </body>
+</html>
