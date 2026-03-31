@@ -8,13 +8,13 @@ body {
 .fundoNav {
     display: flex;
     flex-direction: column;
-}
-
-.fundoNav {
-
+    position: sticky;
     top: 0;
     width: 100%;
     z-index: 1000;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 1px 0 rgba(11, 60, 93, 0.08);
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
 }
 
@@ -57,6 +57,18 @@ body {
 .logoNav {
     display: flex;
     align-items: center;
+}
+
+.logo-link {
+    display: inline-flex;
+    align-items: center;
+    line-height: 0;
+}
+
+.logo-link:focus-visible {
+    outline: 2px solid #4DA3D9;
+    outline-offset: 4px;
+    border-radius: 4px;
 }
 
 .logo {
