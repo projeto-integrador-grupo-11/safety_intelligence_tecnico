@@ -4,13 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="public/css/login.css">
+    <link rel="stylesheet" href="public/css/cadastro.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
         rel="stylesheet">
-    <title>Safety Intelligence - Login</title>
+    <title>Safety Intelligence - Alterar senha</title>
 </head>
 
 <body>
@@ -30,24 +30,24 @@
                 <img src="public/img/logo.png" alt="">
             </div>
 
-            <label>Email</label>
-            <input type="email" placeholder="Digite seu email" autocomplete="username">
+            <h1 class="titulo-pagina">Alterar senha</h1>
 
-            <label>Senha</label>
-            <input type="password" placeholder="Digite sua senha" autocomplete="current-password">
+            <label for="nova-senha">Nova senha</label>
+            <input id="nova-senha" type="password" placeholder="Digite a nova senha" autocomplete="new-password">
 
-            <p class="forgot"><a href="/confirmar-email.html">Esqueceu a senha?</a></p>
+            <label for="confirmar-senha">Confirmar senha</label>
+            <input id="confirmar-senha" type="password" placeholder="Confirme a nova senha" autocomplete="new-password">
 
-            <button type="button" class="cadastrar" id="btn-entrar">Entrar</button>
+            <button type="button" class="cadastrar" id="btn-alterar-senha">Confirmar</button>
 
-            <p class="login">Ainda não tem conta? <a href="/cadastro.html">Cadastre-se</a></p>
+            <p class="login"><a href="/login.html">Voltar ao login</a></p>
 
         </div>
     </div>
 
     <script>
-        document.getElementById('btn-entrar').addEventListener('click', function () {
-            window.location.href = '/dashboard.html';
+        document.getElementById('btn-alterar-senha').addEventListener('click', function () {
+            window.location.href = '/login.html';
         });
     </script>
 

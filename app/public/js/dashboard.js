@@ -49,7 +49,7 @@ function removerSelecaoMapa(mapa) {
   selecionados.forEach((el) => el.classList.remove("selecionado"));
 }
 
-function selecionarEstado(uf, input, dropdown, valorSelecionado, mapa) {
+function selecionarEstado(uf, input, dropdown, valorSelecionado, mapa, opcoes) {
   const estado = estados.find((e) => e.uf === uf);
   if (!estado) return;
 
@@ -57,7 +57,8 @@ function selecionarEstado(uf, input, dropdown, valorSelecionado, mapa) {
   input.value = estado.nome;
   abrirDropdown(input, dropdown, false);
 
-  if (estado.uf === "SP") {
+  const ignorarRedirectSp = opcoes && opcoes.ignorarRedirectSp;
+  if (estado.uf === "SP" && !ignorarRedirectSp) {
     window.location.href = rota_dashboard_sp;
     return;
   }
@@ -142,6 +143,40 @@ function montar() {
     if (alvo === input || dropdown.contains(alvo)) return;
     abrirDropdown(input, dropdown, false);
   });
+
+  const btnFavorito = document.getElementById("btn-favorito");
+  const painelFixadas = document.getElementById("painel-fixadas");
+  const fixadasVoltar = document.getElementById("fixadas-voltar");
+  const fixadasVerDashboard = document.getElementById("fixadas-ver-dashboard");
+
+  function abrirFixadas() {
+    if (!painelFixadas) return;
+    painelFixadas.hidden = false;
+    painelFixadas.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function fecharFixadas() {
+    if (!painelFixadas) return;
+    painelFixadas.hidden = true;
+    painelFixadas.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  if (btnFavorito) {
+    btnFavorito.addEventListener("click", abrirFixadas);
+  }
+  if (fixadasVoltar) {
+    fixadasVoltar.addEventListener("click", fecharFixadas);
+  }
+  if (fixadasVerDashboard) {
+    fixadasVerDashboard.addEventListener("click", () => {
+      fecharFixadas();
+      selecionarEstado("SP", input, dropdown, valorSelecionado, mapaContainer, {
+        ignorarRedirectSp: true,
+      });
+    });
+  }
 }
 
 document.addEventListener("DOMContentLoaded", montar);

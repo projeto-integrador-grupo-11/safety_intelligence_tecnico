@@ -48,11 +48,23 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0px 60px;
+    padding: 0 60px;
     background: rgba(255, 255, 255, 0.514);
     backdrop-filter: blur(10px);
     /* border-radius: 0 0 10px 10px; */
     /* cima e baixo  */
+}
+
+.logo-link {
+    display: inline-flex;
+    align-items: center;
+    line-height: 0;
+}
+
+.logo-link:focus-visible {
+    outline: 2px solid #0B3C5D;
+    outline-offset: 4px;
+    border-radius: 4px;
 }
 
 .logo {
@@ -171,4 +183,20 @@ input {
     color: #0B3C5D;
     font-weight: 600;
     text-decoration: none;
+}
+
+.forgot {
+    text-align: center;
+    margin: 8px 0 0 0;
+    font-size: 13px;
+}
+
+.forgot a {
+    color: #0B3C5D;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.forgot a:hover {
+    color: #1D70A2;
 }

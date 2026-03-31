@@ -14,23 +14,27 @@
     <title>Dashboard</title>
   </head>
 
-  <body>
+  <body class="pagina-dashboard">
     <header class="fundoNav">
       <nav class="navbar">
         <div class="logoNav">
-          <img class="logo" src="/public/img/marca.png" alt="Logo Safety Intelligence" />
+          <a href="/index.html" class="logo-link" aria-label="Ir para o início">
+            <img class="logo" src="/public/img/marca.png" alt="Logo Safety Intelligence" />
+          </a>
         </div>
 
-        <ul class="nav-menu" style="margin-left: auto;">
-          <li><a href="/">Home</a></li>
-          <li><a href="/login.html">Login</a></li>
-        </ul>
+        <a href="/index.html" class="btn-sair-dashboard">Sair</a>
       </nav>
     </header>
 
     <main class="dashboard">
       <section class="dashboard_filtros" aria-label="Filtros">
-        <h1 class="dashboard_titulo">Dashboard</h1>
+        <div class="dashboard_filtros-cabecalho">
+          <h1 class="dashboard_titulo">Dashboard</h1>
+          <button type="button" class="btn-favorito" id="btn-favorito" aria-label="Abrir fixadas" title="Fixadas">
+            ★
+          </button>
+        </div>
 
         <div class="busca" id="busca_estado">
           <label class="busca_label" for="input_estado">Pesquisar estado</label>
@@ -69,6 +73,33 @@
         </div>
       </section>
     </main>
+
+    <div id="painel-fixadas" class="painel-fixadas" hidden aria-hidden="true">
+      <div class="painel-fixadas_inner">
+        <header class="painel-fixadas_header">
+          <button type="button" class="painel-fixadas_voltar" id="fixadas-voltar" aria-label="Voltar">←</button>
+          <h2 class="painel-fixadas_titulo">Fixadas</h2>
+          <span aria-hidden="true"></span>
+        </header>
+
+        <div class="fixadas-colunas">
+          <span class="fixadas-col-cidade">Cidade</span>
+          <span class="fixadas-col-idh">IDH</span>
+          <span class="fixadas-col-acao" aria-hidden="true"></span>
+        </div>
+
+        <div class="fixadas-lista">
+          <div class="fixadas-item">
+            <span class="fixadas-cidade">São Paulo</span>
+            <div class="fixadas-idh-bloco">
+              <span class="fixadas-idh-label">IDH</span>
+              <span class="fixadas-idh-valor"><span class="fixadas-estrela" aria-hidden="true">★</span> 0,805</span>
+            </div>
+            <button type="button" class="fixadas-btn-dash" id="fixadas-ver-dashboard">Ver Dashboard</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script src="/public/js/dashboard.js"></script>
   </body>
