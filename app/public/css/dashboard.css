@@ -78,24 +78,19 @@ body {
   box-shadow: 0 6px 16px rgba(11, 60, 93, 0.35);
 }
 
-.btn-sair-dashboard {
+.pagina-dashboard .navbar > a {
   margin-left: auto;
-  padding: 10px 22px;
-  border-radius: 14px;
-  border: 2px solid #0b3c5d;
-  background: rgba(255, 255, 255, 0.9);
-  color: #0b3c5d;
-  font-weight: 700;
-  font-size: 15px;
-  font-family: "Montserrat Alternates", sans-serif;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  line-height: 0;
 }
 
-.btn-sair-dashboard:hover {
-  background: #0b3c5d;
-  color: #fff;
+.pagina-dashboard .navbar .cadastrar.cadastrar-sair {
+  height: 44px;
+  border-radius: 16px;
+}
+
+.pagina-dashboard .navbar .cadastrar.cadastrar-sair span {
+  padding: 6px 16px;
+  font-size: 15px;
 }
 
 /* Painel Fixadas (overlay) */
@@ -288,7 +283,8 @@ body {
   }
 
   .fixadas-col-cidade,
-  .fixadas-col-idh {
+  .fixadas-col-idh,
+  .fixadas-col-acao {
     text-align: center;
   }
 }
@@ -478,4 +474,13 @@ body {
 
 #mapa_brasil svg .state.selecionado{
   fill: #4DA3D9;
+}
+
+#mapa_brasil svg .mapa-rotulos-uf .mapa-rotulo-uf {
+  fill: rgba(11, 60, 93, 0.9);
+  font-family: "Montserrat Alternates", sans-serif;
+  font-size: 8px;
+  font-weight: 700;
+  pointer-events: none;
+  user-select: none;
 }
