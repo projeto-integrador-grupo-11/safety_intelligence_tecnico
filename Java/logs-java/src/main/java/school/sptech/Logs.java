@@ -14,8 +14,8 @@ public class Logs {
         System.out.println("Digite sua senha:");
         String senhaDigitada = scanner.nextLine();
 
-        String email = "rafael.asilva@sptech.school";
-        String senha = "abacaxi123";
+        String email = "caramico@outlook.com";
+        String senha = "12345678";
 
         LocalDateTime tentativaLogin = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
