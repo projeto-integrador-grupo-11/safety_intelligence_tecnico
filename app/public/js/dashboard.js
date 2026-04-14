@@ -29,7 +29,7 @@ const estados = [
 ];
 
 // Preparado para a "segunda dashboard" de São Paulo (não criada ainda)
-const rota_dashboard_sp = "/dashboard-sp.html";
+const rota_dashboard_sp = "/dashEstado.html";
 
 function normalizar(texto) {
   return (texto || "")

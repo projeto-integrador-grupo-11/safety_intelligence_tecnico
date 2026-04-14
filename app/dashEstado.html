@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safety Intelligence</title>
+  <link rel="stylesheet" href="/public/css/dashEstado.css">
+</head>
+<body>
+
+<section class="container">
+
+  <div class="nav">
+    <span>Mapa</span>
+    <span class="estado">Estado: <strong>São Paulo</strong></span>
+    <span>Home</span>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <p>Total de <span class="red">latrocínio</span></p>
+      <h2 class="red" id="latrocinio">X</h2>
+    </div>
+
+    <div class="card">
+      <p>Roubo de veículo</p>
+      <h2 id="roubo">X</h2>
+    </div>
+
+    <div class="card">
+      <p>Total de furto</p>
+      <h2 id="furto">X</h2>
+    </div>
+
+    <div class="card legenda">
+      <p>Métrica de IDHM</p>
+      <ul>
+        <li class="verde">Muito Alto 0,800 ou mais.</li>
+        <li class="azul">Alto 0,799.</li>
+        <li class="amarelo">Médio 0,550 - 0,699.</li>
+        <li class="laranja">Baixo 0,550 - 0,599.</li>
+        <li class="vermelho">Muito Baixo Abaixo de 0,499.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="filtro">
+    <select>
+      <option>Todas as cidades</option>
+    </select>
+    <input type="text" id="busca" placeholder="Pesquisar cidade...">
+  </div>
+
+  <div class="tabela">
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>População</th>
+          <th>IDHM</th>
+          <th>Dashboard</th>
+        </tr>
+      </thead>
+      <tbody id="listaCidades"></tbody>
+    </table>
+  </div>
+
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>
+<script>
+const tabela = document.getElementById("listaCidades");
+const busca = document.getElementById("busca");
+
+// Apenas 1 cidade fixa
+let cidades = [
+  {
+    nome: "São Paulo",
+    pop: "11.451.999",
+    idhm: 0.805
+  }
+];
+
+function getCorIDHM(valor) {
+  if (valor >= 0.800) return "verde";
+  if (valor >= 0.700) return "azul";
+  if (valor >= 0.600) return "amarelo";
+  if (valor >= 0.500) return "laranja";
+  return "vermelho";
+}
+
+function render(lista) {
+  tabela.innerHTML = lista.map(c => `
+    <tr>
+      <td>${c.nome}</td>
+      <td>${c.pop}</td>
+      <td class="${getCorIDHM(c.idhm)}">${c.idhm}</td>
+      <td><button>Acessar dashboard</button></td>
+    </tr>
+  `).join("");
+}
+
+// render inicial
+render(cidades);
+
+// 🔍 busca (ainda funciona, mas só com São Paulo)
+busca.addEventListener("input", () => {
+  const termo = busca.value.toLowerCase();
+  const filtrado = cidades.filter(c =>
+    c.nome.toLowerCase().includes(termo)
+  );
+  render(filtrado);
+});
+
+// Cards com valores de exemplo
+document.getElementById("latrocinio").innerText = "120";
+document.getElementById("roubo").innerText = "45.000";
+document.getElementById("furto").innerText = "80.000";
+</script>

@@ -1,0 +1,112 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0e4a66;
+}
+
+
+.container {
+  background: #0e4a66;
+  margin: 20px auto;
+  width: 95%;
+  padding: 20px;
+  border-radius: 10px;
+  color: white;
+}
+
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #6f8fa3;
+  padding: 18px 20px; 
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 18px; 
+}
+
+/* CARDS */
+.cards {
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.card {
+  background: #1c6d93;
+  flex: 1;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.card h2 {
+  margin: 10px 0;
+}
+
+.red { color: #ff4d4d; }
+
+/* LEGENDA */
+.legenda ul {
+  list-style: none;
+  padding: 0;
+  font-size: 12px;
+}
+
+.verde { color: #00ff99; }
+.azul { color: #66ccff; }
+.amarelo { color: #ffff66; }
+.laranja { color: orange; }
+.vermelho { color: red; }
+
+/* FILTRO */
+.filtro {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.filtro input, 
+.filtro select {
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+}
+
+/* TABELA */
+.tabela {
+  max-height: 500px;
+  overflow-y: auto;
+  border-radius: 10px;
+}
+
+.tabela table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabela thead {
+  position: sticky;
+  top: 0;
+  background: #1c6d93;
+  color: white;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+}
+
+tbody tr {
+  background: #e6e6e6;
+  color: black;
+}
+
+button {
+  background: #4da6ff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
