@@ -49,7 +49,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 15px 60px;
+    padding: 5px 60px;
     flex-wrap: wrap;
     gap: 20px;
 }
@@ -159,6 +159,7 @@ text-decoration: none;
 .navbar li a:hover {
     color: #4DA3D9;
     box-shadow: 0px 0px 15px rgba(29, 112, 162, 0.7);
+    border-radius: 10px;
 }
 
 .botao {

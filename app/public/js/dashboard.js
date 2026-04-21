@@ -28,7 +28,7 @@ const estados = [
   { uf: "TO", nome: "Tocantins" },
 ];
 
-// Preparado para a "segunda dashboard" de São Paulo (não criada ainda)
+// "segunda dashboard" (São Paulo)
 const rota_dashboard_sp = "/dashEstado.html";
 
 function normalizar(texto) {
@@ -91,97 +91,39 @@ function renderizarLista(filtro, lista, input, dropdown, valorSelecionado, mapa)
   abrirDropdown(input, dropdown, true);
 }
 
-/** Ajuste fino manual (viewBox do SVG), se alguma UF ficar deslocada */
-const UF_LABEL_NUDGE = {};
-
-function parsePolygonPoints(pointsStr) {
-  if (!pointsStr) return [];
-  const raw = pointsStr
-    .trim()
-    .split(/[\s,]+/)
-    .map(Number)
-    .filter((n) => !Number.isNaN(n));
-  const pts = [];
-  for (let i = 0; i + 1 < raw.length; i += 2) {
-    pts.push({ x: raw[i], y: raw[i + 1] });
-  }
-  return pts;
-}
-
-function centroidPolygon(pts) {
-  if (pts.length < 3) return null;
-  let a = 0;
-  let cx = 0;
-  let cy = 0;
-  for (let i = 0; i < pts.length; i++) {
-    const j = (i + 1) % pts.length;
-    const cross = pts[i].x * pts[j].y - pts[j].x * pts[i].y;
-    a += cross;
-    cx += (pts[i].x + pts[j].x) * cross;
-    cy += (pts[i].y + pts[j].y) * cross;
-  }
-  a *= 0.5;
-  if (Math.abs(a) < 1e-9) return null;
-  return { x: cx / (6 * a), y: cy / (6 * a) };
-}
-
-function pontoDentroEstado(el, x, y) {
-  if (typeof el.isPointInFill !== "function") return true;
-  try {
-    return el.isPointInFill(new DOMPoint(x, y));
-  } catch {
-    return true;
-  }
-}
-
-function candidatosRotulo(el) {
-  const out = [];
-  const tag = el.tagName.toLowerCase();
-  if (tag === "polygon") {
-    const c = centroidPolygon(parsePolygonPoints(el.getAttribute("points")));
-    if (c) out.push(c);
-  }
-
-  let b;
-  try {
-    b = el.getBBox();
-  } catch {
-    return out;
-  }
-  if (!b.width || !b.height) return out;
-
-  out.push({ x: b.x + b.width / 2, y: b.y + b.height / 2 });
-  for (let gx = 0.25; gx <= 0.75; gx += 0.25) {
-    for (let gy = 0.25; gy <= 0.75; gy += 0.25) {
-      if (gx === 0.5 && gy === 0.5) continue;
-      out.push({ x: b.x + b.width * gx, y: b.y + b.height * gy });
-    }
-  }
-  return out;
-}
+/** siglas no mapa */
+const UF_LABEL_NUDGE = {
+  // ajustes manuais:
+  AP: { dx: 4, dy: 2 },
+  BA: { dx: 0, dy: -10 },
+  MG: { dx: 8, dy: 1 },
+  PA: { dx: -4, dy: 15 },
+  PI: { dx: 8, dy: 5 },
+  RJ: { dx: 4, dy: 2 },
+  RR: { dx: 4, dy: 2 },
+  RS: { dx: 4, dy: -9 },
+  SC: { dx: 8, dy: -5 },
+  TO: { dx: 1, dy: 9 },
+  
+};
 
 function melhorPontoRotulo(el, uf) {
   const nudge = UF_LABEL_NUDGE[uf] || { dx: 0, dy: 0 };
-  const cands = candidatosRotulo(el);
-  if (!cands.length) {
-    try {
-      const b = el.getBBox();
-      return { x: b.x + b.width / 2 + nudge.dx, y: b.y + b.height / 2 + nudge.dy };
-    } catch {
-      return { x: 0, y: 0 };
-    }
+
+  try {
+    const b = el.getBBox();
+    return {
+      x: b.x + b.width / 2 + nudge.dx,
+      y: b.y + b.height / 2 + nudge.dy,
+    };
+  } catch {
+    return { x: 0, y: 0 };
   }
-  for (const p of cands) {
-    if (pontoDentroEstado(el, p.x, p.y)) {
-      return { x: p.x + nudge.dx, y: p.y + nudge.dy };
-    }
-  }
-  const p = cands[0];
-  return { x: p.x + nudge.dx, y: p.y + nudge.dy };
 }
 
 function adicionarRotulosUF(svg) {
   const NS = "http://www.w3.org/2000/svg";
+
   const grupo = document.createElementNS(NS, "g");
   grupo.setAttribute("class", "mapa-rotulos-uf");
   grupo.setAttribute("pointer-events", "none");
@@ -193,11 +135,12 @@ function adicionarRotulosUF(svg) {
     const { x, y } = melhorPontoRotulo(el, uf);
 
     const text = document.createElementNS(NS, "text");
-    text.setAttribute("x", String(x));
-    text.setAttribute("y", String(y));
+    text.setAttribute("x", x);
+    text.setAttribute("y", y);
     text.setAttribute("text-anchor", "middle");
     text.setAttribute("dominant-baseline", "middle");
     text.setAttribute("class", "mapa-rotulo-uf");
+
     text.textContent = uf;
     grupo.appendChild(text);
   });
