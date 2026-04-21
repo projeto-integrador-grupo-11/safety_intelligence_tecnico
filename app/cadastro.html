@@ -35,7 +35,8 @@
             <input type="text" id="ipt_nome" placeholder="Digite seu nome">
 
             <label>E-mail</label>
-            <input type="email" placeholder="Digite seu e-mail">
+            <input type="email" oninput="analisarEmail()" id="ipt_email" placeholder="Digite seu e-mail">
+            <div id="div_email"></div>
 
             <label>Senha</label>
             <input oninput="validarSenha()" id="ipt_senha"  type="password" placeholder="Digite sua senha">
