@@ -32,18 +32,20 @@
             </div>
 
             <label>Nome de usuário</label>
-            <input type="text" placeholder="Digite seu nome">
+            <input type="text" id="ipt_nome" placeholder="Digite seu nome">
 
             <label>E-mail</label>
             <input type="email" placeholder="Digite seu e-mail">
 
             <label>Senha</label>
-            <input type="password" placeholder="Digite sua senha">
+            <input oninput="validarSenha()" id="ipt_senha"  type="password" placeholder="Digite sua senha">
+            <div id="div_senha" style="font-size: 13px"></div>
 
             <label>Confirmar senha</label>
-            <input type="password" placeholder="Confirme sua senha">
+            <input oninput="confirmarSenha()" id="ipt_confSenha"  type="password" placeholder="Confirme sua senha">
+            <div id="div_confirmSenha"></div>
 
-            <button class="cadastrar">Cadastrar</button>
+            <button onclick="cadastrar()" class="cadastrar">Cadastrar</button>
 
             <p class="info">Preencha os dados para utilizar nosso serviço</p>
             <p class="login">Já tem conta? <a href="/login.html">Login</a></p>
@@ -54,3 +56,177 @@
 </body>
 
 </html>
+
+<script>
+
+
+    function index() {
+        window.location.href = 'index.html'
+    }
+    var listaCaracteres = ['!', '@', '#', '$', '%', '&', '*'];
+    var listaNumeros = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+
+    // Variáveis de validação de cadastro
+    var emailValido = false;
+    var senhaValida = false;
+    var confirmValido = false;
+
+
+    function cadastrar() {
+        // Variavel do campo token
+
+
+        // Validação dos tokens cadastrados no Banco de Dados + validações dos campos preechidos para efetuar cadastro
+        if (senhaValida && confirmValido && emailValido) {
+
+
+            var nome = ipt_nome.value;
+            var email = ipt_email.value;
+            var senha = ipt_senha.value;
+
+
+            fetch("http://localhost:3333/usuarios/cadastrar", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    // crie um atributo que recebe o valor recuperado aqui
+                    // Agora vá para o arquivo routes/usuario.js
+                //  nomeServer: nome,
+                    emailServer: email,
+                    senhaServer: senha
+                }),
+            })
+                .then(function (resposta) {
+                    console.log("resposta: ", resposta);
+
+                    if (resposta.ok) {
+                        alert(
+                            "Cadastro realizado com sucesso! Redirecionando para tela de Login...");
+
+                        setTimeout(() => {
+                            window.location = "login.html";
+                        }, "2000");
+
+                    } else {
+                        throw "Houve um erro ao tentar realizar o cadastro!";
+                    }
+                })
+                .catch(function (resposta) {
+                    console.log(`#ERRO: ${resposta}`);
+                 //   finalizarAguardar();
+                });
+
+            return false;
+        }
+
+
+    }
+
+
+    function analisarEmail() {
+        // Variável do campo email
+        var email = ipt_email.value;
+
+        if (!email.includes('@')) {
+            div_email.innerHTML = '<span style="color:red">Incluir @</span>'
+        } else {
+            emailValido = true;
+            div_email.innerHTML = '';
+        }
+
+        if (email == '') {
+            div_email.innerHTML = '';
+        }
+    }
+
+    function validarSenha() {
+        // Variável do campo senha
+        var senha = ipt_senha.value;
+
+        // Variáveis de configuração
+        var tamanhoSenha = senha.length;
+        var cont1 = 0;
+        var cont2 = 0;
+        var mensagem = "";
+
+        // Valores booleanos com padrões de senha
+        var tamanhoValido = false;
+        var caractereValido = false;
+        var numeroValido = false;
+        var minusculoValido = false;
+        var maiusculoValido = false;
+
+        // Mínimo 8 caracteres - validação quando o padrão é atingido
+        if (tamanhoSenha < 8) {
+            mensagem += `<span style="color:red"> 8 caracteres </span>, `;
+        } else {
+            tamanhoValido = true;
+        }
+
+        // Mínimo um caractere especial - validação quando o padrão é atingido
+        // Usando while até o includes validar todos os caracteres da Lista de Caracteres Especiais
+        while (cont1 < listaCaracteres.length) {
+            if (senha.includes(listaCaracteres[cont1])) {
+                caractereValido = true;
+            }
+            cont1++;
+        } if (!caractereValido) {
+            mensagem += `<span style="color:red"> 1 especial </span>, `;
+        }
+
+        // Mínimo um número - validação quando o padrão é atingido
+        // Usando while até o includes validar todos os número da Lista de Números
+        while (cont2 < listaNumeros.length) {
+            if (senha.includes(listaNumeros[cont2])) {
+                numeroValido = true;
+            }
+            cont2++;
+        } if (!numeroValido) {
+            mensagem += `<span style="color:red"> 1 número</span>, `;
+        }
+
+        // Mínimo uma letra maiúscula - validação quando o padrão é atingido
+        if (senha == senha.toLowerCase()) {
+            mensagem += '<span style="color:red"> 1 Maiúscula</span>, ';
+        } else {
+            maiusculoValido = true;
+        }
+
+        // Mínimo uma letra minúscula - validação quando o padrão é atingido
+        if (senha == senha.toUpperCase()) {
+            mensagem += '<span style="color:red">1 Minúscula</span>';
+        } else {
+            minusculoValido = true;
+        }
+
+        div_senha.innerHTML = mensagem;
+
+        // Validação geral 
+        if (tamanhoValido && caractereValido && numeroValido && maiusculoValido && minusculoValido) {
+            senhaValida = true;
+        }
+    }
+
+    function confirmarSenha() {
+        // Variáveis do campo confirmar senha
+        var senha = ipt_senha.value;
+        var confirmSenha = ipt_confSenha.value;
+
+        // Variável de configuração
+        var validacao = "";
+
+        if (senha != confirmSenha) {
+            validacao = '<span style="color:red">Senha Incorreta</span>';
+        } else {
+            confirmValido = true;
+        }
+
+        if (confirmSenha == '') {
+            validacao = "";
+        }
+
+        div_confirmSenha.innerHTML = validacao;
+    }
+</script>
