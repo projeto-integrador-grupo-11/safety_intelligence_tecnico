@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safety Intelligence</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+  :root {
+  /* BASE */
+  --bg: #0F1115;
+  --surface: #151821;
+  --card: #1A1F2B;
+
+  /* BORDERS */
+  --border: #232938;
+  --border2: #2A3142;
+  --border3: #313A4F;
+
+  /* PRIMARY (neutro, não dominante) */
+  --primary: #6366F1; /* indigo */
+  --primary-dim: rgba(99,102,241,0.12);
+  --primary-glow: rgba(99,102,241,0.25);
+
+  /* SEMANTIC (ESSENCIAL) */
+  --green: #22C55E;
+  --green-dim: rgba(34,197,94,0.12);
+
+  --yellow: #f5f10b;
+  --yellow-dim: rgba(245,158,11,0.12);
+
+  --red: #EF4444;
+  --red-dim: rgba(239,68,68,0.12);
+
+  /* TEXT (MUITO IMPORTANTE) */
+  --t1: #E5E7EB;  /* principal */
+  --t2: #9CA3AF;  /* secundário */
+  --t3: #6B7280;  /* muted */
+  --t4: #374151;  /* linhas */
+
+  /* LAYOUT */
+  --sidebar: 220px;
+  --topbar: 60px;
+
+  /* RADIUS */
+  --r: 16px;
+  --r-sm: 10px;
+  --r-xs: 7px;
+}
+
+    html,
+    body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--t1);
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden
+    }
+
+    /* LAYOUT */
+    .shell {
+      display: grid;
+      grid-template-rows: var(--topbar) 2fr;
+      height: 100vh
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      grid-row: 1/-1;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden
+    }
+
+    .sidebar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent)
+    }
+
+    .sb-brand {
+      height: var(--topbar);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0
+    }
+
+    .sb-logo {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+      box-shadow: 0 0 18px rgba(59, 130, 246, 0.4);
+      flex-shrink: 0
+    }
+
+    .sb-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--t1)
+    }
+
+    .sb-tag {
+      font-size: 9px;
+      font-family: 'DM Mono', monospace;
+      color: var(--t4);
+      letter-spacing: .1em;
+      text-transform: uppercase
+    }
+
+    .sb-nav {
+      padding: 18px 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      overflow-y: auto
+    }
+
+    .sb-sec {
+      font-size: 9px;
+      font-family: 'DM Mono', monospace;
+      color: var(--t4);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 0 10px;
+      margin: 12px 0 4px
+    }
+
+    .sb-sec:first-child {
+      margin-top: 0
+    }
+
+    .sb-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 10px;
+      border-radius: var(--r-xs);
+      cursor: pointer;
+      transition: all .18s;
+      color: var(--t3);
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      position: relative
+    }
+
+    .sb-item:hover {
+      background: rgba(59, 130, 246, 0.06);
+      color: var(--t2)
+    }
+
+    .sb-item.active {
+      background: rgba(59, 130, 246, 0.11);
+      color: var(--blue)
+    }
+
+    .sb-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 25%;
+      bottom: 25%;
+      width: 2px;
+      background: var(--blue);
+      border-radius: 2px;
+      box-shadow: 0 0 8px var(--blue-glow)
+    }
+
+    .sb-icon {
+      font-size: 13px;
+      width: 16px;
+      text-align: center;
+      flex-shrink: 0
+    }
+
+    .sb-badge {
+      margin-left: auto;
+      font-size: 9px;
+      font-family: 'DM Mono', monospace;
+      background: var(--red-dim);
+      color: var(--red);
+      border-radius: 4px;
+      padding: 2px 6px
+    }
+
+    .sb-footer {
+      padding: 14px 10px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0
+    }
+
+    .city-sel {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      padding: 9px 11px;
+      cursor: pointer;
+      transition: all .2s
+    }
+
+    .city-sel:hover {
+      border-color: var(--blue)
+    }
+
+    .city-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 7px var(--green);
+      flex-shrink: 0
+    }
+
+    .city-nm {
+      font-size: 12.5px;
+      font-weight: 600;
+      flex: 1
+    }
+
+    .city-ch {
+      font-size: 10px;
+      color: var(--t3)
+    }
+
+    /* TOPBAR */
+    .topbar {
+      grid-column: 2;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      position: relative;
+      z-index: 20
+    }
+
+    .tb-l {
+      display: flex;
+      align-items: center;
+      gap: 18px
+    }
+
+    .tb-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--t1);
+      letter-spacing: -.01em
+    }
+
+    .tb-crumb {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--t4)
+    }
+
+    .tb-crumb span {
+      color: var(--t3)
+    }
+
+    .tb-r {
+      display: flex;
+      align-items: center;
+      gap: 9px
+    }
+
+    .tb-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--t2);
+      transition: all .2s
+    }
+
+    .tb-pill:hover {
+      border-color: var(--border3);
+      color: var(--t1)
+    }
+
+    .tb-btn {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.22);
+      color: var(--blue);
+      border-radius: var(--r-xs);
+      padding: 6px 14px;
+      font-size: 11.5px;
+      font-weight: 600;
+      font-family: 'Syne', sans-serif;
+      cursor: pointer;
+      transition: all .2s;
+      letter-spacing: .02em
+    }
+
+    .tb-btn:hover {
+      background: rgba(59, 130, 246, 0.18);
+      box-shadow: 0 0 14px rgba(59, 130, 246, 0.2)
+    }
+
+    /* MAIN */
+    .main {
+      grid-column: 2;
+      overflow-y: auto;
+      padding: 22px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      background: var(--bg)
+    }
+
+    ::-webkit-scrollbar {
+      width: 3px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 3px
+    }
+
+    /* INSIGHT BANNER */
+    .banner {
+      background: linear-gradient(110deg, rgba(16, 185, 129, 0.06) 0%, rgba(59, 130, 246, 0.04) 60%, transparent 100%);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: var(--r);
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .3s, box-shadow .3s;
+      cursor: default;
+      flex-shrink: 0;
+    }
+
+    .banner:hover {
+      border-color: rgba(16, 185, 129, 0.32);
+      box-shadow: 0 6px 28px rgba(0, 0, 0, .35)
+    }
+
+    .banner::before {
+      content: '';
+      position: absolute;
+      right: -30px;
+      top: -30px;
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.07), transparent 70%);
+      pointer-events: none
+    }
+
+    .bn-icon img{
+      width: 25px;
+      height: 25px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0
+    }
+
+    .bn-body {
+      flex: 1;
+      min-width: 0
+    }
+
+    .bn-tag {
+      font-size: 9px;
+      font-family: 'DM Mono', monospace;
+      color: var(--green);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 3px
+    }
+
+    .bn-text {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--t1);
+      line-height: 1.4
+    }
+
+    .bn-text strong {
+      color: var(--green)
+    }
+
+    .bn-text em {
+      color: var(--yellow);
+      font-style: normal
+    }
+
+    .bn-pills {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 7px;
+      flex-wrap: wrap
+    }
+
+    .bn-pill {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      border-radius: 5px;
+      padding: 3px 8px;
+      border: 1px solid
+    }
+
+    .bn-pill.g {
+      background: var(--green-dim);
+      border-color: rgba(16, 185, 129, 0.22);
+      color: var(--green)
+    }
+
+    .bn-pill.b {
+      background: var(--blue-dim);
+      border-color: rgba(59, 130, 246, 0.22);
+      color: var(--blue)
+    }
+
+    .bn-pill.y {
+      background: var(--yellow-dim);
+      border-color: rgba(245, 158, 11, 0.22);
+      color: var(--yellow)
+    }
+
+    .bn-close {
+      color: var(--t4);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 2px 6px;
+      line-height: 1;
+      transition: color .2s;
+      flex-shrink: 0;
+      align-self: flex-start
+    }
+
+    .bn-close:hover {
+      color: var(--t2)
+    }
+
+    /* KPI */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+      flex-shrink: 0
+    }
+
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      transition: transform .28s ease, box-shadow .28s ease, border-color .22s;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, .5);
+      border-color: var(--border2)
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none
+    }
+
+    .kpi-card.c-blue::before {
+      background: radial-gradient(ellipse at 0% 0%, rgba(59, 130, 246, 0.05), transparent 60%)
+    }
+
+    .kpi-card.c-yellow::before {
+      background: radial-gradient(ellipse at 0% 0%, rgba(245, 158, 11, 0.06), transparent 60%)
+    }
+
+    .kpi-card.c-green::before {
+      background: radial-gradient(ellipse at 0% 0%, rgba(16, 185, 129, 0.06), transparent 60%)
+    }
+
+    .kpi-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px
+    }
+
+    .kpi-lbl {
+      font-size: 10.5px;
+      font-family: 'DM Mono', monospace;
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: .09em
+    }
+
+    .kpi-rank {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      font-weight: 500;
+      border-radius: 5px;
+      padding: 3px 8px;
+      border: 1px solid
+    }
+
+    .r-b {
+      background: var(--blue-dim);
+      border-color: rgba(59, 130, 246, 0.22);
+      color: var(--blue)
+    }
+
+    .r-y {
+      background: var(--yellow-dim);
+      border-color: rgba(245, 158, 11, 0.22);
+      color: var(--yellow)
+    }
+
+    .r-g {
+      background: var(--green-dim);
+      border-color: rgba(16, 185, 129, 0.22);
+      color: var(--green)
+    }
+
+    .kpi-main {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 5px
+    }
+
+    .kpi-val {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      line-height: 1;
+      color: var(--t1);
+      font-feature-settings: 'tnum';
+      font-variant-numeric: tabular-nums
+    }
+
+    .kpi-delta {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11.5px;
+      font-weight: 600;
+      font-family: 'DM Mono', monospace;
+      border-radius: 5px;
+      padding: 3px 7px;
+      white-space: nowrap;
+      border: 1px solid
+    }
+
+    .d-up {
+      background: var(--green-dim);
+      border-color: rgba(16, 185, 129, 0.2);
+      color: var(--green)
+    }
+
+    .d-mid {
+      background: var(--yellow-dim);
+      border-color: rgba(245, 158, 11, 0.2);
+      color: var(--yellow)
+    }
+
+    .kpi-ctx {
+      font-size: 11px;
+      color: var(--t3);
+      line-height: 1.45;
+      margin-bottom: 14px
+    }
+
+    .kpi-ctx strong {
+      color: var(--t2);
+      font-weight: 600
+    }
+
+    .kpi-cmp {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap
+    }
+
+    .cmp-item {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      color: var(--t4);
+      display: flex;
+      align-items: center;
+      gap: 4px
+    }
+
+    .cmp-sep {
+      width: 1px;
+      height: 9px;
+      background: var(--border2)
+    }
+
+    .cmp-v {
+      color: var(--t3)
+    }
+
+    .kpi-bar {
+      height: 3px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: visible;
+      position: relative
+    }
+
+    .kpi-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 1.5s cubic-bezier(.4, 0, .2, 1)
+    }
+
+    .kpi-bar-mark {
+      position: absolute;
+      top: -3px;
+      bottom: -3px;
+      width: 1px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 1px
+    }
+
+    .kpi-bar-mark::after {
+      content: attr(data-label);
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 8px;
+      font-family: 'DM Mono', monospace;
+      color: var(--t4);
+      white-space: nowrap
+    }
+
+    /* CHARTS */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 14px
+    }
+
+    .ch-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .28s, box-shadow .28s, border-color .22s;
+    }
+
+    .ch-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, .45);
+      border-color: var(--border2)
+    }
+
+    .ch-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 3px
+    }
+
+    .ch-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--t1)
+    }
+
+    .ch-sub {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      color: var(--t4);
+      margin-bottom: 14px
+    }
+
+    .ch-badge {
+      font-size: 9px;
+      font-family: 'DM Mono', monospace;
+      color: var(--blue);
+      background: var(--blue-dim);
+      border: 1px solid rgba(59, 130, 246, 0.18);
+      border-radius: 5px;
+      padding: 3px 8px;
+      white-space: nowrap;
+      letter-spacing: .06em
+    }
+
+    .ch-canvas {
+      position: relative;
+      height: 180px
+    }
+
+    .ch-ann {
+      position: absolute;
+      font-size: 8.5px;
+      font-family: 'DM Mono', monospace;
+      color: var(--green);
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.22);
+      border-radius: 5px;
+      padding: 2px 7px;
+      white-space: nowrap;
+      pointer-events: none;
+      display: none;
+    }
+
+    .ch-stats {
+      display: flex;
+      gap: 0;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border)
+    }
+
+    .ch-stat {
+      flex: 1;
+      padding: 0 4px;
+      border-right: 1px solid var(--border)
+    }
+
+    .ch-stat:last-child {
+      border-right: none
+    }
+
+    .ch-sv {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--t1);
+      letter-spacing: -.02em;
+      line-height: 1
+    }
+
+    .ch-sl {
+      font-size: 9px;
+      font-family: 'DM Mono', monospace;
+      color: var(--t4);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-top: 2px
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+
+
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="tb-l">
+        <div class="tb-title">IDH Overview</div>
+        <div class="tb-crumb">/ <span>São Paulo</span> / <span>2024</span></div>
+      </div>
+      <div class="tb-r">
+        <div class="tb-pill">📅 2000 – 2024 ▾</div>
+        <div class="tb-pill">🏙️ vs Média Estadual ▾</div>
+        <button class="tb-btn">↓ Exportar</button>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- INSIGHT BANNER -->
+      <div class="banner" id="banner">
+        <div class="bn-icon"><img src="public/img/Alarm.svg"></div>
+        <div class="bn-body">
+          <div class="bn-tag">Principal Insight · 2024</div>
+          <div class="bn-text">
+            IDH de São Paulo cresceu <strong>+12% desde 2000</strong>, liderado por Renda (+18%).
+            <em>Educação permanece o gargalo crítico</em> — único índice abaixo de 0,600 e abaixo da média estadual.
+          </div>
+          <div class="bn-pills">
+            <span class="bn-pill g">▲ Renda em destaque</span>
+            <span class="bn-pill y">■ Educação: ação requerida</span>
+            <span class="bn-pill b">↑ Tendência geral positiva</span>
+          </div>
+        </div>
+        <div class="bn-close" onclick="document.getElementById('banner').style.display='none'">×</div>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="kpi-grid">
+
+        <!-- Longevidade -->
+        <div class="kpi-card c-blue">
+          <div class="kpi-head">
+            <div class="kpi-lbl">Longevidade</div>
+            <div class="kpi-rank r-b">3° no Estado</div>
+          </div>
+          <div class="kpi-main">
+            <div class="kpi-val" id="kv1">0,000</div>
+          </div>
+          <div class="kpi-ctx">Top <strong>8% do estado</strong> · Expectativa média <strong>74,2 anos</strong></div>
+          <div class="kpi-cmp">
+            <div class="cmp-item">Média SP: <span class="cmp-v">0,741</span></div>
+            <div class="cmp-sep"></div>
+            <div class="cmp-item">2020: <span class="cmp-v">0,730</span></div>
+            <div class="cmp-sep"></div>
+            <div class="cmp-item">2000: <span class="cmp-v">0,680</span></div>
+          </div>
+          <div class="kpi-bar">
+            <div class="kpi-bar-fill" id="pb1" style="width:0%;background:linear-gradient(90deg,#3B82F6,#60A5FA)"></div>
+            <div class="kpi-bar-mark" style="left:74.1%" data-label="média"></div>
+          </div>
+        </div>
+
+        <!-- Educação -->
+        <div class="kpi-card c-yellow">
+          <div class="kpi-head">
+            <div class="kpi-lbl">Educação</div>
+            <div class="kpi-rank r-y">5° no Estado</div>
+          </div>
+          <div class="kpi-main">
+            <div class="kpi-val" id="kv2">0,000</div>
+          
+          </div>
+          <div class="kpi-ctx"><strong style="color:var(--yellow)">Atenção:</strong> abaixo da média estadual —
+            progressão lenta nos últimos 3 anos</div>
+          <div class="kpi-cmp">
+            <div class="cmp-item">Média SP: <span class="cmp-v" style="color:var(--yellow)">0,611</span></div>
+            <div class="cmp-sep"></div>
+            <div class="cmp-item">2020: <span class="cmp-v">0,570</span></div>
+            <div class="cmp-sep"></div>
+            <div class="cmp-item">2000: <span class="cmp-v">0,490</span></div>
+          </div>
+          <div class="kpi-bar">
+            <div class="kpi-bar-fill" id="pb2" style="width:0%;background:linear-gradient(90deg,#F59E0B,#FCD34D)"></div>
+            <div class="kpi-bar-mark" style="left:61.1%" data-label="média"></div>
+          </div>
+        </div>
+
+        <!-- Renda -->
+        <div class="kpi-card c-green">
+          <div class="kpi-head">
+            <div class="kpi-lbl">Renda</div>
+            <div class="kpi-rank r-g">4° no Estado</div>
+          </div>
+          <div class="kpi-main">
+            <div class="kpi-val" id="kv3">0,000</div>
+          </div>
+          <div class="kpi-ctx">Próximo de <strong>"Muito Alto"</strong> · Maior crescimento entre as 3 dimensões</div>
+          <div class="kpi-cmp">
+            <div class="cmp-item">Média SP: <span class="cmp-v">0,768</span></div>
+            <div class="cmp-sep"></div>
+            <div class="cmp-item">2020: <span class="cmp-v">0,755</span></div>
+            <div class="cmp-sep"></div>
+            <div class="cmp-item">2000: <span class="cmp-v">0,677</span></div>
+          </div>
+          <div class="kpi-bar">
+            <div class="kpi-bar-fill" id="pb3" style="width:0%;background:linear-gradient(90deg,#10B981,#34D399)"></div>
+            <div class="kpi-bar-mark" style="left:76.8%" data-label="média"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CHARTS -->
+      <div class="charts-row">
+
+        <!-- IDH Line -->
+        <div class="ch-card">
+          <div class="ch-head">
+            <div>
+              <div class="ch-title">Evolução do IDH · São Paulo</div>
+              <div class="ch-sub">Índice consolidado ao longo do tempo · dado oficial PNUD</div>
+            </div>
+            <div class="ch-badge">2000 – 2024</div>
+          </div>
+          <div class="ch-canvas">
+            <canvas id="idhChart"></canvas>
+            <div class="ch-ann" id="idhAnn">↑ Maior salto: 2012–2015</div>
+          </div>
+          <div class="ch-stats">
+            <div class="ch-stat">
+              <div class="ch-sv" style="color:var(--green)">+17,4%</div>
+              <div class="ch-sl">Crescimento Total</div>
+            </div>
+            <div class="ch-stat">
+              <div class="ch-sv">0,848</div>
+              <div class="ch-sl">Valor 2024</div>
+            </div>
+            <div class="ch-stat">
+              <div class="ch-sv" style="color:var(--blue)">+0,019</div>
+              <div class="ch-sl">Média Anual</div>
+            </div>
+            <div class="ch-stat">
+              <div class="ch-sv" style="color:var(--yellow)">2012</div>
+              <div class="ch-sl">Maior Salto</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Furto Bar -->
+        <div class="ch-card">
+          <div class="ch-head">
+            <div>
+              <div class="ch-title">Ocorrências de Furto</div>
+              <div class="ch-sub">Dados anuais · São Paulo · linha = média histórica</div>
+            </div>
+            <div class="ch-badge">2018 – 2024</div>
+          </div>
+          <div class="ch-canvas">
+            <canvas id="furtoChart"></canvas>
+          </div>
+          <div class="ch-stats">
+            <div class="ch-stat">
+              <div class="ch-sv" style="color:var(--blue)">358k</div>
+              <div class="ch-sl">Total 2024</div>
+            </div>
+            <div class="ch-stat">
+              <div class="ch-sv" style="color:var(--yellow)">341k</div>
+              <div class="ch-sl">Média Histórica</div>
+            </div>
+            <div class="ch-stat">
+              <div class="ch-sv" style="color:var(--green)">258k</div>
+              <div class="ch-sl">Mínimo (2020)</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // COUNT-UP
+    function countUp(el, target, dec, dur) {
+      const start = performance.now();
+      (function step(now) {
+        const p = Math.min((now - start) / dur, 1);
+        const e = 1 - Math.pow(1 - p, 4);
+        const v = target * e;
+        el.textContent = v.toFixed(dec).replace('.', ',');
+        if (p < 1) requestAnimationFrame(step);
+        else el.textContent = target.toFixed(dec).replace('.', ',');
+      })(start);
+    }
+
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        countUp(document.getElementById('kv1'), 0.756, 3, 1300);
+        countUp(document.getElementById('kv2'), 0.589, 3, 1300);
+        countUp(document.getElementById('kv3'), 0.799, 3, 1300);
+        setTimeout(() => { document.getElementById('pb1').style.width = '75.6%' }, 150);
+        setTimeout(() => { document.getElementById('pb2').style.width = '58.9%' }, 300);
+        setTimeout(() => { document.getElementById('pb3').style.width = '79.9%' }, 450);
+      }, 250);
+    });
+
+    // CHART DEFAULTS
+    Chart.defaults.color = '#3D5278';
+    Chart.defaults.borderColor = '#172236';
+    Chart.defaults.font.family = "'DM Mono', monospace";
+    Chart.defaults.font.size = 10;
+
+    const tt = {
+      backgroundColor: '#0C1422',
+      borderColor: '#1E2F47',
+      borderWidth: 1,
+      titleColor: '#ECF0FA',
+      bodyColor: '#8FA3C2',
+      padding: 12,
+      cornerRadius: 10,
+      displayColors: false,
+      titleFont: { family: "'Syne', sans-serif", size: 13, weight: '700' },
+      bodyFont: { family: "'DM Mono', monospace", size: 11 },
+    };
+
+    // IDH LINE
+    const idhCtx = document.getElementById('idhChart').getContext('2d');
+    const idhY = [0.722, 0.740, 0.755, 0.775, 0.783, 0.800, 0.814, 0.830, 0.848];
+    const idhX = ['2000', '2003', '2006', '2009', '2012', '2015', '2018', '2021', '2024'];
+    const gG = idhCtx.createLinearGradient(0, 0, 0, 180);
+    gG.addColorStop(0, 'rgba(16,185,129,0.2)');
+    gG.addColorStop(0.65, 'rgba(16,185,129,0.05)');
+    gG.addColorStop(1, 'rgba(16,185,129,0)');
+
+    const idhChart = new Chart(idhCtx, {
+      type: 'line',
+      data: {
+        labels: idhX,
+        datasets: [{
+          data: idhY,
+          borderColor: '#10B981',
+          borderWidth: 2.5,
+          pointRadius: idhY.map((_, i) => i === idhY.length - 1 ? 6 : 3),
+          pointBackgroundColor: idhY.map((_, i) => i === idhY.length - 1 ? '#10B981' : '#0F1B2D'),
+          pointBorderColor: '#10B981',
+          pointBorderWidth: 2,
+          pointHoverRadius: 7,
+          fill: true,
+          backgroundColor: gG,
+          tension: 0.42,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: { duration: 1400, easing: 'easeInOutQuart' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            ...tt,
+            callbacks: {
+              title: c => 'IDH · ' + c[0].label,
+              label: c => 'Índice: ' + c.parsed.y.toFixed(3),
+              afterLabel: c => {
+                const i = c.dataIndex;
+                if (i === 0) return 'Referência base';
+                const d = (idhY[i] - idhY[i - 1]).toFixed(3);
+                return '▲ +' + d + ' vs período anterior';
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { color: '#172236', drawTicks: false }, border: { display: false }, ticks: { color: '#3D5278', maxRotation: 0 } },
+          y: { min: 0.70, max: 0.88, grid: { color: '#172236', drawTicks: false }, border: { display: false }, ticks: { color: '#3D5278', callback: v => v.toFixed(2) } }
+        },
+        onHover: (e, els) => {
+          const ann = document.getElementById('idhAnn');
+          if (els.length && els[0].index === 4) {
+            const el = els[0].element;
+            ann.style.display = 'block';
+            ann.style.top = Math.max(0, el.y - 28) + 'px';
+            ann.style.left = Math.max(0, el.x - 85) + 'px';
+          } else { ann.style.display = 'none' }
+        }
+      }
+    });
+
+    // FURTO BAR
+    const furtoCtx = document.getElementById('furtoChart').getContext('2d');
+    const furtoD = [401000, 390000, 258000, 265000, 342000, 372000, 358000];
+    const avg = furtoD.reduce((a, b) => a + b, 0) / furtoD.length;
+
+    new Chart(furtoCtx, {
+      type: 'bar',
+      data: {
+        labels: ['2018', '2019', '2020', '2021', '2022', '2023', '2024'],
+        datasets: [
+          {
+            type: 'bar',
+            data: furtoD,
+            backgroundColor: furtoD.map((v, i) => {
+              if (i === furtoD.length - 1) return 'rgba(59,130,246,0.65)';
+              if (v > avg + 25000) return 'rgba(239,68,68,0.45)';
+              if (v < avg - 40000) return 'rgba(16,185,129,0.45)';
+              return 'rgba(59,130,246,0.3)';
+            }),
+            borderColor: furtoD.map((v, i) => {
+              if (i === furtoD.length - 1) return '#3B82F6';
+              if (v > avg + 25000) return '#EF4444';
+              if (v < avg - 40000) return '#10B981';
+              return 'rgba(59,130,246,0.6)';
+            }),
+            borderWidth: 1.5,
+            borderRadius: 6,
+            borderSkipped: false,
+            hoverBackgroundColor: 'rgba(59,130,246,0.8)',
+          },
+          {
+            type: 'line',
+            data: Array(furtoD.length).fill(avg),
+            borderColor: 'rgba(245,158,11,0.5)',
+            borderWidth: 1.5,
+            borderDash: [5, 4],
+            pointRadius: 0,
+            fill: false,
+            tension: 0,
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: { duration: 1200, easing: 'easeInOutQuart' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            ...tt,
+            filter: item => item.datasetIndex === 0,
+            callbacks: {
+              title: c => 'Furtos · ' + c[0].label,
+              label: c => 'Ocorrências: ' + (c.parsed.y / 1000).toFixed(0) + 'k',
+              afterLabel: c => {
+                const diff = c.parsed.y - avg;
+                const pct = Math.abs((diff / avg) * 100).toFixed(1);
+                return (diff > 0 ? '▲ +' : '▼ -') + pct + '% vs média histórica';
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, border: { display: false }, ticks: { color: '#3D5278' } },
+          y: { grid: { color: '#172236', drawTicks: false }, border: { display: false }, ticks: { color: '#3D5278', callback: v => v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v } }
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
