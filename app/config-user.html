@@ -1,0 +1,83 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurações</title>
+  <link rel="stylesheet" href="public/css/config.css">
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="logo">
+      <img src="public/img/logo.png">
+    </div>
+
+    <nav class="menu">
+      <div class="item active">
+        <span>👤</span>
+        <p>Perfil</p>
+      </div>
+
+      <div class="item">
+        <span>🔒</span>
+        <p>Segurança</p>
+      </div>
+    </nav>
+
+    <button class="logout">Sair</button>
+  </aside>
+
+  <main class="main">
+
+    <div class="header">
+      <h1>Configurações de Usuário</h1>
+      <span>Gerencie suas informações e preferências</span>
+    </div>
+
+    <section class="card">
+      <h3>Informações Pessoais</h3>
+      <small>Atualize seus dados pessoais e foto de perfil</small>
+
+      <div class="perfil">
+        <div class="avatar"></div>
+
+        <div class="inputs">
+          <div class="linha">
+            <input placeholder="Nome completo">
+            <input placeholder="Email">
+          </div>
+
+          <div class="linha">
+            <input placeholder="Cargo">
+            <input placeholder="Indústria">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Segurança</h3>
+      <small>Altere sua senha e configure autenticação</small>
+
+      <div class="seguranca">
+        <input placeholder="Senha atual">
+        <input placeholder="Nova senha">
+        <input placeholder="Confirmar senha">
+
+        <button class="btn-dark">Alterar senha</button>
+      </div>
+    </section>
+
+    <div class="acoes">
+      <button class="btn-light">Cancelar</button>
+      <button class="btn-dark">Salvar alterações</button>
+    </div>
+
+  </main>
+
+</body>
+</html>
+
+

@@ -1,0 +1,161 @@
+
+/* config.css - ajustado fiel ao layout da imagem */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  display: flex;
+  height: 100vh;
+  background: linear-gradient(90deg, #5aa3c6, #3f8fb4);
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 220px;
+  background: #5aa3c6;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.logo img {
+  width: 140px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  cursor: pointer;
+}
+
+.item.active {
+  font-weight: bold;
+}
+
+.logout {
+  background: #1e4f66;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* MAIN */
+.main {
+  flex: 1;
+  padding: 30px;
+  color: #fff;
+  background: #2c7da0;
+}
+
+.header h1 {
+  font-size: 20px;
+}
+
+.header span {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* CARDS */
+.card {
+  background: #5aa3c6;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.card h3 {
+  margin-bottom: 5px;
+}
+
+.card small {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* PERFIL */
+.perfil {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-top: 15px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #ddd;
+}
+
+.inputs {
+  width: 100%;
+}
+
+.linha {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+/* INPUT */
+input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  width: 250px;
+  border: 1px solid #ccc;
+}
+
+/* SEGURANÇA */
+.seguranca {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* BOTÕES */
+.btn-dark {
+  background: #1e4f66;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  width: 150px;
+  margin-top: 10px;
+}
+
+.btn-light {
+  background: #e0e0e0;
+  border: none;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  width: 150px;
+  margin-top: 10px;
+}
+
+.acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
