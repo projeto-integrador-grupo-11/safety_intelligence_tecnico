@@ -9,6 +9,8 @@
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap"
     rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     *,
     *::before,
@@ -18,47 +20,98 @@
       padding: 0
     }
 
-  :root {
-  /* BASE */
-  --bg: #0F1115;
-  --surface: #151821;
-  --card: #1A1F2B;
+    :root {
+      /* BASE LAYOUT */
+      --bg: #F4F5F7;
+      --surface: #FFFFFF;
+      --card: #FFFFFF;
 
-  /* BORDERS */
-  --border: #232938;
-  --border2: #2A3142;
-  --border3: #313A4F;
+      /* BORDERS */
+      --border: #E3E5E8;
+      --border2: #CDD0D5;
+      /* border-md */
+      --border3: #B8BCC3;
 
-  /* PRIMARY (neutro, não dominante) */
-  --primary: #6366F1; /* indigo */
-  --primary-dim: rgba(99,102,241,0.12);
-  --primary-glow: rgba(99,102,241,0.25);
+      /* BRAND COLORS (Blue Scale) */
+      --primary: #1A5FAD;
+      /* blue-md */
+      --primary-dk: #0C3B6E;
+      /* blue-dk */
+      --primary-lt: #3B82C4;
+      /* blue-lt */
+      --primary-dim: #EBF2FA;
+      /* blue-pale */
+      --primary-glow: rgba(55, 114, 182, 0.12);
 
-  /* SEMANTIC (ESSENCIAL) */
-  --green: #22C55E;
-  --green-dim: rgba(34,197,94,0.12);
+      /* SEMANTIC (Status) */
+      --green: #1f8647;
+      --green-dim: #E8F5EE;
+      /* green-bg */
 
-  --yellow: #f5f10b;
-  --yellow-dim: rgba(245,158,11,0.12);
+      --yellow: #8A5200;
+      /* amber */
+      --yellow-dim: #FEF3DC;
+      /* amber-bg */
 
-  --red: #EF4444;
-  --red-dim: rgba(239,68,68,0.12);
+      --red: #8B1A1A;
+      --red-dim: #FDECEC;
+      /* red-bg */
 
-  /* TEXT (MUITO IMPORTANTE) */
-  --t1: #E5E7EB;  /* principal */
-  --t2: #9CA3AF;  /* secundário */
-  --t3: #6B7280;  /* muted */
-  --t4: #374151;  /* linhas */
+      /* TEXT HIERARCHY */
+      --t1: #0F1117;
+      /* text-1 */
+      --t2: #292e39;
+      /* text-2 */
+      --t3: #656b76;
+      /* text-3 */
+      --t4: #8b8e92;
+      /* border-md (usado para placeholders/muted) */
 
-  /* LAYOUT */
-  --sidebar: 220px;
-  --topbar: 60px;
+      /* CHART & DATA VISUALIZATION (Ajustado para Light Mode) */
+      --chart-line: var(--green);
+      --chart-bar: var(--red);
+      --chart-bar-high: var(--red);
+      --chart-bar-low: var(--red);
+      --chart-bar-mid: var(--red);
+      --chart-avg: var(--red);
 
-  /* RADIUS */
-  --r: 16px;
-  --r-sm: 10px;
-  --r-xs: 7px;
-}
+      --chart-grid: var(--border);
+      --chart-tick: var(--t3);
+
+      /* DATA PROGRESS BARS (Gradients) */
+      --bar-longevidade: linear-gradient(90deg, var(--primary-lt), var(--primary));
+      --bar-educacao: linear-gradient(90deg, #F59E0B, var(--yellow));
+      --bar-renda: linear-gradient(90deg, #24A148, var(--green));
+
+      /* LOGO & SPECIAL */
+      --logo-gradient: linear-gradient(135deg, var(--primary-lt), var(--primary-dk));
+      --logo-glow: rgba(26, 95, 173, 0.25);
+
+      /* INTERACTIVE ELEMENTS (Tooltips/Pills) */
+      --tooltip-bg: #1A1C23;
+      /* Mantido levemente escuro para contraste no light mode */
+      --tooltip-border: #2D313E;
+      --tooltip-title: #FFFFFF;
+      --tooltip-body: #D1D5DB;
+
+      /* TYPOGRAPHY & SPACING */
+      --font-body: 'DM Sans', system-ui, sans-serif;
+      --font-mono: 'DM Mono', monospace;
+
+      --sidebar-w: 268px;
+      --topbar-h: 106px;
+
+      /* RADIUS & SHADOWS */
+      --r: 14px;
+      /* radius-lg */
+      --r-sm: 10px;
+      /* radius-md */
+      --r-xs: 6px;
+      /* radius-sm */
+
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, .08);
+    }
 
     html,
     body {
@@ -70,12 +123,6 @@
       overflow: hidden
     }
 
-    /* LAYOUT */
-    .shell {
-      display: grid;
-      grid-template-rows: var(--topbar) 2fr;
-      height: 100vh
-    }
 
     /* SIDEBAR */
     .sidebar {
@@ -95,7 +142,7 @@
       left: 0;
       right: 0;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent)
+      background: linear-gradient(90deg, transparent, rgba(var(--primary-rgb), 0.5), transparent)
     }
 
     .sb-brand {
@@ -116,8 +163,8 @@
       align-items: center;
       justify-content: center;
       font-size: 14px;
-      background: linear-gradient(135deg, #3B82F6, #1D4ED8);
-      box-shadow: 0 0 18px rgba(59, 130, 246, 0.4);
+      background: var(--logo-gradient);
+      box-shadow: 0 0 18px var(--logo-glow);
       flex-shrink: 0
     }
 
@@ -128,7 +175,7 @@
     }
 
     .sb-tag {
-      font-size: 9px;
+      font-size: 12px;
       font-family: 'DM Mono', monospace;
       color: var(--t4);
       letter-spacing: .1em;
@@ -145,7 +192,7 @@
     }
 
     .sb-sec {
-      font-size: 9px;
+      font-size: 12px;
       font-family: 'DM Mono', monospace;
       color: var(--t4);
       letter-spacing: .12em;
@@ -174,13 +221,13 @@
     }
 
     .sb-item:hover {
-      background: rgba(59, 130, 246, 0.06);
+      background: rgba(var(--primary-rgb), 0.06);
       color: var(--t2)
     }
 
     .sb-item.active {
-      background: rgba(59, 130, 246, 0.11);
-      color: var(--blue)
+      background: rgba(var(--primary-rgb), 0.11);
+      color: var(--primary)
     }
 
     .sb-item.active::before {
@@ -190,9 +237,9 @@
       top: 25%;
       bottom: 25%;
       width: 2px;
-      background: var(--blue);
+      background: var(--primary);
       border-radius: 2px;
-      box-shadow: 0 0 8px var(--blue-glow)
+      box-shadow: 0 0 8px var(--primary-glow)
     }
 
     .sb-icon {
@@ -204,7 +251,7 @@
 
     .sb-badge {
       margin-left: auto;
-      font-size: 9px;
+      font-size: 12px;
       font-family: 'DM Mono', monospace;
       background: var(--red-dim);
       color: var(--red);
@@ -231,7 +278,7 @@
     }
 
     .city-sel:hover {
-      border-color: var(--blue)
+      border-color: var(--primary)
     }
 
     .city-dot {
@@ -250,13 +297,12 @@
     }
 
     .city-ch {
-      font-size: 10px;
+      font-size: 11px;
       color: var(--t3)
     }
 
     /* TOPBAR */
     .topbar {
-      grid-column: 2;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       display: flex;
@@ -264,7 +310,9 @@
       justify-content: space-between;
       padding: 0 28px;
       position: relative;
-      z-index: 20
+      z-index: 20;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
     }
 
     .tb-l {
@@ -284,13 +332,21 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      font-size: 11px;
+      font-size: 13px;
       font-family: 'DM Mono', monospace;
       color: var(--t4)
     }
 
+    .tb-crumb a {
+      color: var(--t3);
+      cursor: pointer;
+      text-decoration: none;
+    }
+
     .tb-crumb span {
-      color: var(--t3)
+      color: var(--t3);
+      cursor: pointer;
+      text-decoration: none;
     }
 
     .tb-r {
@@ -320,12 +376,12 @@
     }
 
     .tb-btn {
-      background: rgba(59, 130, 246, 0.1);
-      border: 1px solid rgba(59, 130, 246, 0.22);
-      color: var(--blue);
+      background: rgba(var(--primary-rgb), 0.1);
+      border: 1px solid rgba(var(--primary-rgb), 0.22);
+      color: var(--primary);
       border-radius: var(--r-xs);
       padding: 6px 14px;
-      font-size: 11.5px;
+      font-size: 14.5px;
       font-weight: 600;
       font-family: 'Syne', sans-serif;
       cursor: pointer;
@@ -334,8 +390,8 @@
     }
 
     .tb-btn:hover {
-      background: rgba(59, 130, 246, 0.18);
-      box-shadow: 0 0 14px rgba(59, 130, 246, 0.2)
+      background: rgba(var(--primary-rgb), 0.18);
+      box-shadow: 0 0 14px rgba(var(--primary-rgb), 0.2)
     }
 
     /* MAIN */
@@ -364,8 +420,8 @@
 
     /* INSIGHT BANNER */
     .banner {
-      background: linear-gradient(110deg, rgba(16, 185, 129, 0.06) 0%, rgba(59, 130, 246, 0.04) 60%, transparent 100%);
-      border: 1px solid rgba(16, 185, 129, 0.2);
+      background-color: var(--surface);
+      border: 1px solid rgba(var(--green-rgb), 0.2);
       border-radius: var(--r);
       padding: 16px 22px;
       display: flex;
@@ -375,11 +431,11 @@
       overflow: hidden;
       transition: border-color .3s, box-shadow .3s;
       cursor: default;
-      flex-shrink: 0;
+      flex-shrink: 0
     }
 
     .banner:hover {
-      border-color: rgba(16, 185, 129, 0.32);
+      border-color: rgba(var(--green-rgb), 0.32);
       box-shadow: 0 6px 28px rgba(0, 0, 0, .35)
     }
 
@@ -390,21 +446,90 @@
       top: -30px;
       width: 140px;
       height: 140px;
-      background: radial-gradient(circle, rgba(16, 185, 129, 0.07), transparent 70%);
+      background: radial-gradient(circle, rgba(var(--green-rgb), 0.07), transparent 70%);
       pointer-events: none
     }
 
-    .bn-icon img{
-      width: 25px;
-      height: 25px;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.2);
-      border-radius: 10px;
+    .bn-icon img {
+      width: 24px;
+      height: 24px
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: black;
+      color: var(--text-1);
+      font-size: 14px;
+    }
+
+    .nav-logo img {
+      width: 62px;
+      height: 62px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 17px;
-      flex-shrink: 0
+      position: absolute;
+    }
+
+    .nav-brand {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-1);
+      line-height: 1.2;
+    }
+
+    .nav-brand span {
+      display: block;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text-3);
+      letter-spacing: .3px;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-pill {
+      display: none;
+      align-items: center;
+      gap: 7px;
+      background: var(--blue-pale);
+      border: 1px solid #C5D9EF;
+      border-radius: 20px;
+      padding: 4px 12px 4px 8px;
+      font-size: 12px;
+      color: var(--blue-md);
+    }
+
+    .nav-pill.visible {
+      display: flex;
+    }
+
+    .nav-pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--blue-lt);
+    }
+
+    .nav-pill strong {
+      font-weight: 500;
+    }
+
+    .nav-pill-idh {
+      background: var(--blue-md);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-family: var(--font-mono);
     }
 
     .bn-body {
@@ -413,7 +538,7 @@
     }
 
     .bn-tag {
-      font-size: 9px;
+      font-size: 12px;
       font-family: 'DM Mono', monospace;
       color: var(--green);
       letter-spacing: .12em;
@@ -422,14 +547,15 @@
     }
 
     .bn-text {
-      font-size: 13.5px;
-      font-weight: 600;
+      font-size: 16.5px;
+      font-weight: 500;
       color: var(--t1);
       line-height: 1.4
     }
 
     .bn-text strong {
-      color: var(--green)
+      color: var(--green);
+      font-weight: 700;
     }
 
     .bn-text em {
@@ -455,21 +581,80 @@
 
     .bn-pill.g {
       background: var(--green-dim);
-      border-color: rgba(16, 185, 129, 0.22);
+      border-color: rgba(var(--green-rgb), 0.22);
       color: var(--green)
     }
 
     .bn-pill.b {
-      background: var(--blue-dim);
-      border-color: rgba(59, 130, 246, 0.22);
-      color: var(--blue)
+      background: var(--primary-dim);
+      border-color: rgba(var(--primary-rgb), 0.22);
+      color: var(--primary)
     }
 
     .bn-pill.y {
       background: var(--yellow-dim);
-      border-color: rgba(245, 158, 11, 0.22);
+      border-color: rgba(var(--yellow-rgb), 0.22);
       color: var(--yellow)
     }
+
+    .tooltip-container {
+      position: absolute;
+      top: 20px;
+      right: 30%;
+      display: inline-block;
+    }
+
+    .tooltip-btn {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: none;
+      background: #e5e7eb;
+      color: #333;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tooltip-content {
+      position: absolute;
+      bottom: 130%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220px;
+
+      background: #111;
+      color: #fff;
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 6px;
+
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+
+      z-index: 10;
+    }
+
+    /* seta */
+    .tooltip-content::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px;
+      border-style: solid;
+      border-color: #111 transparent transparent transparent;
+    }
+
+    /* hover */
+    .tooltip-container:hover .tooltip-content {
+      opacity: 1;
+    }
+
 
     .bn-close {
       color: var(--t4);
@@ -500,9 +685,8 @@
       border-radius: var(--r);
       padding: 20px;
       position: relative;
-      overflow: hidden;
       cursor: default;
-      transition: transform .28s ease, box-shadow .28s ease, border-color .22s;
+      transition: transform .28s ease, box-shadow .28s ease, border-color .22s
     }
 
     .kpi-card:hover {
@@ -519,15 +703,15 @@
     }
 
     .kpi-card.c-blue::before {
-      background: radial-gradient(ellipse at 0% 0%, rgba(59, 130, 246, 0.05), transparent 60%)
+      background: radial-gradient(ellipse at 0% 0%, rgba(var(--primary-rgb), 0.05), transparent 60%)
     }
 
     .kpi-card.c-yellow::before {
-      background: radial-gradient(ellipse at 0% 0%, rgba(245, 158, 11, 0.06), transparent 60%)
+      background: radial-gradient(ellipse at 0% 0%, rgba(var(--yellow-rgb), 0.06), transparent 60%)
     }
 
     .kpi-card.c-green::before {
-      background: radial-gradient(ellipse at 0% 0%, rgba(16, 185, 129, 0.06), transparent 60%)
+      background: radial-gradient(ellipse at 0% 0%, rgba(var(--green-rgb), 0.06), transparent 60%)
     }
 
     .kpi-head {
@@ -555,20 +739,20 @@
     }
 
     .r-b {
-      background: var(--blue-dim);
-      border-color: rgba(59, 130, 246, 0.22);
-      color: var(--blue)
+      background: var(--primary-dim);
+      border-color: rgba(var(--primary-rgb), 0.22);
+      color: var(--primary)
     }
 
     .r-y {
       background: var(--yellow-dim);
-      border-color: rgba(245, 158, 11, 0.22);
+      border-color: rgba(var(--yellow-rgb), 0.22);
       color: var(--yellow)
     }
 
     .r-g {
       background: var(--green-dim);
-      border-color: rgba(16, 185, 129, 0.22);
+      border-color: rgba(var(--green-rgb), 0.22);
       color: var(--green)
     }
 
@@ -604,18 +788,18 @@
 
     .d-up {
       background: var(--green-dim);
-      border-color: rgba(16, 185, 129, 0.2);
+      border-color: rgba(var(--green-rgb), 0.2);
       color: var(--green)
     }
 
     .d-mid {
       background: var(--yellow-dim);
-      border-color: rgba(245, 158, 11, 0.2);
+      border-color: rgba(var(--yellow-rgb), 0.2);
       color: var(--yellow)
     }
 
     .kpi-ctx {
-      font-size: 11px;
+      font-size: 14px;
       color: var(--t3);
       line-height: 1.45;
       margin-bottom: 14px
@@ -682,7 +866,7 @@
       top: -18px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 8px;
+      font-size: 10px;
       font-family: 'DM Mono', monospace;
       color: var(--t4);
       white-space: nowrap
@@ -702,7 +886,7 @@
       padding: 20px;
       position: relative;
       overflow: hidden;
-      transition: transform .28s, box-shadow .28s, border-color .22s;
+      transition: transform .28s, box-shadow .28s, border-color .22s
     }
 
     .ch-card:hover {
@@ -719,24 +903,24 @@
     }
 
     .ch-title {
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--t1)
     }
 
     .ch-sub {
-      font-size: 10px;
+      font-size: 13px;
       font-family: 'DM Mono', monospace;
       color: var(--t4);
       margin-bottom: 14px
     }
 
     .ch-badge {
-      font-size: 9px;
+      font-size: 12px;
       font-family: 'DM Mono', monospace;
-      color: var(--blue);
-      background: var(--blue-dim);
-      border: 1px solid rgba(59, 130, 246, 0.18);
+      color: var(--primary);
+      background: var(--primary-dim);
+      border: 1px solid rgba(var(--primary-rgb), 0.18);
       border-radius: 5px;
       padding: 3px 8px;
       white-space: nowrap;
@@ -753,13 +937,13 @@
       font-size: 8.5px;
       font-family: 'DM Mono', monospace;
       color: var(--green);
-      background: rgba(16, 185, 129, 0.08);
-      border: 1px solid rgba(16, 185, 129, 0.22);
+      background: rgba(var(--green-rgb), 0.08);
+      border: 1px solid rgba(var(--green-rgb), 0.22);
       border-radius: 5px;
       padding: 2px 7px;
       white-space: nowrap;
       pointer-events: none;
-      display: none;
+      display: none
     }
 
     .ch-stats {
@@ -773,7 +957,11 @@
     .ch-stat {
       flex: 1;
       padding: 0 4px;
-      border-right: 1px solid var(--border)
+      border-right: 1px solid var(--border);
+      display: flex;
+      max-width: 250px;
+      justify-content: center;
+      align-items: center;
     }
 
     .ch-stat:last-child {
@@ -789,7 +977,7 @@
     }
 
     .ch-sl {
-      font-size: 9px;
+      font-size: 12px;
       font-family: 'DM Mono', monospace;
       color: var(--t4);
       text-transform: uppercase;
@@ -802,37 +990,32 @@
 <body>
   <div class="shell">
 
-
-
     <!-- TOPBAR -->
     <header class="topbar">
-      <div class="tb-l">
-        <div class="tb-title">IDH Overview</div>
-        <div class="tb-crumb">/ <span>São Paulo</span> / <span>2024</span></div>
+
+      <a href="/index.html" class="nav-logo" aria-label="Página inicial">
+        <img src="/public/img/logo.png">
+      </a>
+      <div class="tb-crumb"><a href="/dashboard.html">país</a>/ <a href="/dashEstado.html">estado</a> /
+        <span>munício</span>
       </div>
       <div class="tb-r">
-        <div class="tb-pill">📅 2000 – 2024 ▾</div>
-        <div class="tb-pill">🏙️ vs Média Estadual ▾</div>
-        <button class="tb-btn">↓ Exportar</button>
+        <button class="tb-btn"> Salvar </button>
+        <button class="tb-btn" onclick="downloadPDF()"> Exportar</button>
       </div>
     </header>
 
     <!-- MAIN -->
-    <main class="main">
+    <main class="main" id="main">
 
       <!-- INSIGHT BANNER -->
       <div class="banner" id="banner">
-        <div class="bn-icon"><img src="public/img/Alarm.svg"></div>
+
         <div class="bn-body">
           <div class="bn-tag">Principal Insight · 2024</div>
           <div class="bn-text">
-            IDH de São Paulo cresceu <strong>+12% desde 2000</strong>, liderado por Renda (+18%).
-            <em>Educação permanece o gargalo crítico</em> — único índice abaixo de 0,600 e abaixo da média estadual.
-          </div>
-          <div class="bn-pills">
-            <span class="bn-pill g">▲ Renda em destaque</span>
-            <span class="bn-pill y">■ Educação: ação requerida</span>
-            <span class="bn-pill b">↑ Tendência geral positiva</span>
+            IDH de São Paulo cresceu <strong>+12% desde 2000</strong>, mantém uma evolução <strong>elevada</strong><br>
+            Ocorrencias de furto estão <strong>baixas</strong>, cidade considerada <strong>segura</strong>
           </div>
         </div>
         <div class="bn-close" onclick="document.getElementById('banner').style.display='none'">×</div>
@@ -843,6 +1026,19 @@
 
         <!-- Longevidade -->
         <div class="kpi-card c-blue">
+          <div class="tooltip-container">
+            <button class="tooltip-btn" aria-describedby="tooltip-kpi">
+              ?
+            </button>
+
+            <div class="tooltip-content" id="tooltip-kpi">
+              Mede a expectativa de vida da população, refletindo o nível de saúde, acesso a serviços e qualidade de
+              vida da região.
+
+              Valores mais altos indicam melhores condições de vida e maior estabilidade social, fatores que contribuem
+              para a valorização imobiliária.
+            </div>
+          </div>
           <div class="kpi-head">
             <div class="kpi-lbl">Longevidade</div>
             <div class="kpi-rank r-b">3° no Estado</div>
@@ -850,47 +1046,55 @@
           <div class="kpi-main">
             <div class="kpi-val" id="kv1">0,000</div>
           </div>
-          <div class="kpi-ctx">Top <strong>8% do estado</strong> · Expectativa média <strong>74,2 anos</strong></div>
-          <div class="kpi-cmp">
-            <div class="cmp-item">Média SP: <span class="cmp-v">0,741</span></div>
-            <div class="cmp-sep"></div>
-            <div class="cmp-item">2020: <span class="cmp-v">0,730</span></div>
-            <div class="cmp-sep"></div>
-            <div class="cmp-item">2000: <span class="cmp-v">0,680</span></div>
-          </div>
+          <div class="kpi-ctx">Indica <strong>bons</strong> serviços relacionados a saúde </div>
           <div class="kpi-bar">
-            <div class="kpi-bar-fill" id="pb1" style="width:0%;background:linear-gradient(90deg,#3B82F6,#60A5FA)"></div>
+            <div class="kpi-bar-fill" id="pb1" style="width:0%;background:var(--bar-longevidade)"></div>
             <div class="kpi-bar-mark" style="left:74.1%" data-label="média"></div>
           </div>
         </div>
 
         <!-- Educação -->
         <div class="kpi-card c-yellow">
+          <div class="tooltip-container">
+            <button class="tooltip-btn" aria-describedby="tooltip-kpi">
+              ?
+            </button>
+
+            <div class="tooltip-content" id="tooltip-kpi">
+              Avalia o nível de escolaridade da população, considerando acesso, permanência e conclusão dos estudos.
+
+              Valores mais altos indicam maior qualificação, melhor renda futura e desenvolvimento social, fatores que
+              impulsionam a valorização imobiliária.
+            </div>
+          </div>
           <div class="kpi-head">
             <div class="kpi-lbl">Educação</div>
             <div class="kpi-rank r-y">5° no Estado</div>
           </div>
           <div class="kpi-main">
             <div class="kpi-val" id="kv2">0,000</div>
-          
           </div>
-          <div class="kpi-ctx"><strong style="color:var(--yellow)">Atenção:</strong> abaixo da média estadual —
-            progressão lenta nos últimos 3 anos</div>
-          <div class="kpi-cmp">
-            <div class="cmp-item">Média SP: <span class="cmp-v" style="color:var(--yellow)">0,611</span></div>
-            <div class="cmp-sep"></div>
-            <div class="cmp-item">2020: <span class="cmp-v">0,570</span></div>
-            <div class="cmp-sep"></div>
-            <div class="cmp-item">2000: <span class="cmp-v">0,490</span></div>
-          </div>
+          <div class="kpi-ctx">Indica <strong>alerta</strong> em serviços de educação</div>
           <div class="kpi-bar">
-            <div class="kpi-bar-fill" id="pb2" style="width:0%;background:linear-gradient(90deg,#F59E0B,#FCD34D)"></div>
+            <div class="kpi-bar-fill" id="pb2" style="width:0%;background:var(--bar-educacao)"></div>
             <div class="kpi-bar-mark" style="left:61.1%" data-label="média"></div>
           </div>
         </div>
 
         <!-- Renda -->
         <div class="kpi-card c-green">
+          <div class="tooltip-container">
+            <button class="tooltip-btn" aria-describedby="tooltip-kpi">
+              ?
+            </button>
+
+            <div class="tooltip-content" id="tooltip-kpi">
+              Mede o poder de compra da população com base na renda média da região.
+
+              Valores mais altos indicam maior capacidade de consumo e acesso a bens e serviços, favorecendo a demanda
+              por imóveis e a valorização imobiliária.
+            </div>
+          </div>
           <div class="kpi-head">
             <div class="kpi-lbl">Renda</div>
             <div class="kpi-rank r-g">4° no Estado</div>
@@ -898,16 +1102,9 @@
           <div class="kpi-main">
             <div class="kpi-val" id="kv3">0,000</div>
           </div>
-          <div class="kpi-ctx">Próximo de <strong>"Muito Alto"</strong> · Maior crescimento entre as 3 dimensões</div>
-          <div class="kpi-cmp">
-            <div class="cmp-item">Média SP: <span class="cmp-v">0,768</span></div>
-            <div class="cmp-sep"></div>
-            <div class="cmp-item">2020: <span class="cmp-v">0,755</span></div>
-            <div class="cmp-sep"></div>
-            <div class="cmp-item">2000: <span class="cmp-v">0,677</span></div>
-          </div>
+          <div class="kpi-ctx">Indica <strong>alto</strong> poder aquisitivo na região</div>
           <div class="kpi-bar">
-            <div class="kpi-bar-fill" id="pb3" style="width:0%;background:linear-gradient(90deg,#10B981,#34D399)"></div>
+            <div class="kpi-bar-fill" id="pb3" style="width:0%;background:var(--bar-renda)"></div>
             <div class="kpi-bar-mark" style="left:76.8%" data-label="média"></div>
           </div>
         </div>
@@ -921,8 +1118,8 @@
         <div class="ch-card">
           <div class="ch-head">
             <div>
-              <div class="ch-title">Evolução do IDH · São Paulo</div>
-              <div class="ch-sub">Índice consolidado ao longo do tempo · dado oficial PNUD</div>
+              <div class="ch-title">Evolução qualidade de vida · São Paulo</div>
+              <div class="ch-sub">IDH ao longo do tempo · dado oficial PNUD</div>
             </div>
             <div class="ch-badge">2000 – 2024</div>
           </div>
@@ -932,20 +1129,20 @@
           </div>
           <div class="ch-stats">
             <div class="ch-stat">
-              <div class="ch-sv" style="color:var(--green)">+17,4%</div>
-              <div class="ch-sl">Crescimento Total</div>
+              <div>
+                <div class="ch-sv" style="color:var(--green)">+17,4%</div>
+                <div class="ch-sl">Crescimento Total</div>
+              </div>
             </div>
             <div class="ch-stat">
-              <div class="ch-sv">0,848</div>
-              <div class="ch-sl">Valor 2024</div>
+              <p>
+                <strong>boa</strong> qualidade de vida
+              </p>
             </div>
             <div class="ch-stat">
-              <div class="ch-sv" style="color:var(--blue)">+0,019</div>
-              <div class="ch-sl">Média Anual</div>
-            </div>
-            <div class="ch-stat">
-              <div class="ch-sv" style="color:var(--yellow)">2012</div>
-              <div class="ch-sl">Maior Salto</div>
+              <p>
+                <strong>grandes</strong> investimentos em qualidade de vida
+              </p>
             </div>
           </div>
         </div>
@@ -954,8 +1151,8 @@
         <div class="ch-card">
           <div class="ch-head">
             <div>
-              <div class="ch-title">Ocorrências de Furto</div>
-              <div class="ch-sub">Dados anuais · São Paulo · linha = média histórica</div>
+              <div class="ch-title">Evolução segurança pública · São Paulo</div>
+              <div class="ch-sub">Boletins ao longo do tempo · dado oficial município</div>
             </div>
             <div class="ch-badge">2018 – 2024</div>
           </div>
@@ -964,16 +1161,13 @@
           </div>
           <div class="ch-stats">
             <div class="ch-stat">
-              <div class="ch-sv" style="color:var(--blue)">358k</div>
-              <div class="ch-sl">Total 2024</div>
+              <div>
+                <div class="ch-sv" style="color:var(--red)">-0,6%</div>
+                <div class="ch-sl">Crescimento Total</div>
+              </div>
             </div>
             <div class="ch-stat">
-              <div class="ch-sv" style="color:var(--yellow)">341k</div>
-              <div class="ch-sl">Média Histórica</div>
-            </div>
-            <div class="ch-stat">
-              <div class="ch-sv" style="color:var(--green)">258k</div>
-              <div class="ch-sl">Mínimo (2020)</div>
+              <p><strong>Queda</strong> na segurança pública</p>
             </div>
           </div>
         </div>
@@ -983,7 +1177,28 @@
   </div>
 
   <script>
-    // COUNT-UP
+    // ─── LÊ AS VARIÁVEIS CSS PARA USAR NO CHART.JS ───────────────────────────
+    const css = getComputedStyle(document.documentElement);
+    const C = {
+      chartLine: css.getPropertyValue('--chart-line').trim(),
+      chartLineRgb: css.getPropertyValue('--chart-line-rgb').trim(),
+      chartBar: css.getPropertyValue('--chart-bar').trim(),
+      chartBarRgb: css.getPropertyValue('--chart-bar-rgb').trim(),
+      chartBarHigh: css.getPropertyValue('--chart-bar-high').trim(),
+      chartBarLow: css.getPropertyValue('--chart-bar-low').trim(),
+      chartBarMid: css.getPropertyValue('--chart-bar-mid').trim(),
+      chartAvg: css.getPropertyValue('--chart-avg').trim(),
+      chartGrid: css.getPropertyValue('--chart-grid').trim(),
+      chartTick: css.getPropertyValue('--chart-tick').trim(),
+      tooltipBg: css.getPropertyValue('--tooltip-bg').trim(),
+      tooltipBorder: css.getPropertyValue('--tooltip-border').trim(),
+      tooltipTitle: css.getPropertyValue('--tooltip-title').trim(),
+      tooltipBody: css.getPropertyValue('--tooltip-body').trim(),
+      green: css.getPropertyValue('--green').trim(),
+      greenRgb: css.getPropertyValue('--green-rgb').trim(),
+    };
+
+    // ─── COUNT-UP ─────────────────────────────────────────────────────────────
     function countUp(el, target, dec, dur) {
       const start = performance.now();
       (function step(now) {
@@ -1007,18 +1222,18 @@
       }, 250);
     });
 
-    // CHART DEFAULTS
-    Chart.defaults.color = '#3D5278';
-    Chart.defaults.borderColor = '#172236';
+
+    Chart.defaults.color = C.chartTick;
+    Chart.defaults.borderColor = C.chartGrid;
     Chart.defaults.font.family = "'DM Mono', monospace";
     Chart.defaults.font.size = 10;
 
     const tt = {
-      backgroundColor: '#0C1422',
-      borderColor: '#1E2F47',
+      backgroundColor: C.tooltipBg,
+      borderColor: C.tooltipBorder,
       borderWidth: 1,
-      titleColor: '#ECF0FA',
-      bodyColor: '#8FA3C2',
+      titleColor: C.tooltipTitle,
+      bodyColor: C.tooltipBody,
       padding: 12,
       cornerRadius: 10,
       displayColors: false,
@@ -1026,14 +1241,12 @@
       bodyFont: { family: "'DM Mono', monospace", size: 11 },
     };
 
-    // IDH LINE
+    // ─── IDH LINE ─────────────────────────────────────────────────────────────
     const idhCtx = document.getElementById('idhChart').getContext('2d');
     const idhY = [0.722, 0.740, 0.755, 0.775, 0.783, 0.800, 0.814, 0.830, 0.848];
     const idhX = ['2000', '2003', '2006', '2009', '2012', '2015', '2018', '2021', '2024'];
-    const gG = idhCtx.createLinearGradient(0, 0, 0, 180);
-    gG.addColorStop(0, 'rgba(16,185,129,0.2)');
-    gG.addColorStop(0.65, 'rgba(16,185,129,0.05)');
-    gG.addColorStop(1, 'rgba(16,185,129,0)');
+
+
 
     const idhChart = new Chart(idhCtx, {
       type: 'line',
@@ -1041,15 +1254,14 @@
         labels: idhX,
         datasets: [{
           data: idhY,
-          borderColor: '#10B981',
+          borderColor: C.chartLine,
           borderWidth: 2.5,
           pointRadius: idhY.map((_, i) => i === idhY.length - 1 ? 6 : 3),
-          pointBackgroundColor: idhY.map((_, i) => i === idhY.length - 1 ? '#10B981' : '#0F1B2D'),
-          pointBorderColor: '#10B981',
+          pointBackgroundColor: idhY.map((_, i) => i === idhY.length - 1 ? C.chartLine : '#0F1B2D'),
+          pointBorderColor: C.chartLine,
           pointBorderWidth: 2,
           pointHoverRadius: 7,
           fill: true,
-          backgroundColor: gG,
           tension: 0.42,
         }]
       },
@@ -1073,8 +1285,17 @@
           }
         },
         scales: {
-          x: { grid: { color: '#172236', drawTicks: false }, border: { display: false }, ticks: { color: '#3D5278', maxRotation: 0 } },
-          y: { min: 0.70, max: 0.88, grid: { color: '#172236', drawTicks: false }, border: { display: false }, ticks: { color: '#3D5278', callback: v => v.toFixed(2) } }
+          x: {
+            grid: { color: C.chartGrid, drawTicks: false },
+            border: { display: false },
+            ticks: { color: C.chartTick, maxRotation: 0 }
+          },
+          y: {
+            min: 0.70, max: 0.88,
+            grid: { color: C.chartGrid, drawTicks: false },
+            border: { display: false },
+            ticks: { color: C.chartTick, callback: v => v.toFixed(2) }
+          }
         },
         onHover: (e, els) => {
           const ann = document.getElementById('idhAnn');
@@ -1088,7 +1309,7 @@
       }
     });
 
-    // FURTO BAR
+    // ─── FURTO BAR ────────────────────────────────────────────────────────────
     const furtoCtx = document.getElementById('furtoChart').getContext('2d');
     const furtoD = [401000, 390000, 258000, 265000, 342000, 372000, 358000];
     const avg = furtoD.reduce((a, b) => a + b, 0) / furtoD.length;
@@ -1102,26 +1323,26 @@
             type: 'bar',
             data: furtoD,
             backgroundColor: furtoD.map((v, i) => {
-              if (i === furtoD.length - 1) return 'rgba(59,130,246,0.65)';
-              if (v > avg + 25000) return 'rgba(239,68,68,0.45)';
-              if (v < avg - 40000) return 'rgba(16,185,129,0.45)';
-              return 'rgba(59,130,246,0.3)';
+              if (i === furtoD.length - 1) return `rgba(${C.chartLineRgb}, 0.45)`;
+              if (v > avg + 25000) return `rgba(${C.chartLineRgb}, 0.45)`;
+              if (v < avg - 40000) return `rgba(${C.chartLineRgb}, 0.45)`;
+              return `rgba(${C.chartLineRgb}, 0.45)`;
             }),
             borderColor: furtoD.map((v, i) => {
-              if (i === furtoD.length - 1) return '#3B82F6';
-              if (v > avg + 25000) return '#EF4444';
-              if (v < avg - 40000) return '#10B981';
-              return 'rgba(59,130,246,0.6)';
+              if (i === furtoD.length - 1) return C.chartBar;
+              if (v > avg + 25000) return C.chartBarHigh;
+              if (v < avg - 40000) return C.chartBarLow;
+              return C.chartBarLow;
             }),
             borderWidth: 1.5,
             borderRadius: 6,
             borderSkipped: false,
-            hoverBackgroundColor: 'rgba(59,130,246,0.8)',
+            hoverBackgroundColor: `rgba(${C.chartBarRgb}, 0.8)`,
           },
           {
             type: 'line',
             data: Array(furtoD.length).fill(avg),
-            borderColor: 'rgba(245,158,11,0.5)',
+            borderColor: `rgba(${C.chartAvg.replace(/[^,\d]/g, '')}, 0.5)`,
             borderWidth: 1.5,
             borderDash: [5, 4],
             pointRadius: 0,
@@ -1150,11 +1371,41 @@
           }
         },
         scales: {
-          x: { grid: { display: false }, border: { display: false }, ticks: { color: '#3D5278' } },
-          y: { grid: { color: '#172236', drawTicks: false }, border: { display: false }, ticks: { color: '#3D5278', callback: v => v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v } }
+          x: {
+            grid: { display: false },
+            border: { display: false },
+            ticks: { color: C.chartTick }
+          },
+          y: {
+            grid: { color: C.chartGrid, drawTicks: false },
+            border: { display: false },
+            ticks: { color: C.chartTick, callback: v => v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v }
+          }
         }
       }
     });
+
+    async function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const elemento = document.querySelector("#main");
+
+
+      const canvas = await html2canvas(elemento, {
+        scale: 2,
+        useCORS: true
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+
+
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save("relatorio-estatistico.pdf");
+    }
   </script>
 </body>
 

@@ -169,8 +169,7 @@ function montar() {
   const valorSelecionado = document.getElementById("estado_selecionado");
   const mapaContainer = document.getElementById("mapa_brasil");
 
-  if (!input || !dropdown || !lista || !valorSelecionado || !mapaContainer) return;
-
+  
   carregarMapa(mapaContainer)
     .then(() => {
       // Clique nos estados do SVG (id = UF)
