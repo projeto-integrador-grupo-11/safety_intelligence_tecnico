@@ -1373,27 +1373,17 @@
   </div>
 
   <script>
-    // DATA
-    const cidades = [
-      { nome: "São Paulo", pop: 11451999, idhm: 0.805 },
-      { nome: "Campinas", pop: 1213792, idhm: 0.805 },
-      { nome: "Santo André", pop: 721819, idhm: 0.815 },
-      { nome: "Guarulhos", pop: 1392121, idhm: 0.763 },
-      { nome: "São Bernardo do Campo", pop: 844483, idhm: 0.805 },
-      { nome: "Osasco", pop: 696850, idhm: 0.776 },
-      { nome: "Ribeirão Preto", pop: 711825, idhm: 0.800 },
-      { nome: "Sorocaba", pop: 679194, idhm: 0.798 },
-      { nome: "São José dos Campos", pop: 729737, idhm: 0.807 },
-      { nome: "Santos", pop: 433311, idhm: 0.840 },
-      { nome: "Mauá", pop: 468148, idhm: 0.766 },
-      { nome: "Diadema", pop: 420934, idhm: 0.757 },
-      { nome: "Carapicuíba", pop: 394561, idhm: 0.749 },
-      { nome: "Piracicaba", pop: 407252, idhm: 0.785 },
-      { nome: "Bauru", pop: 379661, idhm: 0.801 },
-    ];
+    let cidades = [];
 
     let sortField = 'idhm';
     let sortDir = -1;
+
+    function obterIdhm(c) {
+      const bruto = c.idhm_geral ?? c.idhm;
+      if (bruto == null || bruto === '') return null;
+      const n = Number(bruto);
+      return isNaN(n) ? null : n;
+    }
 
     function getClasse(v) {
       if (v >= 0.800) return 'verde';
@@ -1410,6 +1400,7 @@
       return 'Muito Baixo';
     }
     function fmtPop(n) {
+      if (n == null || n === 0) return '—';
       return n.toLocaleString('pt-BR');
     }
 
@@ -1426,13 +1417,16 @@
       empty.style.display = 'none';
 
       tbody.innerHTML = lista.map(c => {
-        const cls = getClasse(c.idhm);
-        const lbl = getClasseLabel(c.idhm);
+        const idhmVal = obterIdhm(c);
+        const idhm = idhmVal != null ? idhmVal : 0;
+        const cls = getClasse(idhm);
+        const lbl = getClasseLabel(idhm);
+        const idhmTxt = idhmVal != null ? idhmVal.toFixed(3) : '—';
         return `
       <tr>
         <td>${c.nome}</td>
         <td class="mono">${fmtPop(c.pop)}</td>
-        <td class="mono">${c.idhm.toFixed(3)}</td>
+        <td class="mono">${idhmTxt}</td>
         <td><span class="idhm-badge idhm-${cls}"><span class="idhm-dot"></span>${lbl}</span></td>
         <td><button class="dash-btn" onclick="redirecionar()">↗ Acessar</button></td>
       </tr>`;
@@ -1446,10 +1440,10 @@
       const filtroIDHM = document.getElementById('filtroIDHM').value;
       return [...cidades]
         .filter(c => c.nome.toLowerCase().includes(termo))
-        .filter(c => filtroIDHM === '' || getClasse(c.idhm) === filtroIDHM)
+        .filter(c => filtroIDHM === '' || getClasse(obterIdhm(c) ?? 0) === filtroIDHM)
         .sort((a, b) => {
-          const av = sortField === 'nome' ? a.nome : sortField === 'pop' ? a.pop : a.idhm;
-          const bv = sortField === 'nome' ? b.nome : sortField === 'pop' ? b.pop : b.idhm;
+          const av = sortField === 'nome' ? a.nome : sortField === 'pop' ? (a.pop ?? 0) : (obterIdhm(a) ?? 0);
+          const bv = sortField === 'nome' ? b.nome : sortField === 'pop' ? (b.pop ?? 0) : (obterIdhm(b) ?? 0);
           if (av < bv) return -sortDir;
           if (av > bv) return sortDir;
           return 0;
@@ -1484,9 +1478,43 @@
       })(start);
     }
 
+    async function carregarMunicipios() {
+      const tbody = document.getElementById('listaCidades');
+      const empty = document.getElementById('emptyState');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Carregando municípios…</td></tr>';
+      empty.style.display = 'none';
+
+      try {
+        const resposta = await fetch('/municipios/listar');
+        if (!resposta.ok) {
+          const erro = await resposta.json().catch(() => ({}));
+          throw new Error(erro.mensagem || 'Falha ao buscar municípios');
+        }
+        const dados = await resposta.json();
+        cidades = dados.map(function (c) {
+          const idhmGeral = c.idhm_geral != null ? Number(c.idhm_geral) : (c.idhm != null ? Number(c.idhm) : null);
+          return {
+            ...c,
+            idhm_geral: isNaN(idhmGeral) ? null : idhmGeral,
+            idhm: isNaN(idhmGeral) ? null : idhmGeral,
+          };
+        });
+        render(getFiltered());
+      } catch (erro) {
+        console.error(erro);
+        cidades = [];
+        tbody.innerHTML = '';
+        empty.style.display = 'flex';
+        empty.querySelector('.empty-txt').textContent = 'Não foi possível carregar as cidades';
+        empty.querySelector('.empty-sub').textContent =
+          erro.message || 'Execute o JAR do leitor Excel ou configure o acesso ao S3.';
+        document.getElementById('countLabel').textContent = '0';
+      }
+    }
+
     // INIT
     window.addEventListener('load', () => {
-      render(getFiltered());
+      carregarMunicipios();
       setTimeout(() => {
         countUp(document.getElementById('kv-lat'), 120, false, 1200);
         countUp(document.getElementById('kv-roubo'), 45000, false, 1300);

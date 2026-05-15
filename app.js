@@ -14,6 +14,7 @@ var HOST_APP = process.env.APP_HOST;
 var app = express();
 var indexRouter = require("./app/src/routes/index");
 var usuarioRouter = require("./app/src/routes/usuarios");
+var municipioRouter = require("./app/src/routes/municipios");
 
 
 
@@ -26,6 +27,7 @@ app.use(cors());
 
 app.use("/", indexRouter);
 app.use("/usuarios", usuarioRouter);
+app.use("/municipios", municipioRouter);
 
 
 
