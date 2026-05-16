@@ -679,6 +679,42 @@
       flex-shrink: 0
     }
 
+    .kpi-wrap {
+      position: relative;
+      flex-shrink: 0
+    }
+
+    .kpi-loading-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 16px;
+      background: rgba(244, 245, 247, 0.82);
+      backdrop-filter: blur(4px);
+      border-radius: var(--r);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t2);
+      letter-spacing: 0.02em;
+      pointer-events: none;
+      line-height: 1.4
+    }
+
+    .kpi-loading-overlay[hidden] {
+      display: none !important
+    }
+
+    .kpi-val.kpi-val--loading {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--t3);
+      letter-spacing: 0
+    }
+
     .kpi-card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -997,7 +1033,7 @@
         <img src="/public/img/logo.png">
       </a>
       <div class="tb-crumb"><a href="/dashboard.html">país</a>/ <a href="/dashEstado.html">estado</a> /
-        <span>munício</span>
+        <span id="mun-crumb">município</span>
       </div>
       <div class="tb-r">
         <button class="tb-btn"> Salvar </button>
@@ -1022,7 +1058,11 @@
       </div>
 
       <!-- KPI CARDS -->
-      <div class="kpi-grid">
+      <div class="kpi-wrap" id="kpi-wrap">
+        <div class="kpi-loading-overlay" id="kpi-loading" hidden aria-live="polite">
+          Carregando indicadores do município…
+        </div>
+        <div class="kpi-grid">
 
         <!-- Longevidade -->
         <div class="kpi-card c-blue">
@@ -1041,7 +1081,7 @@
           </div>
           <div class="kpi-head">
             <div class="kpi-lbl">Longevidade</div>
-            <div class="kpi-rank r-b">3° no Estado</div>
+            <div class="kpi-rank r-b" id="rank1">3° no Estado</div>
           </div>
           <div class="kpi-main">
             <div class="kpi-val" id="kv1">0,000</div>
@@ -1069,7 +1109,7 @@
           </div>
           <div class="kpi-head">
             <div class="kpi-lbl">Educação</div>
-            <div class="kpi-rank r-y">5° no Estado</div>
+            <div class="kpi-rank r-y" id="rank2">5° no Estado</div>
           </div>
           <div class="kpi-main">
             <div class="kpi-val" id="kv2">0,000</div>
@@ -1097,7 +1137,7 @@
           </div>
           <div class="kpi-head">
             <div class="kpi-lbl">Renda</div>
-            <div class="kpi-rank r-g">4° no Estado</div>
+            <div class="kpi-rank r-g" id="rank3">4° no Estado</div>
           </div>
           <div class="kpi-main">
             <div class="kpi-val" id="kv3">0,000</div>
@@ -1109,6 +1149,7 @@
           </div>
         </div>
 
+        </div>
       </div>
 
       <!-- CHARTS -->
@@ -1118,7 +1159,7 @@
         <div class="ch-card">
           <div class="ch-head">
             <div>
-              <div class="ch-title">Evolução qualidade de vida · São Paulo</div>
+              <div class="ch-title" id="ch-title-qualidade">Evolução qualidade de vida · município</div>
               <div class="ch-sub">IDH ao longo do tempo · dado oficial PNUD</div>
             </div>
             <div class="ch-badge">2000 – 2024</div>
@@ -1151,7 +1192,7 @@
         <div class="ch-card">
           <div class="ch-head">
             <div>
-              <div class="ch-title">Evolução segurança pública · São Paulo</div>
+              <div class="ch-title" id="ch-title-seguranca">Evolução segurança pública · município</div>
               <div class="ch-sub">Boletins ao longo do tempo · dado oficial município</div>
             </div>
             <div class="ch-badge">2018 – 2024</div>
@@ -1211,15 +1252,169 @@
       })(start);
     }
 
-    window.addEventListener('load', () => {
+    function aplicarKpis(longevidade, educacao, renda) {
+      ['kv1', 'kv2', 'kv3'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.remove('kpi-val--loading');
+      });
+      const l = Number(longevidade);
+      const e = Number(educacao);
+      const r = Number(renda);
+      const v1 = Number.isFinite(l) ? l : 0;
+      const v2 = Number.isFinite(e) ? e : 0;
+      const v3 = Number.isFinite(r) ? r : 0;
       setTimeout(() => {
-        countUp(document.getElementById('kv1'), 0.756, 3, 1300);
-        countUp(document.getElementById('kv2'), 0.589, 3, 1300);
-        countUp(document.getElementById('kv3'), 0.799, 3, 1300);
-        setTimeout(() => { document.getElementById('pb1').style.width = '75.6%' }, 150);
-        setTimeout(() => { document.getElementById('pb2').style.width = '58.9%' }, 300);
-        setTimeout(() => { document.getElementById('pb3').style.width = '79.9%' }, 450);
-      }, 250);
+        countUp(document.getElementById('kv1'), v1, 3, 1300);
+        countUp(document.getElementById('kv2'), v2, 3, 1300);
+        countUp(document.getElementById('kv3'), v3, 3, 1300);
+        setTimeout(() => { document.getElementById('pb1').style.width = Math.min(100, v1 * 100) + '%'; }, 150);
+        setTimeout(() => { document.getElementById('pb2').style.width = Math.min(100, v2 * 100) + '%'; }, 300);
+        setTimeout(() => { document.getElementById('pb3').style.width = Math.min(100, v3 * 100) + '%'; }, 450);
+      }, 80);
+    }
+
+    function setKpiLoading(ativo) {
+      const overlay = document.getElementById('kpi-loading');
+      if (overlay) {
+        overlay.hidden = !ativo;
+        overlay.setAttribute('aria-busy', ativo ? 'true' : 'false');
+      }
+      ['kv1', 'kv2', 'kv3'].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (ativo) {
+          el.classList.add('kpi-val--loading');
+          el.textContent = 'Carregando…';
+        }
+      });
+      if (ativo) {
+        ['rank1', 'rank2', 'rank3'].forEach(function (id) {
+          const r = document.getElementById(id);
+          if (r) r.textContent = '…';
+        });
+      }
+    }
+
+    function normNome(s) {
+      return String(s || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s*\(sp\)\s*$/i, '')
+        .trim();
+    }
+
+    function mesmoMunicipio(a, m) {
+      if (m.id != null && a.id != null && Number(a.id) === Number(m.id)) return true;
+      return normNome(a.nome) === normNome(m.nome);
+    }
+
+    function rankPorCampo(lista, campo, m) {
+      if (!lista || !lista.length) return null;
+      function valor(item) {
+        const v = Number(item[campo]);
+        return Number.isFinite(v) ? v : -Infinity;
+      }
+      const sorted = lista.slice().sort(function (a, b) {
+        return valor(b) - valor(a);
+      });
+      const idx = sorted.findIndex(function (a) {
+        return mesmoMunicipio(a, m);
+      });
+      return idx >= 0 ? idx + 1 : null;
+    }
+
+    function fmtRank(pos) {
+      if (pos == null || pos < 1) return '— no Estado';
+      return pos + '° no Estado';
+    }
+
+    function atualizarTitulosCharts(nome) {
+      const label = nome && String(nome).trim() ? String(nome).trim() : 'município';
+      const t1 = document.getElementById('ch-title-qualidade');
+      const t2 = document.getElementById('ch-title-seguranca');
+      if (t1) t1.textContent = 'Evolução qualidade de vida · ' + label;
+      if (t2) t2.textContent = 'Evolução segurança pública · ' + label;
+    }
+
+    window.addEventListener('load', () => {
+      const params = new URLSearchParams(window.location.search);
+      const idMun = params.get('id');
+      const nomeMun = params.get('nome');
+
+      if (!idMun && !nomeMun) {
+        aplicarKpis(0.756, 0.589, 0.799);
+        return;
+      }
+
+      if (nomeMun) atualizarTitulosCharts(nomeMun);
+
+      setKpiLoading(true);
+
+      const qs = new URLSearchParams();
+      if (idMun) qs.set('id', idMun);
+      if (nomeMun) qs.set('nome', nomeMun);
+
+      const pDet = fetch('/municipios/detalhe?' + qs.toString()).then(function (res) {
+        if (!res.ok) {
+          return res.json().then(function (body) {
+            throw new Error(body.mensagem || 'Município não encontrado');
+          });
+        }
+        return res.json();
+      });
+
+      const pList = fetch('/municipios/listar')
+        .then(function (res) {
+          return res.ok ? res.json() : [];
+        })
+        .catch(function () {
+          return [];
+        });
+
+      Promise.all([pDet, pList])
+        .then(function (pair) {
+          const m = pair[0];
+          const lista = pair[1];
+
+          setKpiLoading(false);
+
+          const crumb = document.getElementById('mun-crumb');
+          if (crumb && m.nome) crumb.textContent = m.nome;
+          atualizarTitulosCharts(m.nome);
+
+          document.getElementById('rank1').textContent = fmtRank(rankPorCampo(lista, 'longevidade', m));
+          document.getElementById('rank2').textContent = fmtRank(rankPorCampo(lista, 'educacao', m));
+          document.getElementById('rank3').textContent = fmtRank(rankPorCampo(lista, 'renda', m));
+
+          const lo =
+            m.longevidade != null && !Number.isNaN(Number(m.longevidade))
+              ? Number(m.longevidade)
+              : null;
+          const ed =
+            m.educacao != null && !Number.isNaN(Number(m.educacao))
+              ? Number(m.educacao)
+              : null;
+          const re =
+            m.renda != null && !Number.isNaN(Number(m.renda)) ? Number(m.renda) : null;
+
+          if (lo != null || ed != null || re != null) {
+            aplicarKpis(lo ?? 0, ed ?? 0, re ?? 0);
+          } else {
+            aplicarKpis(0.756, 0.589, 0.799);
+          }
+        })
+        .catch(function (err) {
+          console.error(err);
+          setKpiLoading(false);
+          const crumb = document.getElementById('mun-crumb');
+          if (crumb) crumb.textContent = 'município';
+          atualizarTitulosCharts(null);
+          document.getElementById('rank1').textContent = '3° no Estado';
+          document.getElementById('rank2').textContent = '5° no Estado';
+          document.getElementById('rank3').textContent = '4° no Estado';
+          aplicarKpis(0.756, 0.589, 0.799);
+        });
     });
 
 

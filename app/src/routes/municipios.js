@@ -6,4 +6,8 @@ router.get("/listar", function (req, res) {
   municipioController.listar(req, res);
 });
 
+router.get("/detalhe", function (req, res) {
+  municipioController.detalhe(req, res);
+});
+
 module.exports = router;
