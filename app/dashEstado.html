@@ -1404,6 +1404,14 @@
       return n.toLocaleString('pt-BR');
     }
 
+    function escapeHtml(s) {
+      return String(s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
     function render(lista) {
       const tbody = document.getElementById('listaCidades');
       const empty = document.getElementById('emptyState');
@@ -1422,18 +1430,26 @@
         const cls = getClasse(idhm);
         const lbl = getClasseLabel(idhm);
         const idhmTxt = idhmVal != null ? idhmVal.toFixed(3) : '—';
+        const idStr =
+          c.id != null && c.id !== '' && !Number.isNaN(Number(c.id))
+            ? String(Number(c.id))
+            : '';
+        const nomeEnc = encodeURIComponent(c.nome || '');
         return `
       <tr>
-        <td>${c.nome}</td>
+        <td>${escapeHtml(c.nome)}</td>
         <td class="mono">${fmtPop(c.pop)}</td>
         <td class="mono">${idhmTxt}</td>
         <td><span class="idhm-badge idhm-${cls}"><span class="idhm-dot"></span>${lbl}</span></td>
-        <td><button class="dash-btn" onclick="redirecionar()">↗ Acessar</button></td>
+        <td><button type="button" class="dash-btn" data-mun-id="${idStr}" data-mun-nome="${nomeEnc}">↗ Acessar</button></td>
       </tr>`;
       }).join('');
     }
-    function redirecionar(){
-        window.location.href = "/dados.html";
+    function redirecionar(id, nome) {
+      const params = new URLSearchParams();
+      if (id != null && !Number.isNaN(id)) params.set('id', String(id));
+      if (nome) params.set('nome', nome);
+      window.location.href = '/dados.html?' + params.toString();
     }
     function getFiltered() {
       const termo = document.getElementById('busca').value.toLowerCase();
@@ -1442,11 +1458,17 @@
         .filter(c => c.nome.toLowerCase().includes(termo))
         .filter(c => filtroIDHM === '' || getClasse(obterIdhm(c) ?? 0) === filtroIDHM)
         .sort((a, b) => {
-          const av = sortField === 'nome' ? a.nome : sortField === 'pop' ? (a.pop ?? 0) : (obterIdhm(a) ?? 0);
-          const bv = sortField === 'nome' ? b.nome : sortField === 'pop' ? (b.pop ?? 0) : (obterIdhm(b) ?? 0);
-          if (av < bv) return -sortDir;
-          if (av > bv) return sortDir;
-          return 0;
+          let cmp = 0;
+          if (sortField === 'nome') {
+            cmp = String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR', {
+              sensitivity: 'base',
+            });
+          } else if (sortField === 'pop') {
+            cmp = (Number(a.pop) || 0) - (Number(b.pop) || 0);
+          } else {
+            cmp = (obterIdhm(a) ?? 0) - (obterIdhm(b) ?? 0);
+          }
+          return sortDir * cmp;
         });
     }
 
@@ -1464,6 +1486,22 @@
 
     document.getElementById('busca').addEventListener('input', () => render(getFiltered()));
     document.getElementById('filtroIDHM').addEventListener('change', () => render(getFiltered()));
+
+    document.getElementById('listaCidades').addEventListener('click', function (e) {
+      const btn = e.target.closest('.dash-btn');
+      if (!btn) return;
+      const idAttr = btn.getAttribute('data-mun-id');
+      const nomeEnc = btn.getAttribute('data-mun-nome');
+      const id =
+        idAttr && idAttr !== '' && !Number.isNaN(Number(idAttr)) ? Number(idAttr) : null;
+      let nome = '';
+      try {
+        nome = nomeEnc ? decodeURIComponent(nomeEnc) : '';
+      } catch (err) {
+        nome = '';
+      }
+      redirecionar(id, nome);
+    });
 
     // COUNT-UP ANIMATION
     function countUp(el, target, isFloat, dur) {
@@ -1516,9 +1554,9 @@
     window.addEventListener('load', () => {
       carregarMunicipios();
       setTimeout(() => {
-        countUp(document.getElementById('kv-lat'), 120, false, 1200);
-        countUp(document.getElementById('kv-roubo'), 45000, false, 1300);
-        countUp(document.getElementById('kv-furto'), 80000, false, 1400);
+        countUp(document.getElementById('kv-lat'), 252, false, 1200);
+        countUp(document.getElementById('kv-roubo'), 68592, false, 1300);
+        countUp(document.getElementById('kv-furto'), 506653, false, 1400);
         setTimeout(() => { document.getElementById('pb-lat').style.width = '65%' }, 200);
         setTimeout(() => { document.getElementById('pb-roubo').style.width = '82%' }, 350);
         setTimeout(() => { document.getElementById('pb-furto').style.width = '55%' }, 500);

@@ -109,4 +109,19 @@ function carregar() {
   });
 }
 
-module.exports = { carregar, parsePlanilha, limparNome };
+function buscarPorNome(nome) {
+  var alvo = limparNome(nome).toLowerCase();
+  if (!alvo) {
+    return Promise.resolve(null);
+  }
+  return carregar().then(function (lista) {
+    for (var i = 0; i < lista.length; i++) {
+      if (limparNome(lista[i].nome).toLowerCase() === alvo) {
+        return lista[i];
+      }
+    }
+    return null;
+  });
+}
+
+module.exports = { carregar, parsePlanilha, limparNome, buscarPorNome };
