@@ -1441,57 +1441,17 @@
       renderList('rank-bot', top5, idhColor);
     }
 
+    function urlDashEstado(sig, name) {
+      const params = new URLSearchParams({ uf: sig });
+      if (name) params.set('nome', name);
+      return '/dashEstado.html?' + params.toString();
+    }
+
     // ─── SELECT STATE ───
     function selectState(sig) {
       const s = STATES_DATA.find(x => x.sig === sig);
       if (!s) return;
-      const diff = (s.idh - NAT);
-      const diffStr = (diff >= 0 ? '+' : '') + diff.toFixed(3).replace('.', ',');
-      const diffClass = diff >= 0 ? 'delta-up' : diff > -0.05 ? 'delta-nt' : 'delta-dn';
-
-
-
-      // sidebar selected card
-      const card = document.getElementById('selected-state-card');
-      card.classList.add('visible');
-      document.getElementById('selected-name').textContent = s.name + ' (' + s.sig + ')';
-      document.getElementById('selected-idh').textContent = fmtIDH(s.idh);
-      const dEl = document.getElementById('selected-delta');
-      dEl.textContent = diffStr + ' vs Brasil';
-      dEl.className = 'selected-idh-delta ' + diffClass;
-      document.getElementById('selected-rank').textContent = '#' + s.rank + ' no ranking nacional · ' + idhCat(s.idh);
-
-      // insight
-      const banner = document.getElementById('insight-banner');
-      banner.classList.add('visible');
-      const insightEl = document.getElementById('insight-text');
-      if (diff >= 0) {
-        insightEl.innerHTML = `<strong>${s.name}</strong> está <strong>${diffStr} acima</strong> da média nacional. Categoria: ${idhCat(s.idh)}. Posição #${s.rank} no Brasil.`;
-      } else {
-        insightEl.innerHTML = `<strong>${s.name}</strong> está <strong>${diffStr} abaixo</strong> da média nacional. Atenção recomendada em políticas sociais. Posição #${s.rank} no Brasil.`;
-      }
-
-      // highlight map
-      document.querySelectorAll('#mapa_brasil path[data-sig]').forEach(p => {
-        const ps = p.dataset.sig;
-        if (ps === sig) {
-          p.style.stroke = '#fff';
-          p.style.strokeWidth = '2';
-          p.style.filter = 'brightness(1.15)';
-        } else {
-          const sd = STATES_DATA.find(x => x.sig === ps);
-          p.style.stroke = 'rgba(255,255,255,0.5)';
-          p.style.strokeWidth = '0.8';
-          p.style.filter = '';
-        }
-      });
-
-      // rank list active
-      document.querySelectorAll('.rank-item').forEach(el => {
-        el.classList.toggle('active', el.dataset.sig === sig);
-      });
-
-      window.location.href = "/dashEstado.html";
+      window.location.href = urlDashEstado(s.sig, s.name);
     }
 
     function selectStateHover(sig) {
@@ -1585,16 +1545,6 @@
         });
         mo.observe(container, { childList: true, subtree: true });
       }
-    }
-
-    const estadoEl = document.getElementById('estado_selecionado');
-    if (estadoEl) {
-      const observer = new MutationObserver(() => {
-        const val = estadoEl.textContent.trim();
-        const s = STATES_DATA.find(x => val.includes(x.sig) || val.includes(x.name));
-        if (s) selectState(s.sig);
-      });
-      observer.observe(estadoEl, { childList: true, characterData: true, subtree: true });
     }
 
     function redirecionarSettings() {

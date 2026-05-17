@@ -10,4 +10,16 @@ router.get("/detalhe", function (req, res) {
   municipioController.detalhe(req, res);
 });
 
+router.get("/populacao", function (req, res) {
+  municipioController.mapaPopulacao(req, res);
+});
+
+router.get("/seguranca/latrocinio", function (req, res) {
+  municipioController.latrocinio(req, res);
+});
+
+router.get("/seguranca/status", function (req, res) {
+  municipioController.statusLatrocinio(req, res);
+});
+
 module.exports = router;

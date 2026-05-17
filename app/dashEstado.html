@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CidadeData — Estado São Paulo · Safety Intelligence</title>
+  <title>CidadeData — Estado · Safety Intelligence</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap"
     rel="stylesheet">
@@ -55,6 +55,23 @@
       --red: #8B1A1A;
       --red-dim: #FDECEC;
       /* red-bg */
+
+      /* Classificação por população (escala crescente, mesma família de cor) */
+      --pop-mp-bg: #ECEEF2;
+      --pop-mp-border: #C4C9D2;
+      --pop-mp-text: #5C6573;
+      --pop-p-bg: #E2EBF5;
+      --pop-p-border: #A8BFD9;
+      --pop-p-text: #3D6A94;
+      --pop-m-bg: #C9DBEF;
+      --pop-m-border: #7BA3CC;
+      --pop-m-text: #1A5FAD;
+      --pop-g-bg: #9FC0E3;
+      --pop-g-border: #4A85BE;
+      --pop-g-text: #0C3B6E;
+      --pop-metro-bg: #1A5FAD;
+      --pop-metro-border: #0C3B6E;
+      --pop-metro-text: #FFFFFF;
 
       /* TEXT HIERARCHY */
       --t1: #0F1117;
@@ -1123,6 +1140,40 @@
       background: currentColor
     }
 
+    .pop-mp {
+      background: var(--pop-mp-bg);
+      border-color: var(--pop-mp-border);
+      color: var(--pop-mp-text);
+    }
+
+    .pop-p {
+      background: var(--pop-p-bg);
+      border-color: var(--pop-p-border);
+      color: var(--pop-p-text);
+    }
+
+    .pop-m {
+      background: var(--pop-m-bg);
+      border-color: var(--pop-m-border);
+      color: var(--pop-m-text);
+    }
+
+    .pop-g {
+      background: var(--pop-g-bg);
+      border-color: var(--pop-g-border);
+      color: var(--pop-g-text);
+    }
+
+    .pop-metro {
+      background: var(--pop-metro-bg);
+      border-color: var(--pop-metro-border);
+      color: var(--pop-metro-text);
+    }
+
+    .pop-metro .idhm-dot {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
     /* ACTION BUTTON */
     .dash-btn {
       background: rgba(59, 130, 246, 0.08);
@@ -1203,7 +1254,7 @@
       <a href="/index.html" class="nav-logo" aria-label="Página inicial">
         <img src="/public/img/logo.png">
       </a>
-      <div class="tb-crumb"><a href="/dashboard.html">país</a>/ <a href="/dashEstado.html">estado</a> 
+      <div class="tb-crumb"><a href="/dashboard.html">país</a> / <span id="tb-estado-nome">estado</span>
       </div>
 
          <div class="tb-r">
@@ -1333,13 +1384,23 @@
             <input type="text" id="busca" placeholder="Pesquisar cidade...">
           </div>
           <div class="select-wrap">
-            <select id="filtroIDHM">
-              <option value="">Todas as classificações</option>
+            <select id="filtroPop" title="Filtrar por porte da cidade" aria-label="Filtrar por população">
+              <option value="">População: todas</option>
+              <option value="mp">Muito pequena (até 10 mil)</option>
+              <option value="p">Pequena (10 mil – 50 mil)</option>
+              <option value="m">Média (50 mil – 200 mil)</option>
+              <option value="g">Grande (200 mil – 1 milhão)</option>
+              <option value="metro">Metrópole (acima de 1 milhão)</option>
+            </select>
+          </div>
+          <div class="select-wrap">
+            <select id="filtroIDHM" title="Filtrar por faixa de IDHM" aria-label="Filtrar por IDHM">
+              <option value="">IDHM: todos</option>
               <option value="verde">Muito Alto (≥ 0,800)</option>
               <option value="azul">Alto (0,700–0,799)</option>
               <option value="amarelo">Médio (0,600–0,699)</option>
               <option value="laranja">Baixo (0,500–0,599)</option>
-              <option value="vermelho">Muito Baixo (< 0,499)</option>
+              <option value="vermelho">Muito Baixo (&lt; 0,499)</option>
             </select>
           </div>
           <div class="controls-right">
@@ -1355,7 +1416,7 @@
                 <th onclick="sortBy('nome')" id="th-nome">Cidade <span class="sort-arrow">↕</span></th>
                 <th onclick="sortBy('pop')" id="th-pop">População <span class="sort-arrow">↕</span></th>
                 <th onclick="sortBy('idhm')" id="th-idhm" class="sorted">IDHM <span class="sort-arrow">↓</span></th>
-                <th>Mercado</th>
+                <th>Classificação</th>
                 <th>Dashboard</th>
               </tr>
             </thead>
@@ -1373,6 +1434,37 @@
   </div>
 
   <script>
+    const ESTADOS_NOME = {
+      AC: 'Acre', AL: 'Alagoas', AP: 'Amapá', AM: 'Amazonas', BA: 'Bahia', CE: 'Ceará',
+      DF: 'Distrito Federal', ES: 'Espírito Santo', GO: 'Goiás', MA: 'Maranhão',
+      MT: 'Mato Grosso', MS: 'Mato Grosso do Sul', MG: 'Minas Gerais', PA: 'Pará',
+      PB: 'Paraíba', PR: 'Paraná', PE: 'Pernambuco', PI: 'Piauí', RJ: 'Rio de Janeiro',
+      RN: 'Rio Grande do Norte', RS: 'Rio Grande do Sul', RO: 'Rondônia', RR: 'Roraima',
+      SC: 'Santa Catarina', SP: 'São Paulo', SE: 'Sergipe', TO: 'Tocantins',
+    };
+
+    function obterEstadoDaUrl() {
+      const params = new URLSearchParams(window.location.search);
+      let uf = (params.get('uf') || 'SP').trim().toUpperCase();
+      if (!ESTADOS_NOME[uf]) uf = 'SP';
+      let nome = params.get('nome') || ESTADOS_NOME[uf] || uf;
+      try {
+        nome = decodeURIComponent(nome);
+      } catch (err) {
+        /* mantém nome */
+      }
+      return { uf, nome };
+    }
+
+    const estadoAtual = obterEstadoDaUrl();
+
+    function aplicarEstadoNaPagina() {
+      document.title =
+        'CidadeData — ' + estadoAtual.nome + ' (' + estadoAtual.uf + ') · Safety Intelligence';
+      const el = document.getElementById('tb-estado-nome');
+      if (el) el.textContent = estadoAtual.nome + ' (' + estadoAtual.uf + ')';
+    }
+
     let cidades = [];
 
     let sortField = 'idhm';
@@ -1385,23 +1477,81 @@
       return isNaN(n) ? null : n;
     }
 
-    function getClasse(v) {
-      if (v >= 0.800) return 'verde';
-      if (v >= 0.700) return 'azul';
-      if (v >= 0.600) return 'amarelo';
-      if (v >= 0.500) return 'laranja';
+    function obterPop(c) {
+      if (c.pop == null || c.pop === '' || Number.isNaN(Number(c.pop))) return null;
+      return Number(c.pop);
+    }
+
+    function getClasseIdhm(v) {
+      if (v == null || Number.isNaN(Number(v))) return null;
+      const n = Number(v);
+      if (n >= 0.8) return 'verde';
+      if (n >= 0.7) return 'azul';
+      if (n >= 0.6) return 'amarelo';
+      if (n >= 0.5) return 'laranja';
       return 'vermelho';
     }
-    function getClasseLabel(v) {
-      if (v >= 0.800) return 'Muito Alto';
-      if (v >= 0.700) return 'Alto';
-      if (v >= 0.600) return 'Médio';
-      if (v >= 0.500) return 'Baixo';
-      return 'Muito Baixo';
+
+    function getClassePop(pop) {
+      const p = Number(pop);
+      if (pop == null || pop === '' || Number.isNaN(p)) return null;
+      if (p <= 10000) return 'mp';
+      if (p <= 50000) return 'p';
+      if (p <= 200000) return 'm';
+      if (p <= 1000000) return 'g';
+      return 'metro';
     }
+
+    function getClassePopLabel(pop) {
+      const p = Number(pop);
+      if (pop == null || pop === '' || Number.isNaN(p)) return '—';
+      if (p <= 10000) return 'Muito pequena';
+      if (p <= 50000) return 'Pequena';
+      if (p <= 200000) return 'Média';
+      if (p <= 1000000) return 'Grande';
+      return 'Metrópole';
+    }
+
     function fmtPop(n) {
-      if (n == null || n === 0) return '—';
-      return n.toLocaleString('pt-BR');
+      if (n == null || n === '' || Number.isNaN(Number(n))) return '—';
+      return Number(n).toLocaleString('pt-BR');
+    }
+
+    function chavePop(nome) {
+      return String(nome || '')
+        .replace(/\s*\([A-Z]{2}\)\s*$/i, '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    /** Nome vindo do IDHM → nome oficial para exibição */
+    const NOMES_OFICIAIS = {
+      'embu': 'Embu das Artes',
+      'florinia': 'Florínea',
+      'biritiba-mirim': 'Biritiba Mirim',
+      'sao luis do paraitinga': 'São Luiz do Paraitinga',
+    };
+
+    function corrigirNomeMunicipio(c) {
+      const nomeOficial = NOMES_OFICIAIS[chavePop(c.nome)];
+      if (!nomeOficial) return c;
+      return Object.assign({}, c, { nome: nomeOficial });
+    }
+
+    function textoBuscaCidade(c) {
+      return (c.nome + ' ' + (c.nome_origem || '')).toLowerCase();
+    }
+
+    function mesclarPopNoCliente(lista, mapaPop) {
+      if (!mapaPop || typeof mapaPop !== 'object') return lista;
+      return lista.map(function (c) {
+        if (c.pop != null && !Number.isNaN(Number(c.pop))) return c;
+        const pop = mapaPop[chavePop(c.nome)];
+        if (pop == null) return c;
+        return Object.assign({}, c, { pop: Number(pop) });
+      });
     }
 
     function escapeHtml(s) {
@@ -1426,37 +1576,45 @@
 
       tbody.innerHTML = lista.map(c => {
         const idhmVal = obterIdhm(c);
-        const idhm = idhmVal != null ? idhmVal : 0;
-        const cls = getClasse(idhm);
-        const lbl = getClasseLabel(idhm);
         const idhmTxt = idhmVal != null ? idhmVal.toFixed(3) : '—';
+        const popVal = obterPop(c);
+        const clsPop = getClassePop(popVal);
+        const lblPop = getClassePopLabel(popVal);
         const idStr =
           c.id != null && c.id !== '' && !Number.isNaN(Number(c.id))
             ? String(Number(c.id))
             : '';
         const nomeEnc = encodeURIComponent(c.nome || '');
+        const celulaClassificacao =
+          clsPop != null
+            ? `<span class="idhm-badge pop-${clsPop}"><span class="idhm-dot"></span>${lblPop}</span>`
+            : '—';
         return `
       <tr>
         <td>${escapeHtml(c.nome)}</td>
         <td class="mono">${fmtPop(c.pop)}</td>
         <td class="mono">${idhmTxt}</td>
-        <td><span class="idhm-badge idhm-${cls}"><span class="idhm-dot"></span>${lbl}</span></td>
+        <td>${celulaClassificacao}</td>
         <td><button type="button" class="dash-btn" data-mun-id="${idStr}" data-mun-nome="${nomeEnc}">↗ Acessar</button></td>
       </tr>`;
       }).join('');
     }
     function redirecionar(id, nome) {
       const params = new URLSearchParams();
+      params.set('uf', estadoAtual.uf);
+      if (estadoAtual.nome) params.set('estado', estadoAtual.nome);
       if (id != null && !Number.isNaN(id)) params.set('id', String(id));
       if (nome) params.set('nome', nome);
       window.location.href = '/dados.html?' + params.toString();
     }
     function getFiltered() {
       const termo = document.getElementById('busca').value.toLowerCase();
+      const filtroPop = document.getElementById('filtroPop').value;
       const filtroIDHM = document.getElementById('filtroIDHM').value;
       return [...cidades]
-        .filter(c => c.nome.toLowerCase().includes(termo))
-        .filter(c => filtroIDHM === '' || getClasse(obterIdhm(c) ?? 0) === filtroIDHM)
+        .filter(c => textoBuscaCidade(c).includes(termo))
+        .filter(c => filtroPop === '' || getClassePop(obterPop(c)) === filtroPop)
+        .filter(c => filtroIDHM === '' || getClasseIdhm(obterIdhm(c)) === filtroIDHM)
         .sort((a, b) => {
           let cmp = 0;
           if (sortField === 'nome') {
@@ -1485,6 +1643,7 @@
     }
 
     document.getElementById('busca').addEventListener('input', () => render(getFiltered()));
+    document.getElementById('filtroPop').addEventListener('change', () => render(getFiltered()));
     document.getElementById('filtroIDHM').addEventListener('change', () => render(getFiltered()));
 
     document.getElementById('listaCidades').addEventListener('click', function (e) {
@@ -1523,20 +1682,36 @@
       empty.style.display = 'none';
 
       try {
-        const resposta = await fetch('/municipios/listar');
-        if (!resposta.ok) {
-          const erro = await resposta.json().catch(() => ({}));
+        const qsUf = '?uf=' + encodeURIComponent(estadoAtual.uf);
+        const [resLista, resPop] = await Promise.all([
+          fetch('/municipios/listar' + qsUf),
+          fetch('/municipios/populacao' + qsUf).catch(function () {
+            return null;
+          }),
+        ]);
+        if (!resLista.ok) {
+          const erro = await resLista.json().catch(() => ({}));
           throw new Error(erro.mensagem || 'Falha ao buscar municípios');
         }
-        const dados = await resposta.json();
-        cidades = dados.map(function (c) {
+        const dados = await resLista.json();
+        let mapaPop = {};
+        if (resPop && resPop.ok) {
+          mapaPop = await resPop.json();
+        }
+        const normalizados = dados.map(function (c) {
           const idhmGeral = c.idhm_geral != null ? Number(c.idhm_geral) : (c.idhm != null ? Number(c.idhm) : null);
+          const pop = c.pop != null ? Number(c.pop) : null;
           return {
             ...c,
             idhm_geral: isNaN(idhmGeral) ? null : idhmGeral,
             idhm: isNaN(idhmGeral) ? null : idhmGeral,
+            pop: pop != null && !isNaN(pop) ? pop : null,
           };
         });
+        cidades = mesclarPopNoCliente(
+          normalizados.map(corrigirNomeMunicipio),
+          mapaPop
+        );
         render(getFiltered());
       } catch (erro) {
         console.error(erro);
@@ -1552,6 +1727,7 @@
 
     // INIT
     window.addEventListener('load', () => {
+      aplicarEstadoNaPagina();
       carregarMunicipios();
       setTimeout(() => {
         countUp(document.getElementById('kv-lat'), 252, false, 1200);

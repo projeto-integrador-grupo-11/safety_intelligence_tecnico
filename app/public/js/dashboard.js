@@ -28,8 +28,13 @@ const estados = [
   { uf: "TO", nome: "Tocantins" },
 ];
 
-// "segunda dashboard" (São Paulo)
-const rota_dashboard_sp = "/dashEstado.html";
+const rota_dashboard_estado = "/dashEstado.html";
+
+function urlDashEstado(uf, nome) {
+  const params = new URLSearchParams({ uf });
+  if (nome) params.set("nome", nome);
+  return rota_dashboard_estado + "?" + params.toString();
+}
 
 function normalizar(texto) {
   return (texto || "")
@@ -57,9 +62,9 @@ function selecionarEstado(uf, input, dropdown, valorSelecionado, mapa, opcoes) {
   input.value = estado.nome;
   abrirDropdown(input, dropdown, false);
 
-  const ignorarRedirectSp = opcoes && opcoes.ignorarRedirectSp;
-  if (estado.uf === "SP" && !ignorarRedirectSp) {
-    window.location.href = rota_dashboard_sp;
+  const ignorarRedirect = opcoes && opcoes.ignorarRedirect;
+  if (!ignorarRedirect) {
+    window.location.href = urlDashEstado(estado.uf, estado.nome);
     return;
   }
 
@@ -231,7 +236,7 @@ function montar() {
     fixadasVerDashboard.addEventListener("click", () => {
       fecharFixadas();
       selecionarEstado("SP", input, dropdown, valorSelecionado, mapaContainer, {
-        ignorarRedirectSp: true,
+        ignorarRedirect: true,
       });
     });
   }

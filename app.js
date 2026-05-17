@@ -15,6 +15,17 @@ var app = express();
 var indexRouter = require("./app/src/routes/index");
 var usuarioRouter = require("./app/src/routes/usuarios");
 var municipioRouter = require("./app/src/routes/municipios");
+var populacaoS3Service = require("./app/src/services/populacaoS3Service");
+var segurancaS3Service = require("./app/src/services/segurancaS3Service");
+
+populacaoS3Service.carregarMapa().catch(function () {});
+
+console.log("\nPré-carregando índice de latrocínio (SP)…");
+segurancaS3Service.precarregar("SP").then(function () {
+  console.log("\nÍndice de latrocínio (SP) pronto.");
+}).catch(function (erro) {
+  console.log("\nLatrocínio (SP):", erro.message || erro);
+});
 
 
 
