@@ -1,5 +1,7 @@
 var municipioModel = require("../models/municipioModel");
 var municipioS3Service = require("../services/municipioS3Service");
+var populacaoS3Service = require("../services/populacaoS3Service");
+var segurancaS3Service = require("../services/segurancaS3Service");
 
 function limparNome(nome) {
   return municipioS3Service.limparNome(nome);
@@ -28,22 +30,35 @@ function mapFromDb(rows) {
   });
 }
 
-function listar(req, res) {
+function obterUfQuery(req) {
+  return String(req.query.uf || "SP")
+    .trim()
+    .toUpperCase();
+}
+
+function enviarLista(res, municipios, uf) {
+  populacaoS3Service.mesclarPopulacao(municipios, uf).then(function (lista) {
+    res.status(200).json(lista);
+  });
+}
+
+function listarPorIdhmSp(res) {
   municipioModel
     .listar()
     .then(function (resultado) {
       if (resultado && resultado.length > 0) {
-        return res.status(200).json(mapFromDb(resultado));
+        enviarLista(res, mapFromDb(resultado), "SP");
+        return;
       }
       return municipioS3Service.carregar().then(function (dados) {
-        res.status(200).json(dados);
+        enviarLista(res, dados, "SP");
       });
     })
     .catch(function () {
       municipioS3Service
         .carregar()
         .then(function (dados) {
-          res.status(200).json(dados);
+          enviarLista(res, dados, "SP");
         })
         .catch(function (erro) {
           console.log("\nErro ao carregar municípios:", erro.message || erro);
@@ -55,14 +70,49 @@ function listar(req, res) {
     });
 }
 
-function enviarUm(res, row) {
+function listar(req, res) {
+  var uf = obterUfQuery(req);
+  if (!populacaoS3Service.isUfValida(uf)) {
+    res.status(400).json({ mensagem: "UF inválida." });
+    return;
+  }
+
+  if (uf !== "SP") {
+    populacaoS3Service
+      .listarMunicipiosPorUf(uf)
+      .then(function (lista) {
+        res.status(200).json(lista);
+      })
+      .catch(function (erro) {
+        console.log("\nErro ao listar municípios (" + uf + "):", erro.message || erro);
+        res.status(500).json({
+          mensagem:
+            "Não foi possível carregar os municípios de " +
+            uf +
+            ". Verifique a planilha populacao_municipios_2025.xls.",
+        });
+      });
+    return;
+  }
+
+  listarPorIdhmSp(res);
+}
+
+function enviarUm(res, row, uf) {
   var lista = mapFromDb([row]);
-  res.status(200).json(lista[0]);
+  populacaoS3Service.mesclarPopulacao(lista, uf || "SP").then(function (merged) {
+    res.status(200).json(merged[0]);
+  });
 }
 
 function detalhe(req, res) {
   var id = req.query.id;
   var nome = req.query.nome;
+  var uf = obterUfQuery(req);
+  if (!populacaoS3Service.isUfValida(uf)) {
+    res.status(400).json({ mensagem: "UF inválida." });
+    return;
+  }
 
   if ((id == null || id === "") && (nome == null || nome === "")) {
     res.status(400).json({ mensagem: "Informe o parâmetro id ou nome do município." });
@@ -88,6 +138,22 @@ function detalhe(req, res) {
     return municipioS3Service.buscarPorNome(nome);
   }
 
+  function tryPopulacaoNome() {
+    if (nome == null || nome === "") return Promise.resolve(null);
+    return populacaoS3Service.buscarPorNomeUf(nome, uf).then(function (m) {
+      if (!m) return null;
+      return {
+        id: m.id,
+        nome: m.nome,
+        idhm_geral: m.idhm_geral,
+        renda: m.renda,
+        educacao: m.educacao,
+        longevidade: m.longevidade,
+        pop: m.pop,
+      };
+    });
+  }
+
   tryDbId()
     .catch(function () {
       return null;
@@ -105,11 +171,17 @@ function detalhe(req, res) {
       });
     })
     .then(function (row) {
+      if (row) return row;
+      return tryPopulacaoNome().catch(function () {
+        return null;
+      });
+    })
+    .then(function (row) {
       if (!row || !row.nome) {
         res.status(404).json({ mensagem: "Município não encontrado." });
         return;
       }
-      enviarUm(res, row);
+      enviarUm(res, row, uf);
     })
     .catch(function (erro) {
       console.log("\nErro em /municipios/detalhe:", erro.message || erro);
@@ -117,4 +189,92 @@ function detalhe(req, res) {
     });
 }
 
-module.exports = { listar, detalhe };
+function mapaPopulacao(req, res) {
+  var uf = obterUfQuery(req);
+  if (!populacaoS3Service.isUfValida(uf)) {
+    res.status(400).json({ mensagem: "UF inválida." });
+    return;
+  }
+
+  populacaoS3Service
+    .carregarMapa(uf)
+    .then(function (mapa) {
+      res.status(200).json(mapa);
+    })
+    .catch(function (erro) {
+      console.log("\nErro mapa população:", erro.message || erro);
+      res.status(500).json({
+        mensagem:
+          "Não foi possível carregar populacao_municipios_2025.xls (S3 ou pasta safety_leitor_excel).",
+      });
+    });
+}
+
+function resolverNomeLatrocinio(req) {
+  var nome = req.query.nome;
+  if (nome != null && String(nome).trim() !== "") {
+    return Promise.resolve(String(nome).trim());
+  }
+
+  var id = req.query.id;
+  if (id == null || id === "") {
+    return Promise.resolve(null);
+  }
+
+  return municipioModel
+    .buscarPorId(id)
+    .then(function (rows) {
+      if (rows && rows.length && rows[0].nome) {
+        return limparNome(rows[0].nome);
+      }
+      return null;
+    })
+    .catch(function () {
+      return null;
+    });
+}
+
+function latrocinio(req, res) {
+  var uf = obterUfQuery(req);
+  if (!populacaoS3Service.isUfValida(uf)) {
+    res.status(400).json({ mensagem: "UF inválida." });
+    return;
+  }
+
+  resolverNomeLatrocinio(req)
+    .then(function (nomeFinal) {
+      if (!nomeFinal) {
+        res.status(400).json({
+          mensagem: "Informe o parâmetro nome ou id do município.",
+        });
+        return;
+      }
+      return segurancaS3Service.buscarLatrocinio(uf, nomeFinal).then(function (dados) {
+        res.status(200).json(dados);
+      });
+    })
+    .catch(function (erro) {
+      console.log("\nErro em /municipios/seguranca/latrocinio:", erro.message || erro);
+      res.status(500).json({
+        mensagem:
+          "Não foi possível carregar dados de latrocínio (banco_seguranca_2025.xlsx).",
+      });
+    });
+}
+
+function statusLatrocinio(req, res) {
+  var uf = obterUfQuery(req);
+  if (!populacaoS3Service.isUfValida(uf)) {
+    res.status(400).json({ mensagem: "UF inválida." });
+    return;
+  }
+  res.status(200).json(segurancaS3Service.obterStatusUf(uf));
+}
+
+module.exports = {
+  listar,
+  detalhe,
+  mapaPopulacao,
+  latrocinio,
+  statusLatrocinio,
+};
