@@ -40,7 +40,7 @@ function trocarSenha(novaSenha, email, senhaAtual){
                 console.log("Executando a instrução SQL: \n" + instrucaoSql);
                 return database.executar(instrucaoSql);
             }
-
+            console.log('senha errada')
             return false;
         });
 }
