@@ -22,7 +22,31 @@ function cadastrar(email, senha) {
     return database.executar(instrucaoSql);
 }
 
+function trocarSenha(novaSenha, email, senhaAtual){
+
+    var instrucaoSql0 = `SELECT senha FROM usuario WHERE email = '${email}'`;
+
+    return database.executar(instrucaoSql0)
+        .then(function(senhaBanco){
+
+            if (senhaBanco[0].senha == senhaAtual){
+
+                var instrucaoSql = `
+                    UPDATE usuario
+                    SET senha = '${novaSenha}'
+                    WHERE email = '${email}'
+                `;
+
+                console.log("Executando a instrução SQL: \n" + instrucaoSql);
+                return database.executar(instrucaoSql);
+            }
+
+            return false;
+        });
+}
+
 module.exports = {
     autenticar,
-    cadastrar
+    cadastrar,
+    trocarSenha
 };
