@@ -758,6 +758,34 @@
       pointer-events: none
     }
 
+    .ch-head-seg {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0
+    }
+
+    .seg-voltar-btn {
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: var(--primary);
+      background: transparent;
+      border: 1px solid rgba(var(--primary-rgb), 0.25);
+      border-radius: 5px;
+      padding: 3px 8px;
+      cursor: pointer;
+      letter-spacing: .04em;
+      white-space: nowrap
+    }
+
+    .seg-voltar-btn:hover {
+      background: var(--primary-dim)
+    }
+
+    .ch-canvas--seg-drill {
+      cursor: pointer
+    }
+
     .kpi-val.kpi-val--loading {
       font-size: 22px;
       font-weight: 700;
@@ -1245,7 +1273,10 @@
               <div class="ch-title" id="ch-title-seguranca">Evolução segurança pública · município</div>
               <div class="ch-sub" id="ch-sub-seguranca">Roubo seguido de morte (latrocínio) · boletins 2021–2025</div>
             </div>
-            <div class="ch-badge" id="ch-badge-seguranca">2021 – 2025</div>
+            <div class="ch-head-seg">
+              <button type="button" class="seg-voltar-btn" id="seg-voltar-anos" hidden>← Anos</button>
+              <div class="ch-badge" id="ch-badge-seguranca">2021 – 2025</div>
+            </div>
           </div>
           <div class="ch-body-seg" id="ch-body-seg">
             <div
@@ -1265,7 +1296,7 @@
               <div class="ch-stat">
                 <div>
                   <div class="ch-sv" id="seg-total-2025" style="color:var(--red)">—</div>
-                  <div class="ch-sl">Total em 2025</div>
+                  <div class="ch-sl" id="seg-total-label">Total no período</div>
                 </div>
               </div>
               <div class="ch-stat">
@@ -1401,6 +1432,13 @@
 
     var furtoChartInst = null;
     var segPollTimer = null;
+    var segDadosLatrocinio = null;
+    var segNomeMunicipio = '';
+    var segVisaoLatrocinio = 'anos';
+    var MESES_LAT_LABELS = [
+      'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+      'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+    ];
 
     function atualizarMsgSeguranca(uf) {
       return fetch(
@@ -1478,7 +1516,59 @@
         });
     }
 
+    function extrairMensalAno(dados, ano) {
+      ano = String(ano);
+      if (dados && dados.porMesPorAno && dados.porMesPorAno[ano]) {
+        return dados.porMesPorAno[ano];
+      }
+      if (dados && dados.anual && dados.anual.length) {
+        var item = dados.anual.find(function (x) {
+          return String(x.ano) === ano;
+        });
+        if (item && item.mensal && item.mensal.length) return item.mensal;
+      }
+      if (ano === '2025' && dados && dados.mensal && dados.mensal.length) {
+        return dados.mensal;
+      }
+      return MESES_LAT_LABELS.map(function (mes) {
+        return { mes: mes, valor: 0 };
+      });
+    }
+
+    function atualizarSegVoltarBtn() {
+      var btn = document.getElementById('seg-voltar-anos');
+      if (btn) btn.hidden = segVisaoLatrocinio !== 'meses';
+    }
+
+    function atualizarCanvasSegDrill() {
+      var wrap = document.querySelector('#ch-body-seg .ch-canvas');
+      if (wrap) wrap.classList.toggle('ch-canvas--seg-drill', segVisaoLatrocinio === 'anos');
+    }
+
+    function destruirGraficoLatrocinio() {
+      if (furtoChartInst) {
+        furtoChartInst.destroy();
+        furtoChartInst = null;
+      }
+    }
+
     function aplicarSeguranca(dados, nomeMunicipio) {
+      segDadosLatrocinio = dados;
+      segNomeMunicipio = nomeMunicipio || '';
+      mostrarLatrocinioAnos(dados, nomeMunicipio);
+      setSegurancaLoading(false);
+    }
+
+    function voltarLatrocinioAnos() {
+      if (!segDadosLatrocinio) return;
+      mostrarLatrocinioAnos(segDadosLatrocinio, segNomeMunicipio);
+    }
+
+    function mostrarLatrocinioAnos(dados, nomeMunicipio) {
+      segVisaoLatrocinio = 'anos';
+      atualizarSegVoltarBtn();
+      atualizarCanvasSegDrill();
+
       const labels =
         dados && dados.anual && dados.anual.length
           ? dados.anual.map(function (item) {
@@ -1490,20 +1580,29 @@
           ? dados.anual.map(function (item) {
               return Number(item.valor) || 0;
             })
-          : dados && dados.mensal
-            ? dados.mensal.map(function (item) {
-                return Number(item.valor) || 0;
-              })
-            : new Array(labels.length).fill(0);
-      const total =
-        dados && dados.total2025 != null
-          ? Number(dados.total2025)
-          : serie.length
-            ? Number(serie[serie.length - 1]) || 0
-            : 0;
+          : new Array(labels.length).fill(0);
+      const total = serie.reduce(function (acc, v) {
+        return acc + (Number(v) || 0);
+      }, 0);
+      const periodoTxt =
+        labels.length > 1
+          ? labels[0] + '–' + labels[labels.length - 1]
+          : labels.length
+            ? String(labels[0])
+            : '2021–2025';
+
+      const elSub = document.getElementById('ch-sub-seguranca');
+      if (elSub) {
+        elSub.textContent =
+          'Roubo seguido de morte (latrocínio) · boletins ' + periodoTxt;
+      }
+      const elBadge = document.getElementById('ch-badge-seguranca');
+      if (elBadge) elBadge.textContent = periodoTxt.replace('–', ' – ');
 
       const elTotal = document.getElementById('seg-total-2025');
       if (elTotal) elTotal.textContent = String(total);
+      const elTotalLabel = document.getElementById('seg-total-label');
+      if (elTotalLabel) elTotalLabel.textContent = 'Total no período (' + periodoTxt + ')';
 
       const elResumo = document.getElementById('seg-resumo-txt');
       if (elResumo) {
@@ -1515,17 +1614,107 @@
           (total === 1 ? '1 ocorrência' : total + ' ocorrências') +
           '</strong> de Roubo seguido de morte (latrocínio) em ' +
           nome +
-          ' · 2025 (último ano)';
+          ' · ' +
+          periodoTxt +
+          '. Clique em um ano no gráfico para ver a evolução mensal.';
       }
 
-      renderizarGraficoLatrocinio(labels, serie, total, '2025');
-      setSegurancaLoading(false);
+      renderizarGraficoLatrocinio({
+        modo: 'anos',
+        labels: labels,
+        serie: serie,
+      });
     }
 
-    function renderizarGraficoLatrocinio(labels, serie, total, anoDestaque) {
-      const destaque = anoDestaque || (labels.length ? labels[labels.length - 1] : '');
+    function mostrarLatrocinioMeses(ano, dados, nomeMunicipio) {
+      ano = String(ano);
+      segVisaoLatrocinio = 'meses';
+      atualizarSegVoltarBtn();
+      atualizarCanvasSegDrill();
+
+      const mensal = extrairMensalAno(dados, ano);
+      const labels = mensal.map(function (item) {
+        return String(item.mes);
+      });
+      const serie = mensal.map(function (item) {
+        return Number(item.valor) || 0;
+      });
+      const total = serie.reduce(function (acc, v) {
+        return acc + (Number(v) || 0);
+      }, 0);
+
+      const elSub = document.getElementById('ch-sub-seguranca');
+      if (elSub) {
+        elSub.textContent =
+          'Roubo seguido de morte (latrocínio) · evolução mensal em ' + ano;
+      }
+      const elBadge = document.getElementById('ch-badge-seguranca');
+      if (elBadge) elBadge.textContent = ano + ' · mensal';
+
+      const elTotal = document.getElementById('seg-total-2025');
+      if (elTotal) elTotal.textContent = String(total);
+      const elTotalLabel = document.getElementById('seg-total-label');
+      if (elTotalLabel) elTotalLabel.textContent = 'Total em ' + ano;
+
+      const elResumo = document.getElementById('seg-resumo-txt');
+      if (elResumo) {
+        const nome = nomeMunicipio && String(nomeMunicipio).trim()
+          ? String(nomeMunicipio).trim()
+          : 'município';
+        elResumo.innerHTML =
+          '<strong>' +
+          (total === 1 ? '1 ocorrência' : total + ' ocorrências') +
+          '</strong> em ' +
+          nome +
+          ' · ' +
+          ano +
+          ' (por mês). Use <strong>← Anos</strong> para voltar à visão anual.';
+      }
+
+      renderizarGraficoLatrocinio({
+        modo: 'meses',
+        labels: labels,
+        serie: serie,
+        anoRef: ano,
+      });
+    }
+
+    function datasetBarrasLatrocinioAnos(labels, serie, avg) {
+      const vermelho = C.chartBar || '#8B1A1A';
+      const vermelhoBg = 'rgba(139, 26, 26, ';
+      return {
+        type: 'bar',
+        data: serie,
+        backgroundColor: labels.map(function () {
+          return vermelhoBg + '0.38)';
+        }),
+        hoverBackgroundColor: labels.map(function () {
+          return vermelhoBg + '0.88)';
+        }),
+        borderColor: labels.map(function () {
+          return vermelho;
+        }),
+        hoverBorderColor: labels.map(function () {
+          return vermelho;
+        }),
+        borderWidth: 1.5,
+        hoverBorderWidth: 2.5,
+        borderRadius: 6,
+        hoverBorderRadius: 8,
+        borderSkipped: false,
+      };
+    }
+
+    function renderizarGraficoLatrocinio(cfg) {
+      const modo = cfg.modo || 'anos';
+      const labels = cfg.labels || [];
+      const serie = cfg.serie || [];
       const canvas = document.getElementById('furtoChart');
       if (!canvas || typeof Chart === 'undefined') return;
+
+      if (furtoChartInst && furtoChartInst._segModo !== modo) {
+        destruirGraficoLatrocinio();
+      }
 
       const avg = serie.length
         ? serie.reduce(function (a, b) {
@@ -1533,63 +1722,116 @@
           }, 0) / serie.length
         : 0;
 
+      const tooltipBase =
+        typeof tt !== 'undefined'
+          ? tt
+          : {
+              backgroundColor: C.tooltipBg,
+              borderColor: C.tooltipBorder,
+              borderWidth: 1,
+              titleColor: C.tooltipTitle,
+              bodyColor: C.tooltipBody,
+              padding: 12,
+              cornerRadius: 10,
+              displayColors: false,
+            };
+
       if (furtoChartInst) {
         furtoChartInst.data.labels = labels;
         furtoChartInst.data.datasets[0].data = serie;
-        furtoChartInst.data.datasets[1].data = Array(serie.length).fill(avg);
+        if (modo === 'anos') {
+          const barras = datasetBarrasLatrocinioAnos(labels, serie, avg);
+          Object.assign(furtoChartInst.data.datasets[0], barras);
+        }
+        if (furtoChartInst.data.datasets[1]) {
+          furtoChartInst.data.datasets[1].data = Array(serie.length).fill(avg);
+        }
+        furtoChartInst._segModo = modo;
+        furtoChartInst._segAnoRef = cfg.anoRef || null;
         furtoChartInst.update();
         return;
       }
 
+      const isMeses = modo === 'meses';
       const furtoCtx = canvas.getContext('2d');
+
       furtoChartInst = new Chart(furtoCtx, {
-        type: 'bar',
+        type: isMeses ? 'line' : 'bar',
         data: {
           labels: labels,
-          datasets: [
-            {
-              type: 'bar',
-              data: serie,
-              backgroundColor: serie.map(function (v, i) {
-                if (labels[i] === destaque) return 'rgba(' + C.chartLineRgb + ', 0.55)';
-                return 'rgba(' + C.chartLineRgb + ', 0.35)';
-              }),
-              borderColor: serie.map(function (v, i) {
-                if (labels[i] === destaque) return C.chartBar;
-                if (v > avg + 0.5) return C.chartBarHigh;
-                if (v < avg - 0.5) return C.chartBarLow;
-                return C.chartBarMid || C.chartBarLow;
-              }),
-              borderWidth: 1.5,
-              borderRadius: 6,
-              borderSkipped: false,
-              hoverBackgroundColor: 'rgba(' + C.chartBarRgb + ', 0.8)',
-            },
-            {
-              type: 'line',
-              data: Array(serie.length).fill(avg),
-              borderColor: 'rgba(' + C.chartAvg.replace(/[^,\d]/g, '') + ', 0.5)',
-              borderWidth: 1.5,
-              borderDash: [5, 4],
-              pointRadius: 0,
-              fill: false,
-              tension: 0,
-            },
-          ],
+          datasets: isMeses
+            ? [
+                {
+                  type: 'line',
+                  data: serie,
+                  borderColor: C.chartBar,
+                  backgroundColor: 'transparent',
+                  borderWidth: 2.5,
+                  pointBackgroundColor: C.chartBar,
+                  pointBorderColor: C.chartBar,
+                  pointRadius: 4,
+                  pointHoverRadius: 6,
+                  fill: false,
+                  tension: 0.35,
+                },
+                {
+                  type: 'line',
+                  data: Array(serie.length).fill(avg),
+                  borderColor: 'rgba(' + C.chartAvg.replace(/[^,\d]/g, '') + ', 0.5)',
+                  borderWidth: 1.5,
+                  borderDash: [5, 4],
+                  pointRadius: 0,
+                  fill: false,
+                  tension: 0,
+                },
+              ]
+            : [
+                datasetBarrasLatrocinioAnos(labels, serie, avg),
+                {
+                  type: 'line',
+                  data: Array(serie.length).fill(avg),
+                  borderColor: 'rgba(' + C.chartAvg.replace(/[^,\d]/g, '') + ', 0.5)',
+                  borderWidth: 1.5,
+                  borderDash: [5, 4],
+                  pointRadius: 0,
+                  fill: false,
+                  tension: 0,
+                },
+              ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          animation: { duration: 1200, easing: 'easeInOutQuart' },
+          animation: { duration: 900, easing: 'easeInOutQuart' },
+          interaction: {
+            mode: modo === 'anos' ? 'nearest' : 'index',
+            intersect: modo === 'anos',
+          },
+          onClick: function (evt, elements) {
+            if (modo !== 'anos' || !elements.length) return;
+            const idx = elements[0].index;
+            const ano = labels[idx];
+            if (!ano || !segDadosLatrocinio) return;
+            mostrarLatrocinioMeses(ano, segDadosLatrocinio, segNomeMunicipio);
+          },
+          onHover: function (evt, elements, chart) {
+            const alvo = chart && chart.canvas ? chart.canvas : canvas;
+            if (!alvo) return;
+            alvo.style.cursor =
+              modo === 'anos' && elements.length ? 'pointer' : 'default';
+          },
           plugins: {
             legend: { display: false },
             tooltip: {
-              ...tt,
+              ...tooltipBase,
               filter: function (item) {
                 return item.datasetIndex === 0;
               },
               callbacks: {
                 title: function (c) {
+                  if (modo === 'meses') {
+                    return 'Latrocínio · ' + (cfg.anoRef || '') + ' · ' + c[0].label;
+                  }
                   return 'Latrocínio · ' + c[0].label;
                 },
                 label: function (c) {
@@ -1597,9 +1839,18 @@
                 },
                 afterLabel: function (c) {
                   const diff = c.parsed.y - avg;
-                  if (avg <= 0) return 'Total no ano: ' + c.parsed.y;
+                  if (avg <= 0) {
+                    return modo === 'meses'
+                      ? 'Total no mês: ' + c.parsed.y
+                      : 'Total no ano: ' + c.parsed.y;
+                  }
                   const pct = Math.abs((diff / avg) * 100).toFixed(1);
-                  return (diff > 0 ? '▲ +' : '▼ -') + pct + '% vs média (' + labels.length + ' anos)';
+                  const unidade = modo === 'meses' ? 'meses' : 'anos';
+                  return (diff > 0 ? '▲ +' : '▼ -') + pct + '% vs média (' + labels.length + ' ' + unidade + ')';
+                },
+                footer: function () {
+                  if (modo === 'anos') return 'Clique para ver os meses';
+                  return '';
                 },
               },
             },
@@ -1625,6 +1876,8 @@
           },
         },
       });
+      furtoChartInst._segModo = modo;
+      furtoChartInst._segAnoRef = cfg.anoRef || null;
     }
 
     window.addEventListener('load', () => {
@@ -1641,6 +1894,9 @@
         linkEstado.href = '/dashEstado.html?' + qsEstado.toString();
         if (nomeEstado) linkEstado.textContent = nomeEstado + ' (' + ufEstado + ')';
       }
+
+      const btnSegVoltar = document.getElementById('seg-voltar-anos');
+      if (btnSegVoltar) btnSegVoltar.addEventListener('click', voltarLatrocinioAnos);
 
       if (!idMun && !nomeMun) {
         aplicarKpis(0.756, 0.589, 0.799);
