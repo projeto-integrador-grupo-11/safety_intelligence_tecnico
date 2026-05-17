@@ -72,7 +72,41 @@
         }
     }
 
+    function trocarSenha(req, res){
+        // Crie uma variável que vá recuperar os valores do arquivo cadastro.html
+        var senhaAtual = req.body.senhaServer;
+        var novaSenha = req.body.novaSenhaServer;
+        var confirmarSenha = req.body.confirmarSenhaServer;
+        var email = req.body.emailServer;
+      //  var empresaId = req.body.empresaIdServer; 
+
+        // Faça as validações dos valores
+         if (senhaAtual == undefined) {
+            res.status(400).send("Seu email está undefined!");
+        } else if (novaSenha == undefined) {
+            res.status(400).send("Sua senha está undefined!");
+        } else {
+            // Passe os valores como parâmetro e vá para o arquivo usuarioModel.js
+            usuarioModel.trocarSenha(novaSenha, email, senhaAtual)
+                .then(
+                    function (resultado) {
+                        res.json(resultado);
+                    }
+                ).catch(
+                    function (erro) {
+                        console.log(erro);
+                        console.log(
+                            "\nHouve um erro atualizar o cadastro! Erro: ",
+                            erro.sqlMessage
+                        );
+                        res.status(500).json(erro.sqlMessage);
+                    }
+                );
+        }
+    }
+
     module.exports = {
         autenticar,
-        cadastrar
+        cadastrar,
+        trocarSenha
     }

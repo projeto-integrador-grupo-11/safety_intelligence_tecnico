@@ -1,76 +1,86 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Configurações — Safety Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     :root {
       /* Surface */
-      --bg:             #F4F5F7;
-      --surface:        #FFFFFF;
-      --card:           #FFFFFF;
+      --bg: #F4F5F7;
+      --surface: #FFFFFF;
+      --card: #FFFFFF;
 
       /* Borders */
-      --border:         #E3E5E8;
-      --border2:        #CDD0D5;
-      --border3:        #B8BCC3;
+      --border: #E3E5E8;
+      --border2: #CDD0D5;
+      --border3: #B8BCC3;
 
       /* Brand — Blue scale */
-      --primary:        #1A5FAD;
-      --primary-dk:     #0C3B6E;
-      --primary-lt:     #3B82C4;
-      --primary-dim:    #EBF2FA;
-      --primary-glow:   rgba(55, 114, 182, 0.12);
-      --primary-rgb:    55, 114, 182;
+      --primary: #1A5FAD;
+      --primary-dk: #0C3B6E;
+      --primary-lt: #3B82C4;
+      --primary-dim: #EBF2FA;
+      --primary-glow: rgba(55, 114, 182, 0.12);
+      --primary-rgb: 55, 114, 182;
 
       /* Semantic */
-      --green:          #1f8647;
-      --green-dim:      #E8F5EE;
-      --green-rgb:      31, 134, 71;
+      --green: #1f8647;
+      --green-dim: #E8F5EE;
+      --green-rgb: 31, 134, 71;
 
-      --yellow:         #8A5200;
-      --yellow-dim:     #FEF3DC;
+      --yellow: #8A5200;
+      --yellow-dim: #FEF3DC;
 
-      --red:            #8B1A1A;
-      --red-dim:        #FDECEC;
-      --red-rgb:        220, 38, 38;
+      --red: #8B1A1A;
+      --red-dim: #FDECEC;
+      --red-rgb: 220, 38, 38;
 
       /* Text hierarchy */
-      --t1:             #0F1117;
-      --t2:             #292E39;
-      --t3:             #656B76;
-      --t4:             #8B8E92;
+      --t1: #0F1117;
+      --t2: #292E39;
+      --t3: #656B76;
+      --t4: #8B8E92;
 
       /* Layout */
-      --sidebar-w:      240px;
-      --topbar-h:       64px;
+      --sidebar-w: 240px;
+      --topbar-h: 64px;
 
       /* Radius */
-      --r:              14px;
-      --r-sm:           10px;
-      --r-xs:           6px;
+      --r: 14px;
+      --r-sm: 10px;
+      --r-xs: 6px;
 
       /* Shadows */
-      --shadow-sm:      0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-      --shadow-md:      0 4px 12px rgba(0,0,0,.08);
-      --shadow-focus:   0 0 0 3px rgba(55,114,182,0.15);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, .08);
+      --shadow-focus: 0 0 0 3px rgba(55, 114, 182, 0.15);
 
       /* Typography */
-      --font:           'DM Sans', system-ui, sans-serif;
-      --mono:           'DM Mono', monospace;
+      --font: 'DM Sans', system-ui, sans-serif;
+      --mono: 'DM Mono', monospace;
 
       /* Transitions */
-      --t-fast:         .15s ease;
-      --t-base:         .20s ease;
+      --t-fast: .15s ease;
+      --t-base: .20s ease;
     }
 
-    html, body {
+    html,
+    body {
       height: 100%;
       background: var(--bg);
       color: var(--t1);
@@ -100,9 +110,11 @@
     .sidebar::after {
       content: '';
       position: absolute;
-      top: 0; left: 0; right: 0;
+      top: 0;
+      left: 0;
+      right: 0;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(26,95,173,0.35), transparent);
+      background: linear-gradient(90deg, transparent, rgba(26, 95, 173, 0.35), transparent);
     }
 
     .sb-brand {
@@ -115,15 +127,31 @@
       flex-shrink: 0;
     }
 
-    .sb-logo-wrap img{
-      width: 62px; height: 62px;
+    .sb-logo-wrap img {
+      width: 62px;
+      height: 62px;
     }
 
-   
 
-    .sb-brand-text { line-height: 1; }
-    .sb-name { font-size: 13.5px; font-weight: 700; color: var(--t1); }
-    .sb-tag  { font-size: 9px; font-family: var(--mono); color: var(--t4); letter-spacing: .1em; text-transform: uppercase; margin-top: 2px; }
+
+    .sb-brand-text {
+      line-height: 1;
+    }
+
+    .sb-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--t1);
+    }
+
+    .sb-tag {
+      font-size: 9px;
+      font-family: var(--mono);
+      color: var(--t4);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
 
     /* nav */
     .sb-nav {
@@ -136,22 +164,42 @@
     }
 
     .sb-sec {
-      font-size: 9px; font-family: var(--mono); color: var(--t4);
-      letter-spacing: .12em; text-transform: uppercase;
-      padding: 0 10px; margin: 14px 0 5px;
+      font-size: 9px;
+      font-family: var(--mono);
+      color: var(--t4);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 0 10px;
+      margin: 14px 0 5px;
     }
-    .sb-sec:first-child { margin-top: 0; }
+
+    .sb-sec:first-child {
+      margin-top: 0;
+    }
 
     .sb-item {
-      display: flex; align-items: center; gap: 9px;
-      padding: 9px 10px; border-radius: var(--r-xs);
-      cursor: pointer; transition: all var(--t-fast);
-      color: var(--t3); font-size: 13px; font-weight: 500;
-      text-decoration: none; position: relative; border: none; background: none;
-      width: 100%; text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 10px;
+      border-radius: var(--r-xs);
+      cursor: pointer;
+      transition: all var(--t-fast);
+      color: var(--t3);
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      position: relative;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
     }
 
-    .sb-item:hover { background: var(--primary-dim); color: var(--t2); }
+    .sb-item:hover {
+      background: var(--primary-dim);
+      color: var(--t2);
+    }
 
     .sb-item.active {
       background: var(--primary-dim);
@@ -161,13 +209,22 @@
 
     .sb-item.active::before {
       content: '';
-      position: absolute; left: 0; top: 20%; bottom: 20%;
-      width: 2.5px; background: var(--primary);
+      position: absolute;
+      left: 0;
+      top: 20%;
+      bottom: 20%;
+      width: 2.5px;
+      background: var(--primary);
       border-radius: 2px;
       box-shadow: 0 0 8px var(--primary-glow);
     }
 
-    .sb-icon { font-size: 14px; width: 17px; text-align: center; flex-shrink: 0; }
+    .sb-icon {
+      font-size: 14px;
+      width: 17px;
+      text-align: center;
+      flex-shrink: 0;
+    }
 
     .sb-footer {
       padding: 14px 10px;
@@ -176,20 +233,25 @@
     }
 
     .logout-btn {
-      width: 100%; padding: 9px 14px;
+      width: 100%;
+      padding: 9px 14px;
       background: transparent;
       border: 1px solid var(--border2);
       border-radius: var(--r-sm);
-      font-size: 13px; font-weight: 600;
+      font-size: 13px;
+      font-weight: 600;
       font-family: var(--font);
-      color: var(--t3); cursor: pointer;
+      color: var(--t3);
+      cursor: pointer;
       transition: all var(--t-base);
-      display: flex; align-items: center; gap: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .logout-btn:hover {
       background: var(--red-dim);
-      border-color: rgba(139,26,26,0.22);
+      border-color: rgba(139, 26, 26, 0.22);
       color: var(--red);
     }
 
@@ -197,64 +259,122 @@
     .topbar {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 0 28px;
       height: var(--topbar-h);
-      position: sticky; top: 0; z-index: 20;
+      position: sticky;
+      top: 0;
+      z-index: 20;
       box-shadow: var(--shadow-sm);
     }
 
-    .tb-l { display: flex; align-items: center; gap: 16px; }
+    .tb-l {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
 
-    .tb-title { font-size: 15px; font-weight: 700; color: var(--t1); letter-spacing: -.01em; }
+    .tb-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--t1);
+      letter-spacing: -.01em;
+    }
 
     .tb-crumb {
-      display: flex; align-items: center; gap: 5px;
-      font-size: 12px; font-family: var(--mono); color: var(--t4);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--t4);
     }
-    .tb-crumb span { color: var(--t3); }
 
-    .tb-r { display: flex; align-items: center; gap: 10px; }
+    .tb-crumb span {
+      color: var(--t3);
+    }
+
+    .tb-r {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
     .tb-avatar {
-      width: 32px; height: 32px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       background: var(--primary-dim);
       border: 2px solid var(--border2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; color: var(--primary);
-      font-weight: 700; cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--primary);
+      font-weight: 700;
+      cursor: pointer;
       transition: border-color var(--t-base);
     }
-    .tb-avatar:hover { border-color: var(--primary-lt); }
+
+    .tb-avatar:hover {
+      border-color: var(--primary-lt);
+    }
 
     /* ── MAIN ── */
     .main {
       overflow-y: auto;
       padding: 28px 32px 52px;
-      display: flex; flex-direction: column; gap: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
       background: var(--bg);
     }
 
-    ::-webkit-scrollbar { width: 3px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    ::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 3px;
+    }
 
     /* ── PAGE HEADER ── */
     .page-header {
-      display: flex; align-items: flex-start; justify-content: space-between;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
       gap: 16px;
     }
 
     .page-header-body {}
+
     .page-title {
-      font-size: 22px; font-weight: 700; color: var(--t1); letter-spacing: -.02em;
-    }
-    .page-sub {
-      font-size: 13px; color: var(--t3); margin-top: 3px; font-weight: 400;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--t1);
+      letter-spacing: -.02em;
     }
 
-    .page-header-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+    .page-sub {
+      font-size: 13px;
+      color: var(--t3);
+      margin-top: 3px;
+      font-weight: 400;
+    }
+
+    .page-header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-shrink: 0;
+    }
 
     /* ── INSIGHT BANNER ── */
     .banner {
@@ -262,10 +382,14 @@
       border: 1px solid rgba(var(--green-rgb), 0.22);
       border-radius: var(--r);
       padding: 14px 20px;
-      display: flex; align-items: center; gap: 14px;
-      position: relative; overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
       transition: border-color var(--t-base), box-shadow var(--t-base);
-      cursor: default; flex-shrink: 0;
+      cursor: default;
+      flex-shrink: 0;
       box-shadow: var(--shadow-sm);
     }
 
@@ -276,39 +400,70 @@
 
     .banner::before {
       content: '';
-      position: absolute; right: -20px; top: -20px;
-      width: 110px; height: 110px;
+      position: absolute;
+      right: -20px;
+      top: -20px;
+      width: 110px;
+      height: 110px;
       background: radial-gradient(circle, rgba(var(--green-rgb), 0.06), transparent 70%);
       pointer-events: none;
     }
 
     .bn-icon {
-      width: 36px; height: 36px;
+      width: 36px;
+      height: 36px;
       background: var(--green-dim);
       border: 1px solid rgba(var(--green-rgb), 0.2);
       border-radius: 9px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
     }
 
-    .bn-body { flex: 1; min-width: 0; }
+    .bn-body {
+      flex: 1;
+      min-width: 0;
+    }
 
     .bn-tag {
-      font-size: 9px; font-family: var(--mono);
-      color: var(--green); letter-spacing: .12em;
-      text-transform: uppercase; margin-bottom: 3px;
+      font-size: 9px;
+      font-family: var(--mono);
+      color: var(--green);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 3px;
     }
 
-    .bn-text { font-size: 13px; font-weight: 500; color: var(--t2); line-height: 1.45; }
-    .bn-text strong { color: var(--green); font-weight: 700; }
+    .bn-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--t2);
+      line-height: 1.45;
+    }
+
+    .bn-text strong {
+      color: var(--green);
+      font-weight: 700;
+    }
 
     .bn-close {
-      color: var(--t4); font-size: 18px; cursor: pointer;
-      padding: 2px 6px; line-height: 1;
-      transition: color var(--t-fast); flex-shrink: 0; align-self: flex-start;
-      background: none; border: none;
+      color: var(--t4);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 2px 6px;
+      line-height: 1;
+      transition: color var(--t-fast);
+      flex-shrink: 0;
+      align-self: flex-start;
+      background: none;
+      border: none;
     }
-    .bn-close:hover { color: var(--t1); }
+
+    .bn-close:hover {
+      color: var(--t1);
+    }
 
     /* ── CARDS ── */
     .card {
@@ -322,24 +477,61 @@
     .card-header {
       padding: 20px 24px 16px;
       border-bottom: 1px solid var(--border);
-      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
     }
 
     .card-header-body {}
-    .card-title { font-size: 14.5px; font-weight: 700; color: var(--t1); margin-bottom: 2px; }
-    .card-sub   { font-size: 12px; color: var(--t3); font-weight: 400; line-height: 1.4; }
 
-    .card-badge {
-      font-size: 10px; font-family: var(--mono); font-weight: 500;
-      border-radius: 5px; padding: 3px 9px; border: 1px solid;
-      white-space: nowrap; flex-shrink: 0; align-self: flex-start;
+    .card-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--t1);
+      margin-bottom: 2px;
     }
 
-    .badge-blue { background: var(--primary-dim); border-color: rgba(26,95,173,0.2); color: var(--primary); }
-    .badge-green { background: var(--green-dim); border-color: rgba(var(--green-rgb),0.2); color: var(--green); }
-    .badge-red { background: var(--red-dim); border-color: rgba(139,26,26,0.2); color: var(--red); }
+    .card-sub {
+      font-size: 12px;
+      color: var(--t3);
+      font-weight: 400;
+      line-height: 1.4;
+    }
 
-    .card-body { padding: 24px; }
+    .card-badge {
+      font-size: 10px;
+      font-family: var(--mono);
+      font-weight: 500;
+      border-radius: 5px;
+      padding: 3px 9px;
+      border: 1px solid;
+      white-space: nowrap;
+      flex-shrink: 0;
+      align-self: flex-start;
+    }
+
+    .badge-blue {
+      background: var(--primary-dim);
+      border-color: rgba(26, 95, 173, 0.2);
+      color: var(--primary);
+    }
+
+    .badge-green {
+      background: var(--green-dim);
+      border-color: rgba(var(--green-rgb), 0.2);
+      color: var(--green);
+    }
+
+    .badge-red {
+      background: var(--red-dim);
+      border-color: rgba(139, 26, 26, 0.2);
+      color: var(--red);
+    }
+
+    .card-body {
+      padding: 24px;
+    }
 
     /* ── PROFILE SECTION ── */
     .perfil-layout {
@@ -349,45 +541,79 @@
       align-items: start;
     }
 
-    .avatar-block { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .avatar-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
 
     .avatar {
-      width: 80px; height: 80px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
       background: var(--primary-dim);
       border: 2px solid var(--border2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 28px; color: var(--primary);
-      font-weight: 700; position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: var(--primary);
+      font-weight: 700;
+      position: relative;
       overflow: hidden;
     }
 
     .avatar-overlay {
-      position: absolute; inset: 0;
-      background: rgba(26,95,173,0.6);
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0; transition: opacity var(--t-base); cursor: pointer;
+      position: absolute;
+      inset: 0;
+      background: rgba(26, 95, 173, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity var(--t-base);
+      cursor: pointer;
       font-size: 18px;
     }
 
-    .avatar:hover .avatar-overlay { opacity: 1; }
+    .avatar:hover .avatar-overlay {
+      opacity: 1;
+    }
 
     .avatar-hint {
-      font-size: 10.5px; font-family: var(--mono); color: var(--t4);
-      text-align: center; line-height: 1.35;
+      font-size: 10.5px;
+      font-family: var(--mono);
+      color: var(--t4);
+      text-align: center;
+      line-height: 1.35;
     }
 
     .inputs-grid {
-      display: flex; flex-direction: column; gap: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
 
-    .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
 
-    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
 
     .field-label {
-      font-size: 11px; font-weight: 600; color: var(--t3);
-      text-transform: uppercase; letter-spacing: .07em; font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      font-family: var(--mono);
     }
 
     .field input,
@@ -411,34 +637,54 @@
       background: var(--surface);
     }
 
-    .field input::placeholder { color: var(--t4); }
+    .field input::placeholder {
+      color: var(--t4);
+    }
 
     /* full-width field */
-    .field.full { grid-column: 1 / -1; }
+    .field.full {
+      grid-column: 1 / -1;
+    }
 
     /* ── SECURITY SECTION ── */
     .security-grid {
-      display: flex; flex-direction: column; gap: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
 
-    .password-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .password-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
 
     .strength-bar {
-      height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; margin-top: 4px;
+      height: 3px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 4px;
     }
 
     .strength-fill {
-      height: 100%; border-radius: 99px;
+      height: 100%;
+      border-radius: 99px;
       transition: width 0.4s ease, background 0.4s ease;
     }
 
     .strength-label {
-      font-size: 10px; font-family: var(--mono); color: var(--t4); margin-top: 4px;
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--t4);
+      margin-top: 4px;
     }
 
     /* 2FA row */
     .twofa-row {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 14px 16px;
       background: var(--bg);
       border: 1px solid var(--border);
@@ -447,115 +693,211 @@
     }
 
     .twofa-info {}
-    .twofa-title { font-size: 13px; font-weight: 600; color: var(--t1); margin-bottom: 2px; }
-    .twofa-sub   { font-size: 11.5px; color: var(--t3); }
 
-    .toggle {
-      position: relative; width: 40px; height: 22px; flex-shrink: 0;
+    .twofa-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t1);
+      margin-bottom: 2px;
     }
 
-    .toggle input { opacity: 0; width: 0; height: 0; }
+    .twofa-sub {
+      font-size: 11.5px;
+      color: var(--t3);
+    }
+
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
 
     .toggle-track {
-      position: absolute; inset: 0;
-      background: var(--border2); border-radius: 99px; cursor: pointer;
+      position: absolute;
+      inset: 0;
+      background: var(--border2);
+      border-radius: 99px;
+      cursor: pointer;
       transition: background var(--t-base);
     }
 
     .toggle-track::before {
-      content: ''; position: absolute;
-      width: 16px; height: 16px; left: 3px; top: 3px;
-      background: white; border-radius: 50%;
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: 3px;
+      top: 3px;
+      background: white;
+      border-radius: 50%;
       transition: transform var(--t-base);
-      box-shadow: 0 1px 3px rgba(0,0,0,.2);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
     }
 
-    .toggle input:checked + .toggle-track { background: var(--green); }
-    .toggle input:checked + .toggle-track::before { transform: translateX(18px); }
+    .toggle input:checked+.toggle-track {
+      background: var(--green);
+    }
+
+    .toggle input:checked+.toggle-track::before {
+      transform: translateX(18px);
+    }
 
     /* ── SESSIONS ── */
-    .session-list { display: flex; flex-direction: column; gap: 10px; }
+    .session-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
     .session-item {
-      display: flex; align-items: center; gap: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
       padding: 12px 14px;
-      background: var(--bg); border: 1px solid var(--border);
+      background: var(--bg);
+      border: 1px solid var(--border);
       border-radius: var(--r-sm);
       transition: border-color var(--t-fast);
     }
 
-    .session-item:hover { border-color: var(--border3); }
-
-    .session-icon {
-      width: 34px; height: 34px;
-      background: var(--primary-dim);
-      border-radius: var(--r-xs);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; flex-shrink: 0;
+    .session-item:hover {
+      border-color: var(--border3);
     }
 
-    .session-info { flex: 1; min-width: 0; }
-    .session-device { font-size: 13px; font-weight: 600; color: var(--t1); }
-    .session-meta   { font-size: 11px; font-family: var(--mono); color: var(--t4); margin-top: 1px; }
+    .session-icon {
+      width: 34px;
+      height: 34px;
+      background: var(--primary-dim);
+      border-radius: var(--r-xs);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .session-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .session-device {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t1);
+    }
+
+    .session-meta {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--t4);
+      margin-top: 1px;
+    }
 
     .session-current {
-      font-size: 9.5px; font-family: var(--mono);
-      background: var(--green-dim); border: 1px solid rgba(var(--green-rgb),.2);
-      color: var(--green); border-radius: 4px; padding: 2px 7px; white-space: nowrap;
+      font-size: 9.5px;
+      font-family: var(--mono);
+      background: var(--green-dim);
+      border: 1px solid rgba(var(--green-rgb), .2);
+      color: var(--green);
+      border-radius: 4px;
+      padding: 2px 7px;
+      white-space: nowrap;
     }
 
     .session-revoke {
-      font-size: 11.5px; font-weight: 600; color: var(--t4);
-      background: none; border: none; cursor: pointer;
-      font-family: var(--font); padding: 5px 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--t4);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font);
+      padding: 5px 8px;
       border-radius: var(--r-xs);
       transition: background var(--t-fast), color var(--t-fast);
     }
 
-    .session-revoke:hover { background: var(--red-dim); color: var(--red); }
+    .session-revoke:hover {
+      background: var(--red-dim);
+      color: var(--red);
+    }
 
     /* ── DIVIDER ── */
     .divider {
-      height: 1px; background: var(--border); margin: 4px 0;
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
     }
 
     /* ── BUTTONS ── */
     .btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 9px 18px; border-radius: var(--r-sm);
-      font-size: 13px; font-weight: 600; font-family: var(--font);
-      cursor: pointer; transition: all var(--t-base);
-      border: 1px solid transparent; white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border-radius: var(--r-sm);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: all var(--t-base);
+      border: 1px solid transparent;
+      white-space: nowrap;
     }
 
     .btn-primary {
-      background: var(--primary); color: #fff;
+      background: var(--primary);
+      color: #fff;
       border-color: var(--primary-dk);
-      box-shadow: 0 1px 3px rgba(26,95,173,.3);
+      box-shadow: 0 1px 3px rgba(26, 95, 173, .3);
     }
+
     .btn-primary:hover {
       background: var(--primary-dk);
-      box-shadow: 0 4px 12px rgba(26,95,173,.3);
+      box-shadow: 0 4px 12px rgba(26, 95, 173, .3);
     }
 
     .btn-secondary {
-      background: var(--surface); color: var(--t2);
+      background: var(--surface);
+      color: var(--t2);
       border-color: var(--border2);
       box-shadow: var(--shadow-sm);
     }
-    .btn-secondary:hover { border-color: var(--border3); color: var(--t1); }
+
+    .btn-secondary:hover {
+      border-color: var(--border3);
+      color: var(--t1);
+    }
 
     .btn-danger {
-      background: var(--red-dim); color: var(--red);
-      border-color: rgba(139,26,26,0.2);
+      background: var(--red-dim);
+      color: var(--red);
+      border-color: rgba(139, 26, 26, 0.2);
     }
-    .btn-danger:hover { background: #fbd5d5; border-color: rgba(139,26,26,0.35); }
 
-    .btn-sm { padding: 7px 13px; font-size: 12px; }
+    .btn-danger:hover {
+      background: #fbd5d5;
+      border-color: rgba(139, 26, 26, 0.35);
+    }
+
+    .btn-sm {
+      padding: 7px 13px;
+      font-size: 12px;
+    }
 
     /* ── ACTIONS BAR ── */
     .actions-bar {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--r);
@@ -564,344 +906,433 @@
     }
 
     .actions-bar-note {
-      font-size: 12px; font-family: var(--mono); color: var(--t4);
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--t4);
     }
 
-    .actions-bar-btns { display: flex; gap: 8px; }
+    .actions-bar-btns {
+      display: flex;
+      gap: 8px;
+    }
 
     /* ── DANGER ZONE ── */
     .danger-zone {
       background: var(--surface);
-      border: 1px solid rgba(139,26,26,0.18);
+      border: 1px solid rgba(139, 26, 26, 0.18);
       border-radius: var(--r);
       overflow: hidden;
     }
 
     .danger-zone .card-header {
-      border-bottom-color: rgba(139,26,26,0.12);
+      border-bottom-color: rgba(139, 26, 26, 0.12);
     }
 
     .danger-item {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 16px 24px; gap: 16px;
-      border-bottom: 1px solid rgba(139,26,26,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      gap: 16px;
+      border-bottom: 1px solid rgba(139, 26, 26, 0.06);
     }
 
-    .danger-item:last-child { border-bottom: none; }
+    .danger-item:last-child {
+      border-bottom: none;
+    }
 
-    .danger-info-title { font-size: 13px; font-weight: 600; color: var(--t1); margin-bottom: 2px; }
-    .danger-info-sub   { font-size: 12px; color: var(--t3); }
+    .danger-info-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t1);
+      margin-bottom: 2px;
+    }
+
+    .danger-info-sub {
+      font-size: 12px;
+      color: var(--t3);
+    }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 900px) {
-      .shell { grid-template-columns: 1fr; }
-      .sidebar { display: none; }
-      .perfil-layout { grid-template-columns: 1fr; }
-      .avatar-block { flex-direction: row; }
-      .input-row, .password-row { grid-template-columns: 1fr; }
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .perfil-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .avatar-block {
+        flex-direction: row;
+      }
+
+      .input-row,
+      .password-row {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 
 <body>
-<div class="shell">
+  <div class="shell">
 
-  <!-- ── SIDEBAR ── -->
-  <aside class="sidebar">
-    <div class="sb-brand">
-      <div class="sb-logo-wrap">
-        <img src="public/img/logo.png" alt="Logo" onerror="this.style.display='none';this.parentElement.innerHTML='🛡️'">
-      </div>
-      
-    </div>
-
-    <nav class="sb-nav">
-      <div class="sb-sec">Geral</div>
-      <button class="sb-item active">
-        <span class="sb-icon"></span> Perfil
-      </button>
-      <button class="sb-item">
-        <span class="sb-icon"></span> Segurança
-      </button>
-      <button class="sb-item">
-        <span class="sb-icon"></span> Notificações
-      </button>
-    </nav>
-
-    <div class="sb-footer">
-      <button class="logout-btn" onclick="handleSair()">
-        <span>↩</span> Sair
-      </button>
-    </div>
-  </aside>
-
-  <!-- ── CONTENT ── -->
-  <div style="display:flex;flex-direction:column;min-height:100vh;overflow:hidden">
-
-    <!-- TOPBAR -->
-    <div class="topbar">
-      <div class="tb-l">
-        <div class="tb-title">Configurações</div>
-        <div class="tb-crumb">/ <span>Conta</span> / <span>Perfil</span></div>
-      </div>
-      <div class="tb-r">
-        <div class="tb-avatar" title="Usuário">U</div>
-      </div>
-    </div>
-
-    <!-- MAIN -->
-    <main class="main">
-
-      <!-- INSIGHT BANNER -->
-      <div class="banner" id="banner">
-        <div class="bn-body">
-          <div class="bn-tag">Status da Conta</div>
-          <div class="bn-text">
-            Seu perfil está <strong>90% completo</strong>. Adicione um número de telefone para ativar a autenticação em dois fatores.
-          </div>
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar">
+      <div class="sb-brand">
+        <div class="sb-logo-wrap">
+          <img src="public/img/logo.png" alt="Logo"
+            onerror="this.style.display='none';this.parentElement.innerHTML='🛡️'">
         </div>
-        <button class="bn-close" onclick="document.getElementById('banner').style.display='none'" aria-label="Fechar">×</button>
+
       </div>
 
-      <!-- PAGE HEADER -->
-      <div class="page-header">
-        <div class="page-header-body">
-          <div class="page-title">Configurações de Usuário</div>
-          <div class="page-sub">Gerencie suas informações pessoais, segurança e preferências de conta</div>
+      <nav class="sb-nav">
+        <div class="sb-sec">Geral</div>
+        <button class="sb-item active">
+          <span class="sb-icon"></span> Perfil
+        </button>
+        <button class="sb-item">
+          <span class="sb-icon"></span> Segurança
+        </button>
+        <button class="sb-item">
+          <span class="sb-icon"></span> Notificações
+        </button>
+      </nav>
+
+      <div class="sb-footer">
+        <button class="logout-btn" onclick="handleSair()">
+          <span>↩</span> Sair
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── CONTENT ── -->
+    <div style="display:flex;flex-direction:column;min-height:100vh;overflow:hidden">
+
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div class="tb-l">
+          <div class="tb-title">Configurações</div>
+          <div class="tb-crumb">/ <span>Conta</span> / <span>Perfil</span></div>
+        </div>
+        <div class="tb-r">
+          <div class="tb-avatar" title="Usuário">U</div>
         </div>
       </div>
 
-      <!-- CARD: INFORMAÇÕES PESSOAIS -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-header-body">
-            <div class="card-title">Informações Pessoais</div>
-            <div class="card-sub">Atualize seus dados e foto de perfil</div>
-          </div>
-          <span class="card-badge badge-blue">Editável</span>
-        </div>
-        <div class="card-body">
-          <div class="perfil-layout">
+      <!-- MAIN -->
+      <main class="main">
 
-            <!-- Avatar -->
-            <div class="avatar-block">
-              <div class="avatar">
-                U
-                <div class="avatar-overlay">📷</div>
-              </div>
-              <div class="avatar-hint">Clique para<br>alterar foto</div>
-            </div>
-
-            <!-- Inputs -->
-            <div class="inputs-grid">
-              <div class="input-row">
-                <div class="field">
-                  <label class="field-label">Nome completo</label>
-                  <input type="text" placeholder="Ex.: João da Silva">
-                </div>
-                <div class="field">
-                  <label class="field-label">Email</label>
-                  <input type="email" placeholder="joao@empresa.com">
-                </div>
-              </div>
-              <div class="input-row">
-                <div class="field">
-                  <label class="field-label">Cargo</label>
-                  <input type="text" placeholder="Ex.: Analista de Dados">
-                </div>
-                <div class="field">
-                  <label class="field-label">Indústria</label>
-                  <input type="text" placeholder="Ex.: Segurança Pública">
-                </div>
-              </div>
-              <div class="input-row">
-                <div class="field">
-                  <label class="field-label">Telefone</label>
-                  <input type="tel" placeholder="+55 (11) 99999-0000">
-                </div>
-                <div class="field">
-                  <label class="field-label">Organização</label>
-                  <input type="text" placeholder="Ex.: Prefeitura de SP">
-                </div>
-              </div>
+        <!-- INSIGHT BANNER -->
+        <div class="banner" id="banner">
+          <div class="bn-body">
+            <div class="bn-tag">Status da Conta</div>
+            <div class="bn-text">
+              Seu perfil está <strong>90% completo</strong>. Adicione um número de telefone para ativar a autenticação
+              em dois fatores.
             </div>
           </div>
+          <button class="bn-close" onclick="document.getElementById('banner').style.display='none'"
+            aria-label="Fechar">×</button>
         </div>
-      </div>
 
-      <!-- CARD: SEGURANÇA -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-header-body">
-            <div class="card-title">Segurança</div>
-            <div class="card-sub">Gerencie sua senha e configure autenticação em dois fatores</div>
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+          <div class="page-header-body">
+            <div class="page-title">Configurações de Usuário</div>
+            <div class="page-sub">Gerencie suas informações pessoais, segurança e preferências de conta</div>
           </div>
-          <span class="card-badge badge-green">Ativa</span>
         </div>
-        <div class="card-body">
-          <div class="security-grid">
 
-            <!-- Alterar senha -->
-            <div class="field">
-              <label class="field-label">Senha atual</label>
-              <input type="password" placeholder="••••••••">
+        <!-- CARD: INFORMAÇÕES PESSOAIS -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-body">
+              <div class="card-title">Informações Pessoais</div>
+              <div class="card-sub">Atualize seus dados e foto de perfil</div>
             </div>
+            <span class="card-badge badge-blue">Editável</span>
+          </div>
+          <div class="card-body">
+            <div class="perfil-layout">
 
-            <div class="password-row">
+              <!-- Avatar -->
+              <div class="avatar-block">
+                <div class="avatar">
+                  U
+                  <div class="avatar-overlay">📷</div>
+                </div>
+                <div class="avatar-hint">Clique para<br>alterar foto</div>
+              </div>
+
+              <!-- Inputs -->
+              <div class="inputs-grid">
+                <div class="input-row">
+                  <div class="field">
+                    <label class="field-label">Nome completo</label>
+                    <input type="text" placeholder="Ex.: João da Silva">
+                  </div>
+                  <div class="field">
+                    <label class="field-label">Email</label>
+                    <input type="email" placeholder="joao@empresa.com">
+                  </div>
+                </div>
+                <div class="input-row">
+                  <div class="field">
+                    <label class="field-label">Cargo</label>
+                    <input type="text" placeholder="Ex.: Analista de Dados">
+                  </div>
+                  <div class="field">
+                    <label class="field-label">Indústria</label>
+                    <input type="text" placeholder="Ex.: Segurança Pública">
+                  </div>
+                </div>
+                <div class="input-row">
+                  <div class="field">
+                    <label class="field-label">Telefone</label>
+                    <input type="tel" placeholder="+55 (11) 99999-0000">
+                  </div>
+                  <div class="field">
+                    <label class="field-label">Organização</label>
+                    <input type="text" placeholder="Ex.: Prefeitura de SP">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD: SEGURANÇA -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-body">
+              <div class="card-title">Segurança</div>
+              <div class="card-sub">Gerencie sua senha e configure autenticação em dois fatores</div>
+            </div>
+            <span class="card-badge badge-green">Ativa</span>
+          </div>
+          <div class="card-body">
+            <div class="security-grid">
+
+              <!-- Alterar senha -->
               <div class="field">
-                <label class="field-label">Nova senha</label>
-                <input type="password" placeholder="••••••••" id="novaSenha" oninput="updateStrength(this.value)">
-                <div class="strength-bar">
-                  <div class="strength-fill" id="strengthFill" style="width:0%;background:var(--border3)"></div>
+                <label class="field-label">Senha atual</label>
+                <input type="password" placeholder="••••••••" id="ipt_senhaAtual">
+              </div>
+
+              <div class="password-row">
+                <div class="field">
+                  <label class="field-label">Nova senha</label>
+                  <input type="password" placeholder="••••••••" id="ipt_novaSenha" oninput="updateStrength(this.value)">
+                  <div class="strength-bar">
+                    <div class="strength-fill" id="strengthFill" style="width:0%;background:var(--border3)"></div>
+                  </div>
+                  <div class="strength-label" id="strengthLabel">Digite uma senha</div>
                 </div>
-                <div class="strength-label" id="strengthLabel">Digite uma senha</div>
+                <div class="field">
+                  <label class="field-label">Confirmar nova senha</label>
+                  <input type="password" placeholder="••••••••" id="ipt_confirmarNovaSenha">
+                </div>
               </div>
-              <div class="field">
-                <label class="field-label">Confirmar nova senha</label>
-                <input type="password" placeholder="••••••••">
-              </div>
-            </div>
 
-            <div style="display:flex;justify-content:flex-end">
-              <button class="btn btn-secondary btn-sm"> Alterar senha</button>
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- 2FA -->
-            <div class="twofa-row">
-              <div class="twofa-info">
-                <div class="twofa-title">Autenticação em dois fatores (2FA)</div>
-                <div class="twofa-sub">Adicione uma camada extra de segurança ao seu login</div>
+              <div style="display:flex;justify-content:flex-end">
+                <button class="btn btn-secondary btn-sm" onclick="alterarSenha()"> Alterar senha</button>
               </div>
-              <label class="toggle">
-                <input type="checkbox">
-                <div class="toggle-track"></div>
-              </label>
-            </div>
 
-          </div>
-        </div>
-      </div>
+              <div class="divider"></div>
 
-      <!-- CARD: SESSÕES ATIVAS -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-header-body">
-            <div class="card-title">Sessões Ativas</div>
-            <div class="card-sub">Dispositivos com acesso à sua conta no momento</div>
-          </div>
-          <span class="card-badge badge-blue">3 sessões</span>
-        </div>
-        <div class="card-body">
-          <div class="session-list">
-            <div class="session-item">
-              <div class="session-info">
-                <div class="session-device">Chrome — Windows 11</div>
-                <div class="session-meta">São Paulo, BR · Agora mesmo</div>
+              <!-- 2FA -->
+              <div class="twofa-row">
+                <div class="twofa-info">
+                  <div class="twofa-title">Autenticação em dois fatores (2FA)</div>
+                  <div class="twofa-sub">Adicione uma camada extra de segurança ao seu login</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox">
+                  <div class="toggle-track"></div>
+                </label>
               </div>
-              <span class="session-current">Sessão atual</span>
-            </div>
-            <div class="session-item">
-              <div class="session-info">
-                <div class="session-device">Safari — iPhone 15</div>
-                <div class="session-meta">São Paulo, BR · Há 2 horas</div>
-              </div>
-              <button class="session-revoke">Revogar</button>
-            </div>
-            <div class="session-item">
-              <div class="session-info">
-                <div class="session-device">Firefox — macOS Sonoma</div>
-                <div class="session-meta">Rio de Janeiro, BR · Ontem às 14h</div>
-              </div>
-              <button class="session-revoke">Revogar</button>
+
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ZONA DE PERIGO -->
-      <div class="danger-zone">
-        <div class="card-header">
-          <div class="card-header-body">
-            <div class="card-title" style="color:var(--red)">Zona de Perigo</div>
-            <div class="card-sub">Ações irreversíveis — prossiga com cuidado</div>
+        <!-- CARD: SESSÕES ATIVAS -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-body">
+              <div class="card-title">Sessões Ativas</div>
+              <div class="card-sub">Dispositivos com acesso à sua conta no momento</div>
+            </div>
+            <span class="card-badge badge-blue">3 sessões</span>
           </div>
-          <span class="card-badge badge-red">Irreversível</span>
-        </div>
-        <div class="danger-item">
-          <div>
-            <div class="danger-info-title">Exportar dados</div>
-            <div class="danger-info-sub">Baixe uma cópia de todos os seus dados e histórico</div>
+          <div class="card-body">
+            <div class="session-list">
+              <div class="session-item">
+                <div class="session-info">
+                  <div class="session-device">Chrome — Windows 11</div>
+                  <div class="session-meta">São Paulo, BR · Agora mesmo</div>
+                </div>
+                <span class="session-current">Sessão atual</span>
+              </div>
+              <div class="session-item">
+                <div class="session-info">
+                  <div class="session-device">Safari — iPhone 15</div>
+                  <div class="session-meta">São Paulo, BR · Há 2 horas</div>
+                </div>
+                <button class="session-revoke">Revogar</button>
+              </div>
+              <div class="session-item">
+                <div class="session-info">
+                  <div class="session-device">Firefox — macOS Sonoma</div>
+                  <div class="session-meta">Rio de Janeiro, BR · Ontem às 14h</div>
+                </div>
+                <button class="session-revoke">Revogar</button>
+              </div>
+            </div>
           </div>
-          <button class="btn btn-secondary btn-sm">↓ Exportar</button>
         </div>
-        <div class="danger-item">
-          <div>
-            <div class="danger-info-title">Desativar conta</div>
-            <div class="danger-info-sub">Suspenda temporariamente o acesso à sua conta</div>
-          </div>
-          <button class="btn btn-danger btn-sm">Desativar</button>
-        </div>
-        <div class="danger-item">
-          <div>
-            <div class="danger-info-title">Excluir conta permanentemente</div>
-            <div class="danger-info-sub">Remove todos os dados. Esta ação não pode ser desfeita.</div>
-          </div>
-          <button class="btn btn-danger btn-sm">Excluir conta</button>
-        </div>
-      </div>
 
-      <!-- ACTIONS BAR -->
-      <div class="actions-bar">
-        <div class="actions-bar-note">Alterações não salvas serão perdidas</div>
-        <div class="actions-bar-btns">
-          <button class="btn btn-secondary">Cancelar</button>
-          <button class="btn btn-primary">✓ Salvar alterações</button>
+        <!-- ZONA DE PERIGO -->
+        <div class="danger-zone">
+          <div class="card-header">
+            <div class="card-header-body">
+              <div class="card-title" style="color:var(--red)">Zona de Perigo</div>
+              <div class="card-sub">Ações irreversíveis — prossiga com cuidado</div>
+            </div>
+            <span class="card-badge badge-red">Irreversível</span>
+          </div>
+          <div class="danger-item">
+            <div>
+              <div class="danger-info-title">Exportar dados</div>
+              <div class="danger-info-sub">Baixe uma cópia de todos os seus dados e histórico</div>
+            </div>
+            <button class="btn btn-secondary btn-sm">↓ Exportar</button>
+          </div>
+          <div class="danger-item">
+            <div>
+              <div class="danger-info-title">Desativar conta</div>
+              <div class="danger-info-sub">Suspenda temporariamente o acesso à sua conta</div>
+            </div>
+            <button class="btn btn-danger btn-sm">Desativar</button>
+          </div>
+          <div class="danger-item">
+            <div>
+              <div class="danger-info-title">Excluir conta permanentemente</div>
+              <div class="danger-info-sub">Remove todos os dados. Esta ação não pode ser desfeita.</div>
+            </div>
+            <button class="btn btn-danger btn-sm">Excluir conta</button>
+          </div>
         </div>
-      </div>
 
-    </main>
+        <!-- ACTIONS BAR -->
+        <div class="actions-bar">
+          <div class="actions-bar-note">Alterações não salvas serão perdidas</div>
+          <div class="actions-bar-btns">
+            <button class="btn btn-secondary">Cancelar</button>
+            <button class="btn btn-primary">✓ Salvar alterações</button>
+          </div>
+        </div>
+
+      </main>
+    </div>
   </div>
-</div>
 
-<script>
-  // Sidebar active item
-  document.querySelectorAll('.sb-item').forEach(item => {
-    item.addEventListener('click', () => {
-      document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
-      item.classList.add('active');
+  <script>
+    // Sidebar active item
+    document.querySelectorAll('.sb-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+      });
     });
-  });
 
-  // Password strength
-  function updateStrength(val) {
-    const fill  = document.getElementById('strengthFill');
-    const label = document.getElementById('strengthLabel');
-    let score = 0;
-    if (val.length >= 8)  score++;
-    if (/[A-Z]/.test(val)) score++;
-    if (/[0-9]/.test(val)) score++;
-    if (/[^A-Za-z0-9]/.test(val)) score++;
+    // Password strength
+    function updateStrength(val) {
+      const fill = document.getElementById('strengthFill');
+      const label = document.getElementById('strengthLabel');
+      let score = 0;
+      if (val.length >= 8) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
 
-    const levels = [
-      { pct: '0%',   color: 'var(--border3)',  txt: 'Digite uma senha' },
-      { pct: '25%',  color: 'var(--red)',       txt: 'Fraca' },
-      { pct: '50%',  color: 'var(--yellow)',    txt: 'Razoável' },
-      { pct: '75%',  color: '#F59E0B',          txt: 'Boa' },
-      { pct: '100%', color: 'var(--green)',     txt: 'Forte' },
-    ];
+      const levels = [
+        { pct: '0%', color: 'var(--border3)', txt: 'Digite uma senha' },
+        { pct: '25%', color: 'var(--red)', txt: 'Fraca' },
+        { pct: '50%', color: 'var(--yellow)', txt: 'Razoável' },
+        { pct: '75%', color: '#F59E0B', txt: 'Boa' },
+        { pct: '100%', color: 'var(--green)', txt: 'Forte' },
+      ];
 
-    const lvl = val.length === 0 ? levels[0] : levels[score];
-    fill.style.width    = lvl.pct;
-    fill.style.background = lvl.color;
-    label.textContent   = lvl.txt;
-    label.style.color   = lvl.color;
-  }
+      const lvl = val.length === 0 ? levels[0] : levels[score];
+      fill.style.width = lvl.pct;
+      fill.style.background = lvl.color;
+      label.textContent = lvl.txt;
+      label.style.color = lvl.color;
+    }
 
-  function handleSair(){
-     window.history.back();
-  }
-</script>
+    function handleSair() {
+      window.history.back();
+    }
+
+    function alterarSenha() {
+      var senhaAtual = ipt_senhaAtual.value.trim()
+      var novaSenha = ipt_novaSenha.value.trim()
+      var corfirmarNovaSenha = ipt_confirmarNovaSenha.value.trim()
+      var emailSessao = sessionStorage.EMAIL_USUARIO;
+
+      if (senhaAtual == "" || novaSenha == "" || corfirmarNovaSenha == "") {
+        alert('Preencha todos os campos!!');
+        return;
+      }
+
+      fetch("http://safetyintelligence.duckdns.org:3333/usuarios/trocarSenha", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          // crie um atributo que recebe o valor recuperado aqui
+          // Agora vá para o arquivo routes/usuario.js
+          senhaServer: senhaAtual,
+          novaSenhaServer: novaSenha,
+          confirmarSenhaServer: corfirmarNovaSenha,
+          emailServer: emailSessao,
+        }),
+      })
+        .then(function (resposta) {
+          console.log("resposta: ", resposta);
+
+          if (resposta.ok) {
+            alert(
+              "Senha atualizada com sucesso!!");
+              ipt_novaSenha.value = ""
+              ipt_senhaAtual.value = ""
+              ipt_confirmarNovaSenha.value = ""
+
+            /*setTimeout(() => {
+                window.location = "login.html";
+            }, "2000");*/
+
+          } else {
+            throw "Houve um erro ao tentar troca de senha";
+          }
+        })
+        .catch(function (resposta) {
+          console.log(`#ERRO: ${resposta}`);
+          //   finalizarAguardar();
+        });
+
+      return false;
+    }
+  </script>
 </body>
+
 </html>
