@@ -76,19 +76,34 @@ function parseVitima(valor) {
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
+function mensalDoAno(porMes, ano) {
+  var anoStr = String(ano);
+  return LABELS_MES.map(function (label, i) {
+    var ref = anoStr + "-" + String(i + 1).padStart(2, "0");
+    return {
+      mes: label,
+      ref: ref,
+      valor: (porMes && porMes[ref]) || 0,
+    };
+  });
+}
+
 function criarVazio() {
   var labels = ANOS.map(String);
+  var porMesPorAno = {};
+  labels.forEach(function (ano) {
+    porMesPorAno[ano] = mensalDoAno(null, ano);
+  });
   return {
     evento: EVENTO_LATROCINIO,
     anos: labels.slice(),
     labels: labels.slice(),
     anual: labels.map(function (ano) {
-      return { ano: ano, valor: 0 };
+      return { ano: ano, valor: 0, mensal: porMesPorAno[ano] };
     }),
     total2025: 0,
-    mensal: MESES_2025.map(function (_, i) {
-      return { mes: LABELS_MES[i], valor: 0 };
-    }),
+    porMesPorAno: porMesPorAno,
+    mensal: porMesPorAno["2025"] || mensalDoAno(null, 2025),
   };
 }
 
@@ -154,17 +169,14 @@ function mapaParaResposta(entrada) {
   if (!entrada) return criarVazio();
 
   var labels = ANOS.map(String);
+  var porMesPorAno = {};
   var anual = labels.map(function (ano) {
+    var mensal = mensalDoAno(entrada.porMes, ano);
+    porMesPorAno[ano] = mensal;
     return {
       ano: ano,
       valor: (entrada.porAno && entrada.porAno[ano]) || 0,
-    };
-  });
-
-  var mensal = MESES_2025.map(function (ref, i) {
-    return {
-      mes: LABELS_MES[i],
-      valor: (entrada.porMes && entrada.porMes[ref]) || 0,
+      mensal: mensal,
     };
   });
 
@@ -174,7 +186,8 @@ function mapaParaResposta(entrada) {
     labels: labels.slice(),
     anual: anual,
     total2025: (entrada.porAno && entrada.porAno["2025"]) || 0,
-    mensal: mensal,
+    porMesPorAno: porMesPorAno,
+    mensal: porMesPorAno["2025"] || mensalDoAno(entrada.porMes, 2025),
   };
 }
 
