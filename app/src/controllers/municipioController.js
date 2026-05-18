@@ -119,6 +119,45 @@ function detalhe(req, res) {
     return;
   }
 
+  if (uf !== "SP") {
+    function tryPopulacaoNomeNonSp() {
+      if (nome == null || nome === "") return Promise.resolve(null);
+      return populacaoS3Service.buscarPorNomeUf(nome, uf).then(function (m) {
+        if (!m) return null;
+        return {
+          id: m.id,
+          nome: m.nome,
+          idhm_geral: m.idhm_geral,
+          renda: m.renda,
+          educacao: m.educacao,
+          longevidade: m.longevidade,
+          pop: m.pop,
+        };
+      });
+    }
+
+    tryPopulacaoNomeNonSp()
+      .catch(function () {
+        return null;
+      })
+      .then(function (row) {
+        if (!row || !row.nome) {
+          res.status(404).json({ mensagem: "Município não encontrado." });
+          return;
+        }
+        if (row.pop != null) {
+          res.status(200).json(row);
+          return;
+        }
+        enviarUm(res, row, uf);
+      })
+      .catch(function (erro) {
+        console.log("\nErro em /municipios/detalhe:", erro.message || erro);
+        res.status(500).json({ mensagem: "Erro ao buscar município." });
+      });
+    return;
+  }
+
   function tryDbId() {
     if (id == null || id === "") return Promise.resolve(null);
     return municipioModel.buscarPorId(id).then(function (rows) {
@@ -217,7 +256,12 @@ function resolverNomeLatrocinio(req) {
   }
 
   var id = req.query.id;
+  var uf = obterUfQuery(req);
   if (id == null || id === "") {
+    return Promise.resolve(null);
+  }
+
+  if (uf !== "SP") {
     return Promise.resolve(null);
   }
 
@@ -262,6 +306,34 @@ function latrocinio(req, res) {
     });
 }
 
+function homicidio(req, res) {
+  var uf = obterUfQuery(req);
+  if (!populacaoS3Service.isUfValida(uf)) {
+    res.status(400).json({ mensagem: "UF inválida." });
+    return;
+  }
+
+  resolverNomeLatrocinio(req)
+    .then(function (nomeFinal) {
+      if (!nomeFinal) {
+        res.status(400).json({
+          mensagem: "Informe o parâmetro nome ou id do município.",
+        });
+        return;
+      }
+      return segurancaS3Service.buscarHomicidio(uf, nomeFinal).then(function (dados) {
+        res.status(200).json(dados);
+      });
+    })
+    .catch(function (erro) {
+      console.log("\nErro em /municipios/seguranca/homicidio:", erro.message || erro);
+      res.status(500).json({
+        mensagem:
+          "Não foi possível carregar dados de homicídio doloso (banco_seguranca_2025.xlsx).",
+      });
+    });
+}
+
 function statusLatrocinio(req, res) {
   var uf = obterUfQuery(req);
   if (!populacaoS3Service.isUfValida(uf)) {
@@ -271,10 +343,35 @@ function statusLatrocinio(req, res) {
   res.status(200).json(segurancaS3Service.obterStatusUf(uf));
 }
 
+function latrocinioEstado(req, res) {
+  var uf = obterUfQuery(req);
+  if (!populacaoS3Service.isUfValida(uf)) {
+    res.status(400).json({ mensagem: "UF inválida." });
+    return;
+  }
+  segurancaS3Service
+    .buscarLatrocinioEstado(uf)
+    .then(function (dados) {
+      res.status(200).json(dados);
+    })
+    .catch(function (erro) {
+      console.log(
+        "\nErro em /municipios/seguranca/latrocinio-estado:",
+        erro.message || erro
+      );
+      res.status(500).json({
+        mensagem:
+          "Não foi possível carregar totais de latrocínio do estado (banco_seguranca_2025.xlsx).",
+      });
+    });
+}
+
 module.exports = {
   listar,
   detalhe,
   mapaPopulacao,
   latrocinio,
+  homicidio,
+  latrocinioEstado,
   statusLatrocinio,
 };

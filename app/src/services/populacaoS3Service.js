@@ -272,6 +272,125 @@ var cacheMapaPorUf = {};
 var cacheListaPorUf = {};
 var cacheEmPorUf = {};
 var CACHE_MS = 5 * 60 * 1000;
+var dadosPopulacaoPromise = null;
+
+function indexarPopulacaoTodasUfs(linhas) {
+  var listas = {};
+  var mapas = {};
+
+  if (!linhas.length) return { listas: listas, mapas: mapas };
+
+  var cols = detectarColunas(linhas[0]);
+  var inicio = 1;
+  if (!cols) {
+    cols = colunasPadrao();
+    var h0 = linhas[0];
+    var pareceDado =
+      h0 &&
+      parsePopulacao(h0[cols.pop]) != null &&
+      h0[cols.nome] &&
+      String(h0[cols.nome]).length > 1;
+    if (pareceDado) inicio = 0;
+  }
+
+  if (cols.uf < 0 && colunasPadrao().uf >= 0) {
+    cols.uf = colunasPadrao().uf;
+  }
+
+  for (var r = inicio; r < linhas.length; r++) {
+    var row = linhas[r];
+    if (!row) continue;
+
+    var ufRow = cols.uf >= 0 ? normalizarUfCelula(row[cols.uf]) : null;
+    if (!ufRow) continue;
+
+    var nome = limparNome(row[cols.nome]);
+    if (!nome) continue;
+
+    var pop = parsePopulacao(row[cols.pop]);
+    if (pop == null) continue;
+
+    if (!listas[ufRow]) listas[ufRow] = [];
+    if (!mapas[ufRow]) mapas[ufRow] = {};
+
+    listas[ufRow].push({
+      id: null,
+      nome: nome,
+      uf: ufRow,
+      pop: pop,
+      idhm_geral: null,
+      idhm: null,
+      renda: null,
+      educacao: null,
+      longevidade: null,
+    });
+    mapas[ufRow][chaveNome(nome)] = pop;
+  }
+
+  Object.keys(listas).forEach(function (uf) {
+    listas[uf].sort(function (a, b) {
+      return String(a.nome).localeCompare(String(b.nome), "pt-BR", {
+        sensitivity: "base",
+      });
+    });
+  });
+
+  return { listas: listas, mapas: mapas };
+}
+
+function garantirDadosPopulacao() {
+  var agora = Date.now();
+  var ufSample = Object.keys(cacheListaPorUf)[0];
+  if (
+    ufSample &&
+    cacheListaPorUf[ufSample] &&
+    cacheListaPorUf[ufSample].length > 0 &&
+    agora - (cacheEmPorUf[ufSample] || 0) < CACHE_MS
+  ) {
+    return Promise.resolve({ listas: cacheListaPorUf, mapas: cacheMapaPorUf });
+  }
+
+  if (!dadosPopulacaoPromise) {
+    dadosPopulacaoPromise = carregarBuffer()
+      .then(function (buffer) {
+        return new Promise(function (resolve, reject) {
+          setImmediate(function () {
+            try {
+              var workbook = XLSX.read(buffer, { type: "buffer" });
+              var sheet = workbook.Sheets[workbook.SheetNames[0]];
+              var linhas = XLSX.utils.sheet_to_json(sheet, {
+                header: 1,
+                defval: null,
+              });
+              var indexado = indexarPopulacaoTodasUfs(linhas);
+              var ts = Date.now();
+              Object.keys(indexado.listas).forEach(function (uf) {
+                cacheListaPorUf[uf] = indexado.listas[uf];
+                cacheMapaPorUf[uf] = indexado.mapas[uf];
+                cacheEmPorUf[uf] = ts;
+                console.log(
+                  "\nMunicípios (" +
+                    uf +
+                    "): " +
+                    indexado.listas[uf].length +
+                    " carregados da planilha de população."
+                );
+              });
+              resolve(indexado);
+            } catch (erro) {
+              reject(erro);
+            }
+          });
+        });
+      })
+      .catch(function (erro) {
+        dadosPopulacaoPromise = null;
+        throw erro;
+      });
+  }
+
+  return dadosPopulacaoPromise;
+}
 
 function carregarMapa(uf) {
   var ufNorm = isUfValida(uf) ? String(uf).trim().toUpperCase() : "SP";
@@ -283,20 +402,15 @@ function carregarMapa(uf) {
     return Promise.resolve(cacheMapa);
   }
 
-  return carregarBuffer()
-    .then(function (buffer) {
-      return parseBuffer(buffer, ufNorm);
-    })
-    .then(function (mapa) {
-      if (!mapa || Object.keys(mapa).length === 0) {
-        return Promise.reject(
-          new Error("Mapa de população vazio para UF " + ufNorm)
-        );
-      }
-      cacheMapaPorUf[ufNorm] = mapa;
-      cacheEmPorUf[ufNorm] = agora;
-      return mapa;
-    });
+  return garantirDadosPopulacao().then(function (indexado) {
+    var mapa = indexado.mapas[ufNorm];
+    if (!mapa || Object.keys(mapa).length === 0) {
+      return Promise.reject(
+        new Error("Mapa de população vazio para UF " + ufNorm)
+      );
+    }
+    return mapa;
+  });
 }
 
 function listarMunicipiosPorUf(uf) {
@@ -313,27 +427,15 @@ function listarMunicipiosPorUf(uf) {
     return Promise.resolve(cacheLista);
   }
 
-  return carregarBuffer()
-    .then(function (buffer) {
-      return parseListaPorUf(buffer, ufNorm);
-    })
-    .then(function (lista) {
-      if (!lista || !lista.length) {
-        return Promise.reject(
-          new Error("Nenhum município encontrado para UF " + ufNorm)
-        );
-      }
-      cacheListaPorUf[ufNorm] = lista;
-      cacheEmPorUf[ufNorm] = agora;
-      console.log(
-        "\nMunicípios (" +
-          ufNorm +
-          "): " +
-          lista.length +
-          " carregados da planilha de população."
+  return garantirDadosPopulacao().then(function (indexado) {
+    var lista = indexado.listas[ufNorm];
+    if (!lista || !lista.length) {
+      return Promise.reject(
+        new Error("Nenhum município encontrado para UF " + ufNorm)
       );
-      return lista;
-    });
+    }
+    return lista;
+  });
 }
 
 function buscarPorNomeUf(nome, uf) {

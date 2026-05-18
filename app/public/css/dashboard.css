@@ -465,11 +465,11 @@ body {
 #mapa_brasil svg .state{
   fill: #D3DEE2;
   cursor: pointer;
-  transition: fill 0.15s linear;
+  transition: fill 0.18s ease, stroke 0.18s ease, stroke-width 0.18s ease, filter 0.18s ease;
 }
 
-#mapa_brasil svg .state:hover{
-  fill: rgba(77, 163, 217, 0.55);
+#mapa_brasil svg .state.state--hover{
+  cursor: pointer;
 }
 
 #mapa_brasil svg .state.selecionado{
@@ -477,7 +477,10 @@ body {
 }
 
 #mapa_brasil svg .mapa-rotulos-uf .mapa-rotulo-uf {
-  fill: rgba(11, 60, 93, 0.9);
+  fill: rgba(11, 60, 93, 0.95);
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 0.4px;
+  paint-order: stroke fill;
   font-family: "Montserrat Alternates", sans-serif;
   font-size: 8px;
   font-weight: 700;

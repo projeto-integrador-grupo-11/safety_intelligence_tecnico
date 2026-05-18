@@ -860,11 +860,11 @@
     #mapa_brasil svg .state {
       fill: #D3DEE2;
       cursor: pointer;
-      transition: fill 0.15s linear;
+      transition: fill 0.18s ease, stroke 0.18s ease, stroke-width 0.18s ease, filter 0.18s ease;
     }
 
-    #mapa_brasil svg .state:hover {
-      fill: rgba(77, 163, 217, 0.55);
+    #mapa_brasil svg .state.state--hover {
+      cursor: pointer;
     }
 
     #mapa_brasil svg .state.selecionado {
@@ -872,7 +872,10 @@
     }
 
     #mapa_brasil svg .mapa-rotulos-uf .mapa-rotulo-uf {
-      fill: rgba(11, 60, 93, 0.9);
+      fill: rgba(11, 60, 93, 0.95);
+      stroke: rgba(255, 255, 255, 0.85);
+      stroke-width: 0.4px;
+      paint-order: stroke fill;
       font-family: "Montserrat Alternates", sans-serif;
       font-size: 8px;
       font-weight: 700;
@@ -1301,7 +1304,7 @@
             <h2 class="mapa_titulo">Brasil</h2>
             <div class="mapa_subtitulo">Mapa interativo · 27 estados</div>
           </div>
-          <span class="mapa_dica" aria-hidden="true"> Clique em um estado</span>
+          <span class="mapa_dica" aria-hidden="true">Passe o mouse ou clique em um estado</span>
         </header>
 
         <div class="wrapper-mapa">
@@ -1391,6 +1394,27 @@
       { sig: 'SE', name: 'Sergipe', idh: 0.665, rank: 21 },
       { sig: 'TO', name: 'Tocantins', idh: 0.699, rank: 15 },
     ];
+
+    function atribuirRanksPorIdh() {
+      const sorted = [...STATES_DATA].sort(function (a, b) {
+        return b.idh - a.idh;
+      });
+      let pos = 0;
+      let ultimoIdh = null;
+      sorted.forEach(function (s, i) {
+        if (s.idh !== ultimoIdh) {
+          pos = i + 1;
+          ultimoIdh = s.idh;
+        }
+        const entry = STATES_DATA.find(function (x) {
+          return x.sig === s.sig;
+        });
+        if (entry) entry.rank = pos;
+      });
+    }
+
+    atribuirRanksPorIdh();
+
     const NAT = 0.754;
 
     function idhColor(v) {
@@ -1400,6 +1424,59 @@
       if (v >= 0.650) return '#85B7EB';
       if (v >= 0.600) return '#F5A623';
       return '#C0392B';
+    }
+
+    function hexToRgb(hex) {
+      const h = String(hex || '').replace('#', '').trim();
+      if (h.length !== 6) return null;
+      return {
+        r: parseInt(h.slice(0, 2), 16),
+        g: parseInt(h.slice(2, 4), 16),
+        b: parseInt(h.slice(4, 6), 16),
+      };
+    }
+
+    function luminanciaFill(fill) {
+      if (!fill || fill.charAt(0) !== '#') return 1;
+      const rgb = hexToRgb(fill);
+      if (!rgb) return 1;
+      const r = rgb.r / 255;
+      const g = rgb.g / 255;
+      const b = rgb.b / 255;
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    function estiloRotuloUf(corFundo) {
+      if (luminanciaFill(corFundo) < 0.45) {
+        return {
+          fill: '#FFFFFF',
+          stroke: 'rgba(12, 59, 110, 0.65)',
+          strokeWidth: '0.55',
+        };
+      }
+      return {
+        fill: 'rgba(11, 60, 93, 0.95)',
+        stroke: 'rgba(255, 255, 255, 0.9)',
+        strokeWidth: '0.4',
+      };
+    }
+
+    function atualizarRotulosMapa(container) {
+      container.querySelectorAll('.mapa-rotulo-uf').forEach(function (text) {
+        const uf = text.getAttribute('data-uf') || text.textContent;
+        const stateEl =
+          container.querySelector('#' + uf + '.state') ||
+          container.querySelector('[data-uf="' + uf + '"]');
+        const cor =
+          (stateEl && stateEl.dataset.fillBase) ||
+          (stateEl && stateEl.style.fill) ||
+          '#CBD0D8';
+        const st = estiloRotuloUf(cor);
+        text.setAttribute('fill', st.fill);
+        text.setAttribute('stroke', st.stroke);
+        text.setAttribute('stroke-width', st.strokeWidth);
+        text.setAttribute('paint-order', 'stroke fill');
+      });
     }
     function idhCat(v) {
       if (!v) return 'Sem dado';
@@ -1483,55 +1560,103 @@
         insightEl.innerHTML = `<strong>${s.name}</strong> está <strong>${diffStr} abaixo</strong> da média nacional. Atenção recomendada em políticas sociais. Posição #${s.rank} no Brasil.`;
       }
 
-      // highlight map
-      document.querySelectorAll('#mapa_brasil path[data-sig]').forEach(p => {
-        const ps = p.dataset.sig;
-        if (ps === sig) {
-          p.style.stroke = '#fff';
-          p.style.strokeWidth = '2';
-          p.style.filter = 'brightness(1.15)';
-        } else {
-          const sd = STATES_DATA.find(x => x.sig === ps);
-          p.style.stroke = 'rgba(255,255,255,0.5)';
-          p.style.strokeWidth = '0.8';
-          p.style.filter = '';
-        }
-      });
-
       // rank list active
       document.querySelectorAll('.rank-item').forEach(el => {
         el.classList.toggle('active', el.dataset.sig === sig);
       });
+    }
 
+    function limparPreviewEstado() {
+      const card = document.getElementById('selected-state-card');
+      const banner = document.getElementById('insight-banner');
+      if (card) card.classList.remove('visible');
+      if (banner) banner.classList.remove('visible');
+      document.querySelectorAll('.rank-item').forEach(function (el) {
+        el.classList.remove('active');
+      });
+    }
 
+    const MAPA_HOVER_FILL = '#4DA3D9';
+    const MAPA_HOVER_STROKE = '#0C3B6E';
+    let estadoHoverAtivo = null;
+
+    function sigEstado(el) {
+      return (el.dataset.uf || el.dataset.id || el.id || '').toUpperCase();
+    }
+
+    function aplicarHoverEstado(state) {
+      if (!state.dataset.fillBase) {
+        state.dataset.fillBase = state.style.fill || '';
+      }
+      state.classList.add('state--hover');
+      state.style.fill = MAPA_HOVER_FILL;
+      state.style.stroke = MAPA_HOVER_STROKE;
+      state.style.strokeWidth = '2';
+      state.style.filter = 'brightness(1.12) drop-shadow(0 2px 8px rgba(26, 95, 173, 0.4))';
+    }
+
+    function limparHoverEstado(state) {
+      state.classList.remove('state--hover');
+      if (state.dataset.fillBase) state.style.fill = state.dataset.fillBase;
+      state.style.stroke = '';
+      state.style.strokeWidth = '';
+      state.style.filter = '';
+    }
+
+    function bindEstadoHover(container) {
+      container.querySelectorAll('.state').forEach(function (state) {
+        if (state.dataset.hoverBound === '1') return;
+        state.dataset.hoverBound = '1';
+        state.addEventListener('mouseenter', function () {
+          if (estadoHoverAtivo && estadoHoverAtivo !== state) {
+            limparHoverEstado(estadoHoverAtivo);
+          }
+          estadoHoverAtivo = state;
+          aplicarHoverEstado(state);
+          const sig = sigEstado(state);
+          if (sig) selectStateHover(sig);
+        });
+        state.addEventListener('mouseleave', function () {
+          limparHoverEstado(state);
+          if (estadoHoverAtivo === state) estadoHoverAtivo = null;
+          limparPreviewEstado();
+        });
+      });
     }
 
     function hookMapaReal() {
       const container = document.getElementById('mapa_brasil');
       if (!container) return;
 
+      container.addEventListener('mouseleave', function (e) {
+        if (e.relatedTarget && container.contains(e.relatedTarget)) return;
+        if (estadoHoverAtivo) {
+          limparHoverEstado(estadoHoverAtivo);
+          estadoHoverAtivo = null;
+        }
+        limparPreviewEstado();
+      });
+
       container.addEventListener('click', e => {
         const state = e.target.closest('.state');
         if (!state) return;
-        const sig = (state.dataset.uf || state.dataset.id || state.id || '').toUpperCase();
+        const sig = sigEstado(state);
         if (sig) selectState(sig);
       });
-      document.querySelectorAll('.state').forEach(state => {
-        state.addEventListener('mouseenter', () => {
-          const sig = (state.dataset.uf || state.dataset.id || state.id || '').toUpperCase();
-          if (sig) selectStateHover(sig);
-        });
-
-      });
-      console.log(document.querySelectorAll('.state'));
 
       function colorirEstados() {
         STATES_DATA.forEach(s => {
           const el = container.querySelector(
             `[data-uf="${s.sig}"], [data-id="${s.sig}"], #${s.sig}, .state-${s.sig}`
           );
-          if (el) el.style.fill = idhColor(s.idh);
+          if (el) {
+            const cor = idhColor(s.idh);
+            el.style.fill = cor;
+            el.dataset.fillBase = cor;
+          }
         });
+        bindEstadoHover(container);
+        atualizarRotulosMapa(container);
       }
 
       if (container.querySelector('.state')) {
