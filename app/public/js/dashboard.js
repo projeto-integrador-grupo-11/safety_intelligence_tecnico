@@ -145,6 +145,7 @@ function adicionarRotulosUF(svg) {
     text.setAttribute("text-anchor", "middle");
     text.setAttribute("dominant-baseline", "middle");
     text.setAttribute("class", "mapa-rotulo-uf");
+    text.setAttribute("data-uf", uf);
 
     text.textContent = uf;
     grupo.appendChild(text);

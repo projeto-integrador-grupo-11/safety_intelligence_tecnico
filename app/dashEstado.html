@@ -623,6 +623,10 @@
       background: radial-gradient(ellipse at 0% 0%, rgba(245, 158, 11, 0.06), transparent 60%)
     }
 
+    .kpi-card.c-green::before {
+      background: radial-gradient(ellipse at 0% 0%, rgba(31, 134, 71, 0.08), transparent 60%)
+    }
+
     .kpi-head {
       display: flex;
       align-items: flex-start;
@@ -663,6 +667,12 @@
       background: var(--yellow-dim);
       border-color: rgba(245, 158, 11, 0.22);
       color: var(--yellow)
+    }
+
+    .b-g {
+      background: var(--green-dim);
+      border-color: rgba(31, 134, 71, 0.22);
+      color: var(--green)
     }
 
     .kpi-main {
@@ -1281,24 +1291,24 @@
       <div class="kpi-grid">
 
         <!-- Latrocínio -->
-        <div class="kpi-card c-red">
+        <div class="kpi-card c-red" id="kpi-card-lat">
               <div class="tooltip-container">
-              <button class="tooltip-btn" aria-describedby="tooltip-kpi">
+              <button class="tooltip-btn" aria-describedby="tooltip-kpi-lat">
                 ?
               </button>
 
-              <div class="tooltip-content" id="tooltip-kpi">
-               É quantidade boletins de roubo seguido por morte deste estado durante 1 ano
+              <div class="tooltip-content" id="tooltip-kpi-lat">
+               Total de boletins de roubo seguido de morte (latrocínio) no estado, somando todos os municípios. Os dados exibidos referem-se ao ano de <strong>2025</strong> (fonte: banco de segurança SSP).
               </div>
             </div>
           <div class="kpi-head">
-            <div class="kpi-lbl">Latrocínio</div>
-            <div class="kpi-badge b-r">Crítico ↑</div>
+            <div class="kpi-lbl">Latrocínio · 2025</div>
+            <div class="kpi-badge b-y" id="kpi-badge-lat">—</div>
           </div>
           <div class="kpi-main">
             <div class="kpi-val" id="kv-lat">0</div>
           </div>
-          <div class="kpi-ctx"><strong>25% acima</strong> região <strong>perigosa</strong>, tendência a preferir condomínios</div>
+          <div class="kpi-ctx" id="kpi-ctx-lat">Carregando comparação com 2024…</div>
           <div class="kpi-bar">
             <div class="kpi-bar-fill" id="pb-lat" style="width:0%;background:linear-gradient(90deg,#EF4444,#F87171)">
             </div>
@@ -1675,6 +1685,175 @@
       })(start);
     }
 
+    function totalAnoLatrocinio(dados, ano) {
+      ano = String(ano);
+      if (!dados) return 0;
+      if (dados.anual && dados.anual.length) {
+        var item = dados.anual.find(function (x) {
+          return String(x.ano) === ano;
+        });
+        if (item && item.valor != null) return Number(item.valor) || 0;
+      }
+      if (ano === '2025' && dados.total2025 != null) return Number(dados.total2025) || 0;
+      return 0;
+    }
+
+    function variacaoPctLatrocinio(total2025, total2024) {
+      if (!total2024) return null;
+      return Math.round(((total2025 - total2024) / total2024) * 100);
+    }
+
+    function textoVariacaoLatrocinio(total2025, total2024) {
+      var pct = variacaoPctLatrocinio(total2025, total2024);
+      if (pct === null) {
+        if (total2025 > 0) {
+          return 'Total de <strong>2025</strong> sem base comparável em <strong>2024</strong>';
+        }
+        return 'Sem registros em <strong>2024</strong> e <strong>2025</strong>';
+      }
+      if (pct === 0) {
+        return 'Mesmo total registrado em <strong>2024</strong>';
+      }
+      if (pct > 0) {
+        return (
+          '<strong>' +
+          pct +
+          '% a mais</strong> que em <strong>2024</strong>'
+        );
+      }
+      return (
+        '<strong>' +
+        Math.abs(pct) +
+        '% a menos</strong> que em <strong>2024</strong>'
+      );
+    }
+
+    function nivelLatrocinio(total2025, total2024, dados) {
+      var pct = variacaoPctLatrocinio(total2025, total2024);
+      var barBase = 50;
+      if (pct === null) {
+        if (total2025 <= 0) {
+          return {
+            card: 'c-yellow',
+            badgeCls: 'b-y',
+            badgeTxt: 'Sem casos',
+            barPct: 0,
+            barBg: 'linear-gradient(90deg,#F59E0B,#FCD34D)',
+          };
+        }
+        var maxAnual = 0;
+        if (dados && dados.anual) {
+          dados.anual.forEach(function (item) {
+            maxAnual = Math.max(maxAnual, Number(item.valor) || 0);
+          });
+        }
+        var share = maxAnual > 0 ? (total2025 / maxAnual) * 100 : 50;
+        if (share >= 85) {
+          return {
+            card: 'c-red',
+            badgeCls: 'b-r',
+            badgeTxt: 'Alto · 2025',
+            barPct: Math.min(100, Math.round(share)),
+            barBg: 'linear-gradient(90deg,#EF4444,#F87171)',
+          };
+        }
+        return {
+          card: 'c-orange',
+          badgeCls: 'b-o',
+          badgeTxt: 'Atenção · 2025',
+          barPct: Math.min(100, Math.round(share)),
+          barBg: 'linear-gradient(90deg,#F97316,#FB923C)',
+        };
+      }
+      var barPct = Math.min(100, Math.max(8, barBase + Math.round(pct / 2)));
+      if (pct >= 15) {
+        return {
+          card: 'c-red',
+          badgeCls: 'b-r',
+          badgeTxt: 'Crítico ↑',
+          barPct: barPct,
+          barBg: 'linear-gradient(90deg,#EF4444,#F87171)',
+        };
+      }
+      if (pct > 0) {
+        return {
+          card: 'c-orange',
+          badgeCls: 'b-o',
+          badgeTxt: 'Atenção ↑',
+          barPct: barPct,
+          barBg: 'linear-gradient(90deg,#F97316,#FB923C)',
+        };
+      }
+      if (pct === 0) {
+        return {
+          card: 'c-yellow',
+          badgeCls: 'b-y',
+          badgeTxt: 'Estável',
+          barPct: 50,
+          barBg: 'linear-gradient(90deg,#F59E0B,#FCD34D)',
+        };
+      }
+      return {
+        card: 'c-yellow',
+        badgeCls: 'b-g',
+        badgeTxt: 'Queda ↓',
+        barPct: barPct,
+        barBg: 'linear-gradient(90deg,#F59E0B,#FCD34D)',
+      };
+    }
+
+    function aplicarVisualLatrocinio(total2025, total2024, dados) {
+      var nivel = nivelLatrocinio(total2025, total2024, dados);
+      var elCard = document.getElementById('kpi-card-lat');
+      var elBadge = document.getElementById('kpi-badge-lat');
+      var elBar = document.getElementById('pb-lat');
+      if (elCard) {
+        elCard.classList.remove('c-red', 'c-orange', 'c-yellow', 'c-green');
+        elCard.classList.add(nivel.card);
+      }
+      if (elBadge) {
+        elBadge.classList.remove('b-r', 'b-o', 'b-y', 'b-g');
+        elBadge.classList.add(nivel.badgeCls);
+        elBadge.textContent = nivel.badgeTxt;
+      }
+      if (elBar) {
+        elBar.style.background = nivel.barBg;
+        setTimeout(function () {
+          elBar.style.width = nivel.barPct + '%';
+        }, 200);
+      }
+    }
+
+    async function carregarKpiLatrocinio() {
+      var elVal = document.getElementById('kv-lat');
+      var elCtx = document.getElementById('kpi-ctx-lat');
+      var elBadge = document.getElementById('kpi-badge-lat');
+      if (!elVal || !elCtx) return;
+
+      try {
+        var res = await fetch(
+          '/municipios/seguranca/latrocinio-estado?uf=' +
+            encodeURIComponent(estadoAtual.uf)
+        );
+        if (!res.ok) throw new Error('Falha ao carregar latrocínio');
+        var dados = await res.json();
+        var total2025 = totalAnoLatrocinio(dados, '2025');
+        var total2024 = totalAnoLatrocinio(dados, '2024');
+        elCtx.innerHTML = textoVariacaoLatrocinio(total2025, total2024);
+        aplicarVisualLatrocinio(total2025, total2024, dados);
+        countUp(elVal, total2025, false, 1200);
+      } catch (erro) {
+        console.error(erro);
+        elVal.textContent = '—';
+        elCtx.textContent = 'Não foi possível carregar latrocínio';
+        if (elBadge) {
+          elBadge.classList.remove('b-r', 'b-o');
+          elBadge.classList.add('b-y');
+          elBadge.textContent = 'Indisponível';
+        }
+      }
+    }
+
     async function carregarMunicipios() {
       const tbody = document.getElementById('listaCidades');
       const empty = document.getElementById('emptyState');
@@ -1729,11 +1908,10 @@
     window.addEventListener('load', () => {
       aplicarEstadoNaPagina();
       carregarMunicipios();
+      carregarKpiLatrocinio();
       setTimeout(() => {
-        countUp(document.getElementById('kv-lat'), 252, false, 1200);
         countUp(document.getElementById('kv-roubo'), 68592, false, 1300);
         countUp(document.getElementById('kv-furto'), 506653, false, 1400);
-        setTimeout(() => { document.getElementById('pb-lat').style.width = '65%' }, 200);
         setTimeout(() => { document.getElementById('pb-roubo').style.width = '82%' }, 350);
         setTimeout(() => { document.getElementById('pb-furto').style.width = '55%' }, 500);
       }, 300);

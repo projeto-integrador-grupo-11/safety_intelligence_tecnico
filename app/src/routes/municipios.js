@@ -18,6 +18,14 @@ router.get("/seguranca/latrocinio", function (req, res) {
   municipioController.latrocinio(req, res);
 });
 
+router.get("/seguranca/homicidio", function (req, res) {
+  municipioController.homicidio(req, res);
+});
+
+router.get("/seguranca/latrocinio-estado", function (req, res) {
+  municipioController.latrocinioEstado(req, res);
+});
+
 router.get("/seguranca/status", function (req, res) {
   municipioController.statusLatrocinio(req, res);
 });

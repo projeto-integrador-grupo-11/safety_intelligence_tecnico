@@ -69,6 +69,8 @@
 
       /* CHART & DATA VISUALIZATION (Ajustado para Light Mode) */
       --chart-line: var(--green);
+      --chart-line-homicidio: #F59E0B;
+      --chart-line-homicidio-rgb: 245, 158, 11;
       --chart-bar: var(--red);
       --chart-bar-high: var(--red);
       --chart-bar-low: var(--red);
@@ -556,6 +558,10 @@
     .bn-text strong {
       color: var(--green);
       font-weight: 700;
+    }
+
+    .bn-text strong.bn-seg-num {
+      color: var(--red);
     }
 
     .bn-text em {
@@ -1126,11 +1132,8 @@
       <div class="banner" id="banner">
 
         <div class="bn-body">
-          <div class="bn-tag">Principal Insight · 2024</div>
-          <div class="bn-text">
-            IDH de São Paulo cresceu <strong>+12% desde 2000</strong>, mantém uma evolução <strong>elevada</strong><br>
-            Ocorrencias de furto estão <strong>baixas</strong>, cidade considerada <strong>segura</strong>
-          </div>
+          <div class="bn-tag" id="bn-tag">Principal Insight</div>
+          <div class="bn-text" id="bn-text">Carregando análise do município…</div>
         </div>
         <div class="bn-close" onclick="document.getElementById('banner').style.display='none'">×</div>
       </div>
@@ -1233,35 +1236,42 @@
       <!-- CHARTS -->
       <div class="charts-row">
 
-        <!-- IDH Line -->
+        <!-- Homicídio doloso (line) -->
         <div class="ch-card">
           <div class="ch-head">
             <div>
-              <div class="ch-title" id="ch-title-qualidade">Evolução qualidade de vida · município</div>
-              <div class="ch-sub">IDH ao longo do tempo · dado oficial PNUD</div>
+              <div class="ch-title" id="ch-title-qualidade">Evolução segurança pública · município</div>
+              <div class="ch-sub" id="ch-sub-homicidio">Homicídio doloso · boletins 2021–2025</div>
             </div>
-            <div class="ch-badge">2000 – 2024</div>
+            <div class="ch-head-seg">
+              <button type="button" class="seg-voltar-btn" id="hom-voltar-anos" hidden>← Anos</button>
+              <div class="ch-badge" id="ch-badge-homicidio">2021 – 2025</div>
+            </div>
           </div>
-          <div class="ch-canvas">
-            <canvas id="idhChart"></canvas>
-            <div class="ch-ann" id="idhAnn">↑ Maior salto: 2012–2015</div>
-          </div>
-          <div class="ch-stats">
-            <div class="ch-stat">
-              <div>
-                <div class="ch-sv" style="color:var(--green)">+17,4%</div>
-                <div class="ch-sl">Crescimento Total</div>
+          <div class="ch-body-seg" id="ch-body-homicidio">
+            <div
+              class="seg-loading-overlay"
+              id="hom-loading"
+              hidden
+              aria-live="polite"
+              aria-busy="false"
+            >
+              <div class="seg-loading-spinner" aria-hidden="true"></div>
+              <span id="hom-loading-msg">Carregando indicadores de homicídio doloso…</span>
+            </div>
+            <div class="ch-canvas">
+              <canvas id="idhChart"></canvas>
+            </div>
+            <div class="ch-stats">
+              <div class="ch-stat">
+                <div>
+                  <div class="ch-sv" id="hom-total-periodo" style="color:var(--chart-line-homicidio)">—</div>
+                  <div class="ch-sl" id="hom-total-label">Total no período</div>
+                </div>
               </div>
-            </div>
-            <div class="ch-stat">
-              <p>
-                <strong>boa</strong> qualidade de vida
-              </p>
-            </div>
-            <div class="ch-stat">
-              <p>
-                <strong>grandes</strong> investimentos em qualidade de vida
-              </p>
+              <div class="ch-stat">
+                <p id="hom-resumo-txt">Carregando indicadores de homicídio doloso…</p>
+              </div>
             </div>
           </div>
         </div>
@@ -1270,7 +1280,7 @@
         <div class="ch-card">
           <div class="ch-head">
             <div>
-              <div class="ch-title" id="ch-title-seguranca">Evolução segurança pública · município</div>
+              <div class="ch-title" id="ch-title-seguranca">Roubo seguido de morte (latrocínio) · município</div>
               <div class="ch-sub" id="ch-sub-seguranca">Roubo seguido de morte (latrocínio) · boletins 2021–2025</div>
             </div>
             <div class="ch-head-seg">
@@ -1316,6 +1326,8 @@
     const C = {
       chartLine: css.getPropertyValue('--chart-line').trim(),
       chartLineRgb: css.getPropertyValue('--chart-line-rgb').trim(),
+      chartLineHomicidio: css.getPropertyValue('--chart-line-homicidio').trim(),
+      chartLineHomicidioRgb: css.getPropertyValue('--chart-line-homicidio-rgb').trim(),
       chartBar: css.getPropertyValue('--chart-bar').trim(),
       chartBarRgb: css.getPropertyValue('--chart-bar-rgb').trim(),
       chartBarHigh: css.getPropertyValue('--chart-bar-high').trim(),
@@ -1422,16 +1434,265 @@
       return pos + '° no Estado';
     }
 
+    var insightCtx = {};
+
+    function escHtml(s) {
+      return String(s || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function fmtIDH(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n.toFixed(3).replace('.', ',') : '—';
+    }
+
+    function idhCat(v) {
+      const n = Number(v);
+      if (!Number.isFinite(n)) return 'Sem dado';
+      if (n >= 0.8) return 'muito alto';
+      if (n >= 0.7) return 'alto';
+      if (n >= 0.65) return 'médio';
+      if (n >= 0.6) return 'baixo';
+      return 'muito baixo';
+    }
+
+    function totalSerieAnual(dados) {
+      if (!dados || !dados.anual || !dados.anual.length) return null;
+      return dados.anual.reduce(function (acc, item) {
+        return acc + (Number(item.valor) || 0);
+      }, 0);
+    }
+
+    function periodoSeguranca(dados) {
+      const labels =
+        dados && dados.anual && dados.anual.length
+          ? dados.anual.map(function (item) {
+              return String(item.ano);
+            })
+          : [];
+      if (labels.length > 1) return labels[0] + '–' + labels[labels.length - 1];
+      if (labels.length) return String(labels[0]);
+      return '2021–2025';
+    }
+
+    function patchInsight(partial) {
+      Object.assign(insightCtx, partial);
+      renderInsightBanner();
+    }
+
+    function renderInsightBanner() {
+      const tag = document.getElementById('bn-tag');
+      const text = document.getElementById('bn-text');
+      if (!tag || !text) return;
+
+      const nome = insightCtx.nome || 'Município';
+      const uf = insightCtx.uf || '';
+      tag.textContent =
+        'Principal Insight · ' + nome + (uf ? ' (' + uf + ')' : '');
+
+      const partes = [];
+      const idhm = insightCtx.idhm;
+
+      if (Number.isFinite(Number(idhm))) {
+        const v = Number(idhm);
+        partes.push(
+          '<strong>' +
+            escHtml(nome) +
+            '</strong> apresenta IDH municipal de <strong>' +
+            fmtIDH(v) +
+            '</strong> (nível <strong>' +
+            idhCat(v) +
+            '</strong>).'
+        );
+      } else if (insightCtx.carregando) {
+        partes.push(
+          'Montando panorama de <strong>' +
+            escHtml(nome) +
+            '</strong> com indicadores de desenvolvimento e segurança…'
+        );
+      }
+
+      if (insightCtx.homPronto || insightCtx.latPronto) {
+        const per = insightCtx.periodoSeg || '2021–2025';
+        const hom = insightCtx.homTotal;
+        const lat = insightCtx.latTotal;
+        if (hom != null && lat != null) {
+          const latTxt = lat === 1 ? 'latrocínio' : 'latrocínios';
+          partes.push(
+            'Segurança (' +
+              per +
+              '): <strong class="bn-seg-num">' +
+              hom +
+              '</strong> homicídios dolosos e <strong class="bn-seg-num">' +
+              lat +
+              '</strong> ' +
+              latTxt +
+              ' registrados.'
+          );
+        } else if (hom != null) {
+          partes.push(
+            'Segurança (' +
+              per +
+              '): <strong class="bn-seg-num">' +
+              hom +
+              '</strong> homicídios dolosos registrados.'
+          );
+        } else if (lat != null) {
+          const latTxt = lat === 1 ? 'latrocínio' : 'latrocínios';
+          partes.push(
+            'Segurança (' +
+              per +
+              '): <strong class="bn-seg-num">' +
+              lat +
+              '</strong> ' +
+              latTxt +
+              ' registrados.'
+          );
+        }
+      } else if (Number.isFinite(Number(idhm)) && !insightCtx.erro) {
+        partes.push('Indicadores de segurança pública em atualização…');
+      }
+
+      if (insightCtx.erro) {
+        partes.push(
+          'Não foi possível carregar todos os dados deste município. Exibindo indicadores disponíveis.'
+        );
+      }
+
+      text.innerHTML = partes.length
+        ? partes.join('<br>')
+        : 'Selecione um município para ver o insight principal.';
+    }
+
     function atualizarTitulosCharts(nome) {
       const label = nome && String(nome).trim() ? String(nome).trim() : 'município';
       const t1 = document.getElementById('ch-title-qualidade');
       const t2 = document.getElementById('ch-title-seguranca');
-      if (t1) t1.textContent = 'Evolução qualidade de vida · ' + label;
-      if (t2) t2.textContent = 'Evolução segurança pública · ' + label;
+      if (t1) t1.textContent = 'Evolução segurança pública · ' + label;
+      if (t2) t2.textContent = 'Roubo seguido de morte (latrocínio) · ' + label;
     }
 
-    var furtoChartInst = null;
+    var idhChartInst = null;
+    var homPollTimer = null;
+    var homFetchCtx = null;
+    var homAguardandoIndex = false;
+    var homDados = null;
+    var homNomeMunicipio = '';
+    var homVisao = 'anos';
     var segPollTimer = null;
+    var segFetchCtx = null;
+    var segAguardandoIndex = false;
+
+    function serieSegurancaZerada(dados) {
+      if (!dados || !dados.anual || !dados.anual.length) return true;
+      return !dados.anual.some(function (item) {
+        return Number(item.valor) > 0;
+      });
+    }
+
+    function pararPollHomicidio() {
+      homAguardandoIndex = false;
+      if (homPollTimer) {
+        clearInterval(homPollTimer);
+        homPollTimer = null;
+      }
+    }
+
+    function pararPollLatrocinio() {
+      segAguardandoIndex = false;
+      if (segPollTimer) {
+        clearInterval(segPollTimer);
+        segPollTimer = null;
+      }
+    }
+
+    function iniciarPollLatrocinio(uf) {
+      if (segPollTimer || !segFetchCtx) return;
+      segAguardandoIndex = true;
+      setSegurancaLoading(true);
+      segPollTimer = setInterval(function () {
+        fetch('/municipios/seguranca/status?uf=' + encodeURIComponent(uf))
+          .then(function (res) {
+            return res.ok ? res.json() : null;
+          })
+          .then(function (st) {
+            if (!st) return;
+            const el = document.getElementById('seg-loading-msg');
+            if (el) {
+              if (st.carregando && st.progresso && st.progresso.ano) {
+                el.textContent =
+                  'Indexando latrocínio · planilha ' +
+                  st.progresso.ano +
+                  ' (' +
+                  st.progresso.indice +
+                  '/' +
+                  st.progresso.total +
+                  ')…';
+              } else if (st.carregando) {
+                el.textContent =
+                  'Indexando latrocínio (primeira vez pode levar alguns minutos)…';
+              }
+            }
+            if (st.pronto && segFetchCtx) {
+              pararPollLatrocinio();
+              carregarLatrocinio(
+                segFetchCtx.uf,
+                segFetchCtx.nome,
+                segFetchCtx.id
+              ).then(function (dados) {
+                aplicarSeguranca(dados, segNomeMunicipio);
+              });
+            }
+          })
+          .catch(function () {});
+      }, 2500);
+    }
+
+    function iniciarPollHomicidio(uf) {
+      if (homPollTimer || !homFetchCtx) return;
+      homAguardandoIndex = true;
+      setHomicidioLoading(true);
+      homPollTimer = setInterval(function () {
+        fetch('/municipios/seguranca/status?uf=' + encodeURIComponent(uf))
+          .then(function (res) {
+            return res.ok ? res.json() : null;
+          })
+          .then(function (st) {
+            if (!st) return;
+            const el = document.getElementById('hom-loading-msg');
+            if (el) {
+              if (st.carregando && st.progresso && st.progresso.ano) {
+                el.textContent =
+                  'Indexando homicídio · planilha ' +
+                  st.progresso.ano +
+                  ' (' +
+                  st.progresso.indice +
+                  '/' +
+                  st.progresso.total +
+                  ')…';
+              } else if (st.carregando) {
+                el.textContent =
+                  'Indexando homicídio doloso (primeira vez pode levar alguns minutos)…';
+              }
+            }
+            if (st.homicidioPronto && homFetchCtx) {
+              pararPollHomicidio();
+              carregarHomicidio(
+                homFetchCtx.uf,
+                homFetchCtx.nome,
+                homFetchCtx.id
+              ).then(function (dados) {
+                aplicarHomicidio(dados, homNomeMunicipio);
+              });
+            }
+          })
+          .catch(function () {});
+      }, 2500);
+    }
+    var furtoChartInst = null;
     var segDadosLatrocinio = null;
     var segNomeMunicipio = '';
     var segVisaoLatrocinio = 'anos';
@@ -1440,7 +1701,8 @@
       'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
     ];
 
-    function atualizarMsgSeguranca(uf) {
+    function atualizarMsgSeguranca(uf, alvo) {
+      alvo = alvo || 'seg';
       return fetch(
         '/municipios/seguranca/status?uf=' + encodeURIComponent(uf)
       )
@@ -1449,7 +1711,9 @@
         })
         .then(function (st) {
           if (!st) return;
-          const el = document.getElementById('seg-loading-msg');
+          const el = document.getElementById(
+            alvo === 'hom' ? 'hom-loading-msg' : 'seg-loading-msg'
+          );
           if (!el) return;
           if (st.carregando && st.progresso && st.progresso.ano) {
             el.textContent =
@@ -1464,10 +1728,54 @@
             el.textContent =
               'Preparando planilhas (primeira vez pode levar alguns minutos)…';
           } else if (st.pronto) {
-            el.textContent = 'Carregando indicadores de latrocínio…';
+            el.textContent =
+              alvo === 'hom'
+                ? 'Carregando indicadores de homicídio doloso…'
+                : 'Carregando indicadores de latrocínio…';
           }
         })
         .catch(function () {});
+    }
+
+    function setHomicidioLoading(ativo) {
+      const overlay = document.getElementById('hom-loading');
+      const body = document.getElementById('ch-body-homicidio');
+      if (overlay) {
+        overlay.hidden = !ativo;
+        overlay.setAttribute('aria-busy', ativo ? 'true' : 'false');
+      }
+      if (body) body.classList.toggle('is-loading', !!ativo);
+      if (!ativo && homPollTimer) {
+        clearInterval(homPollTimer);
+        homPollTimer = null;
+      }
+      if (ativo) {
+        const elTotal = document.getElementById('hom-total-periodo');
+        const elResumo = document.getElementById('hom-resumo-txt');
+        if (elTotal) elTotal.textContent = '…';
+        if (elResumo) elResumo.textContent = 'Carregando indicadores de homicídio doloso…';
+      }
+    }
+
+    function carregarHomicidio(uf, nome, id) {
+      homFetchCtx = { uf: uf, nome: nome, id: id };
+      if (!homAguardandoIndex) setHomicidioLoading(true);
+      atualizarMsgSeguranca(uf, 'hom');
+
+      const qs = new URLSearchParams({ uf: uf });
+      if (nome) qs.set('nome', nome);
+      if (id != null && id !== '') qs.set('id', String(id));
+      return fetch('/municipios/seguranca/homicidio?' + qs.toString())
+        .then(function (res) {
+          return res.ok ? res.json() : null;
+        })
+        .catch(function () {
+          return null;
+        })
+        .then(function (dados) {
+          aplicarHomicidio(dados, nome);
+          return dados;
+        });
     }
 
     function setSegurancaLoading(ativo) {
@@ -1491,12 +1799,9 @@
     }
 
     function carregarLatrocinio(uf, nome, id) {
-      setSegurancaLoading(true);
-      if (segPollTimer) clearInterval(segPollTimer);
+      segFetchCtx = { uf: uf, nome: nome, id: id };
+      if (!segAguardandoIndex) setSegurancaLoading(true);
       atualizarMsgSeguranca(uf);
-      segPollTimer = setInterval(function () {
-        atualizarMsgSeguranca(uf);
-      }, 2000);
 
       const qs = new URLSearchParams({ uf: uf });
       if (nome) qs.set('nome', nome);
@@ -1508,11 +1813,9 @@
         .catch(function () {
           return null;
         })
-        .finally(function () {
-          if (segPollTimer) {
-            clearInterval(segPollTimer);
-            segPollTimer = null;
-          }
+        .then(function (dados) {
+          aplicarSeguranca(dados, nome);
+          return dados;
         });
     }
 
@@ -1552,11 +1855,363 @@
       }
     }
 
+    function atualizarHomVoltarBtn() {
+      var btn = document.getElementById('hom-voltar-anos');
+      if (btn) btn.hidden = homVisao !== 'meses';
+    }
+
+    function atualizarCanvasHomDrill() {
+      var wrap = document.querySelector('#ch-body-homicidio .ch-canvas');
+      if (wrap) wrap.classList.toggle('ch-canvas--seg-drill', homVisao === 'anos');
+    }
+
+    function destruirGraficoHomicidio() {
+      if (idhChartInst) {
+        idhChartInst.destroy();
+        idhChartInst = null;
+      }
+    }
+
+    function aplicarHomicidio(dados, nomeMunicipio) {
+      homDados = dados;
+      homNomeMunicipio = nomeMunicipio || '';
+      if (serieSegurancaZerada(dados) && homFetchCtx) {
+        iniciarPollHomicidio(homFetchCtx.uf);
+        return;
+      }
+      pararPollHomicidio();
+      mostrarHomicidioAnos(dados, nomeMunicipio);
+      setHomicidioLoading(false);
+      patchInsight({
+        homPronto: true,
+        homTotal: totalSerieAnual(dados),
+        periodoSeg: periodoSeguranca(dados),
+      });
+    }
+
+    function voltarHomicidioAnos() {
+      if (!homDados) return;
+      mostrarHomicidioAnos(homDados, homNomeMunicipio);
+    }
+
+    function mostrarHomicidioAnos(dados, nomeMunicipio) {
+      homVisao = 'anos';
+      atualizarHomVoltarBtn();
+      atualizarCanvasHomDrill();
+
+      const labels =
+        dados && dados.anual && dados.anual.length
+          ? dados.anual.map(function (item) {
+              return String(item.ano);
+            })
+          : (dados && dados.labels) || ['2021', '2022', '2023', '2024', '2025'];
+      const serie =
+        dados && dados.anual && dados.anual.length
+          ? dados.anual.map(function (item) {
+              return Number(item.valor) || 0;
+            })
+          : new Array(labels.length).fill(0);
+      const total = serie.reduce(function (acc, v) {
+        return acc + (Number(v) || 0);
+      }, 0);
+      const periodoTxt =
+        labels.length > 1
+          ? labels[0] + '–' + labels[labels.length - 1]
+          : labels.length
+            ? String(labels[0])
+            : '2021–2025';
+
+      const elSub = document.getElementById('ch-sub-homicidio');
+      if (elSub) {
+        elSub.textContent = 'Homicídio doloso · boletins ' + periodoTxt;
+      }
+      const elBadge = document.getElementById('ch-badge-homicidio');
+      if (elBadge) elBadge.textContent = periodoTxt.replace('–', ' – ');
+
+      const elTotal = document.getElementById('hom-total-periodo');
+      if (elTotal) elTotal.textContent = String(total);
+      const elTotalLabel = document.getElementById('hom-total-label');
+      if (elTotalLabel) elTotalLabel.textContent = 'Total no período (' + periodoTxt + ')';
+
+      const elResumo = document.getElementById('hom-resumo-txt');
+      if (elResumo) {
+        const nome = nomeMunicipio && String(nomeMunicipio).trim()
+          ? String(nomeMunicipio).trim()
+          : 'município';
+        elResumo.innerHTML =
+          '<strong>' +
+          (total === 1 ? '1 ocorrência' : total + ' ocorrências') +
+          '</strong> de Homicídio doloso em ' +
+          nome +
+          ' · ' +
+          periodoTxt +
+          '. Clique em um ano no gráfico para ver a evolução mensal.';
+      }
+
+      renderizarGraficoHomicidio({
+        modo: 'anos',
+        labels: labels,
+        serie: serie,
+      });
+    }
+
+    function mostrarHomicidioMeses(ano, dados, nomeMunicipio) {
+      ano = String(ano);
+      homVisao = 'meses';
+      atualizarHomVoltarBtn();
+      atualizarCanvasHomDrill();
+
+      const mensal = extrairMensalAno(dados, ano);
+      const labels = mensal.map(function (item) {
+        return String(item.mes);
+      });
+      const serie = mensal.map(function (item) {
+        return Number(item.valor) || 0;
+      });
+      const total = serie.reduce(function (acc, v) {
+        return acc + (Number(v) || 0);
+      }, 0);
+
+      const elSub = document.getElementById('ch-sub-homicidio');
+      if (elSub) {
+        elSub.textContent = 'Homicídio doloso · evolução mensal em ' + ano;
+      }
+      const elBadge = document.getElementById('ch-badge-homicidio');
+      if (elBadge) elBadge.textContent = ano + ' · mensal';
+
+      const elTotal = document.getElementById('hom-total-periodo');
+      if (elTotal) elTotal.textContent = String(total);
+      const elTotalLabel = document.getElementById('hom-total-label');
+      if (elTotalLabel) elTotalLabel.textContent = 'Total em ' + ano;
+
+      const elResumo = document.getElementById('hom-resumo-txt');
+      if (elResumo) {
+        const nome = nomeMunicipio && String(nomeMunicipio).trim()
+          ? String(nomeMunicipio).trim()
+          : 'município';
+        elResumo.innerHTML =
+          '<strong>' +
+          (total === 1 ? '1 ocorrência' : total + ' ocorrências') +
+          '</strong> em ' +
+          nome +
+          ' · ' +
+          ano +
+          ' (por mês). Use <strong>← Anos</strong> para voltar à visão anual.';
+      }
+
+      renderizarGraficoHomicidio({
+        modo: 'meses',
+        labels: labels,
+        serie: serie,
+        anoRef: ano,
+      });
+    }
+
+    function datasetLinhaHomicidio(serie) {
+      return {
+        type: 'line',
+        data: serie,
+        borderColor: C.chartLineHomicidio,
+        backgroundColor: 'rgba(' + C.chartLineHomicidioRgb + ', 0.14)',
+        borderWidth: 2.5,
+        pointBackgroundColor: serie.map(function (_, i) {
+          return i === serie.length - 1 ? C.chartLineHomicidio : '#0F1B2D';
+        }),
+        pointBorderColor: C.chartLineHomicidio,
+        pointBorderWidth: 2,
+        pointRadius: serie.map(function (_, i) {
+          return i === serie.length - 1 ? 6 : 3;
+        }),
+        pointHoverRadius: 7,
+        fill: true,
+        tension: 0.42,
+      };
+    }
+
+    function renderizarGraficoHomicidio(cfg) {
+      const modo = cfg.modo || 'anos';
+      const labels = cfg.labels || [];
+      const serie = cfg.serie || [];
+      const canvas = document.getElementById('idhChart');
+      if (!canvas || typeof Chart === 'undefined') return;
+
+      if (idhChartInst && idhChartInst._homModo !== modo) {
+        destruirGraficoHomicidio();
+      }
+
+      const avg = serie.length
+        ? serie.reduce(function (a, b) {
+            return a + b;
+          }, 0) / serie.length
+        : 0;
+
+      const tooltipBase =
+        typeof tt !== 'undefined'
+          ? tt
+          : {
+              backgroundColor: C.tooltipBg,
+              borderColor: C.tooltipBorder,
+              borderWidth: 1,
+              titleColor: C.tooltipTitle,
+              bodyColor: C.tooltipBody,
+              padding: 12,
+              cornerRadius: 10,
+              displayColors: false,
+            };
+
+      if (idhChartInst) {
+        idhChartInst.data.labels = labels;
+        idhChartInst.data.datasets[0].data = serie;
+        Object.assign(idhChartInst.data.datasets[0], datasetLinhaHomicidio(serie));
+        if (idhChartInst.data.datasets[1]) {
+          idhChartInst.data.datasets[1].data = Array(serie.length).fill(avg);
+        }
+        idhChartInst._homModo = modo;
+        idhChartInst._homAnoRef = cfg.anoRef || null;
+        idhChartInst.update();
+        return;
+      }
+
+      const homCtx = canvas.getContext('2d');
+      idhChartInst = new Chart(homCtx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            datasetLinhaHomicidio(serie),
+            {
+              type: 'line',
+              data: Array(serie.length).fill(avg),
+              borderColor: 'rgba(' + C.chartAvg.replace(/[^,\d]/g, '') + ', 0.45)',
+              borderWidth: 1.5,
+              borderDash: [5, 4],
+              pointRadius: 0,
+              fill: false,
+              tension: 0,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 1200, easing: 'easeInOutQuart' },
+          interaction: {
+            mode: modo === 'anos' ? 'nearest' : 'index',
+            intersect: modo === 'anos',
+          },
+          onClick: function (evt, elements) {
+            if (modo !== 'anos' || !elements.length) return;
+            const idx = elements[0].index;
+            const ano = labels[idx];
+            if (!ano || !homDados) return;
+            mostrarHomicidioMeses(ano, homDados, homNomeMunicipio);
+          },
+          onHover: function (evt, elements, chart) {
+            const alvo = chart && chart.canvas ? chart.canvas : canvas;
+            if (!alvo) return;
+            alvo.style.cursor =
+              modo === 'anos' && elements.length ? 'pointer' : 'default';
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              ...tooltipBase,
+              filter: function (item) {
+                return item.datasetIndex === 0;
+              },
+              callbacks: {
+                title: function (c) {
+                  if (modo === 'meses') {
+                    return 'Homicídio doloso · ' + (cfg.anoRef || '') + ' · ' + c[0].label;
+                  }
+                  return 'Homicídio doloso · ' + c[0].label;
+                },
+                label: function (c) {
+                  return 'Ocorrências: ' + c.parsed.y;
+                },
+                afterLabel: function (c) {
+                  const diff = c.parsed.y - avg;
+                  if (avg <= 0) {
+                    return modo === 'meses'
+                      ? 'Total no mês: ' + c.parsed.y
+                      : 'Total no ano: ' + c.parsed.y;
+                  }
+                  const pct = Math.abs((diff / avg) * 100).toFixed(1);
+                  const unidade = modo === 'meses' ? 'meses' : 'anos';
+                  return (diff > 0 ? '▲ +' : '▼ -') + pct + '% vs média (' + labels.length + ' ' + unidade + ')';
+                },
+                footer: function () {
+                  if (modo === 'anos') return 'Clique para ver os meses';
+                  return '';
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              border: { display: false },
+              ticks: { color: C.chartTick, maxRotation: 0 },
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: C.chartGrid, drawTicks: false },
+              border: { display: false },
+              ticks: {
+                color: C.chartTick,
+                precision: 0,
+                callback: function (v) {
+                  return Number.isInteger(v) ? v : '';
+                },
+              },
+            },
+          },
+        },
+      });
+      idhChartInst._homModo = modo;
+      idhChartInst._homAnoRef = cfg.anoRef || null;
+    }
+
     function aplicarSeguranca(dados, nomeMunicipio) {
       segDadosLatrocinio = dados;
       segNomeMunicipio = nomeMunicipio || '';
+      if (serieSegurancaZerada(dados) && segFetchCtx) {
+        fetch(
+          '/municipios/seguranca/status?uf=' +
+            encodeURIComponent(segFetchCtx.uf)
+        )
+          .then(function (res) {
+            return res.ok ? res.json() : null;
+          })
+          .then(function (st) {
+            if (st && !st.pronto) {
+              iniciarPollLatrocinio(segFetchCtx.uf);
+              return;
+            }
+            pararPollLatrocinio();
+            mostrarLatrocinioAnos(dados, nomeMunicipio);
+            setSegurancaLoading(false);
+            patchInsight({
+              latPronto: true,
+              latTotal: totalSerieAnual(dados),
+              periodoSeg: periodoSeguranca(dados),
+            });
+          })
+          .catch(function () {
+            pararPollLatrocinio();
+            mostrarLatrocinioAnos(dados, nomeMunicipio);
+            setSegurancaLoading(false);
+          });
+        return;
+      }
+      pararPollLatrocinio();
       mostrarLatrocinioAnos(dados, nomeMunicipio);
       setSegurancaLoading(false);
+      patchInsight({
+        latPronto: true,
+        latTotal: totalSerieAnual(dados),
+        periodoSeg: periodoSeguranca(dados),
+      });
     }
 
     function voltarLatrocinioAnos() {
@@ -1897,21 +2552,52 @@
 
       const btnSegVoltar = document.getElementById('seg-voltar-anos');
       if (btnSegVoltar) btnSegVoltar.addEventListener('click', voltarLatrocinioAnos);
+      const btnHomVoltar = document.getElementById('hom-voltar-anos');
+      if (btnHomVoltar) btnHomVoltar.addEventListener('click', voltarHomicidioAnos);
 
       if (!idMun && !nomeMun) {
         aplicarKpis(0.756, 0.589, 0.799);
+        patchInsight({
+          nome: 'Exemplo',
+          uf: ufEstado,
+          idhm: 0.756,
+          longevidade: 0.756,
+          educacao: 0.589,
+          renda: 0.799,
+          rankLong: 3,
+          rankEduc: 5,
+          rankRenda: 4,
+          carregando: false,
+        });
         return;
       }
 
       if (nomeMun) atualizarTitulosCharts(nomeMun);
+      patchInsight({
+        nome: nomeMun,
+        uf: ufEstado,
+        carregando: true,
+        homPronto: false,
+        latPronto: false,
+      });
 
       setKpiLoading(true);
       setSegurancaLoading(true);
+      setHomicidioLoading(true);
 
       const qs = new URLSearchParams();
       qs.set('uf', ufEstado);
       if (idMun) qs.set('id', idMun);
       if (nomeMun) qs.set('nome', nomeMun);
+
+      function iniciarSegurancaMunicipio(nome, id) {
+        carregarLatrocinio(ufEstado, nome, id);
+        carregarHomicidio(ufEstado, nome, id);
+      }
+
+      if (nomeMun) {
+        iniciarSegurancaMunicipio(nomeMun, idMun);
+      }
 
       const pDet = fetch('/municipios/detalhe?' + qs.toString()).then(function (res) {
         if (!res.ok) {
@@ -1922,18 +2608,24 @@
         return res.json();
       });
 
-      const pList = fetch('/municipios/listar?uf=' + encodeURIComponent(ufEstado))
-        .then(function (res) {
-          return res.ok ? res.json() : [];
-        })
-        .catch(function () {
-          return [];
-        });
+      function atualizarRanks(lista, m) {
+        document.getElementById('rank1').textContent = fmtRank(
+          rankPorCampo(lista, 'longevidade', m)
+        );
+        document.getElementById('rank2').textContent = fmtRank(
+          rankPorCampo(lista, 'educacao', m)
+        );
+        document.getElementById('rank3').textContent = fmtRank(
+          rankPorCampo(lista, 'renda', m)
+        );
+      }
 
-      Promise.all([pDet, pList])
-        .then(function (parts) {
-          const m = parts[0];
-          const lista = parts[1];
+      pDet
+        .then(function (m) {
+          const nomeApi = m.nome || nomeMun;
+          if (nomeApi && !nomeMun) {
+            iniciarSegurancaMunicipio(nomeApi, m.id != null ? m.id : idMun);
+          }
 
           setKpiLoading(false);
 
@@ -1941,9 +2633,25 @@
           if (crumb && m.nome) crumb.textContent = m.nome;
           atualizarTitulosCharts(m.nome);
 
-          document.getElementById('rank1').textContent = fmtRank(rankPorCampo(lista, 'longevidade', m));
-          document.getElementById('rank2').textContent = fmtRank(rankPorCampo(lista, 'educacao', m));
-          document.getElementById('rank3').textContent = fmtRank(rankPorCampo(lista, 'renda', m));
+          if (ufEstado === 'SP') {
+            document.getElementById('rank1').textContent = '…';
+            document.getElementById('rank2').textContent = '…';
+            document.getElementById('rank3').textContent = '…';
+            fetch('/municipios/listar?uf=' + encodeURIComponent(ufEstado))
+              .then(function (res) {
+                return res.ok ? res.json() : [];
+              })
+              .catch(function () {
+                return [];
+              })
+              .then(function (lista) {
+                atualizarRanks(lista, m);
+              });
+          } else {
+            document.getElementById('rank1').textContent = '—';
+            document.getElementById('rank2').textContent = '—';
+            document.getElementById('rank3').textContent = '—';
+          }
 
           const lo =
             m.longevidade != null && !Number.isNaN(Number(m.longevidade))
@@ -1962,12 +2670,24 @@
             aplicarKpis(0.756, 0.589, 0.799);
           }
 
-          return carregarLatrocinio(
-            ufEstado,
-            m.nome || nomeMun,
-            m.id != null ? m.id : idMun
-          ).then(function (seg) {
-            aplicarSeguranca(seg, m.nome || nomeMun);
+          const idhmVal =
+            m.idhm_geral != null && !Number.isNaN(Number(m.idhm_geral))
+              ? Number(m.idhm_geral)
+              : m.idhm != null && !Number.isNaN(Number(m.idhm))
+                ? Number(m.idhm)
+                : lo != null && ed != null && re != null
+                  ? (lo + ed + re) / 3
+                  : null;
+
+          patchInsight({
+            nome: m.nome || nomeMun,
+            uf: ufEstado,
+            idhm: idhmVal,
+            longevidade: lo,
+            educacao: ed,
+            renda: re,
+            carregando: false,
+            erro: false,
           });
         })
         .catch(function (err) {
@@ -1980,9 +2700,15 @@
           document.getElementById('rank2').textContent = '5° no Estado';
           document.getElementById('rank3').textContent = '4° no Estado';
           aplicarKpis(0.756, 0.589, 0.799);
-          carregarLatrocinio(ufEstado, nomeMun, idMun).then(function (seg) {
-            aplicarSeguranca(seg, nomeMun);
+          patchInsight({
+            nome: nomeMun || 'Município',
+            uf: ufEstado,
+            carregando: false,
+            erro: true,
           });
+          if (nomeMun) {
+            iniciarSegurancaMunicipio(nomeMun, idMun);
+          }
         });
     });
 
@@ -2004,74 +2730,6 @@
       titleFont: { family: "'Syne', sans-serif", size: 13, weight: '700' },
       bodyFont: { family: "'DM Mono', monospace", size: 11 },
     };
-
-    // ─── IDH LINE ─────────────────────────────────────────────────────────────
-    const idhCtx = document.getElementById('idhChart').getContext('2d');
-    const idhY = [0.722, 0.740, 0.755, 0.775, 0.783, 0.800, 0.814, 0.830, 0.848];
-    const idhX = ['2000', '2003', '2006', '2009', '2012', '2015', '2018', '2021', '2024'];
-
-
-
-    const idhChart = new Chart(idhCtx, {
-      type: 'line',
-      data: {
-        labels: idhX,
-        datasets: [{
-          data: idhY,
-          borderColor: C.chartLine,
-          borderWidth: 2.5,
-          pointRadius: idhY.map((_, i) => i === idhY.length - 1 ? 6 : 3),
-          pointBackgroundColor: idhY.map((_, i) => i === idhY.length - 1 ? C.chartLine : '#0F1B2D'),
-          pointBorderColor: C.chartLine,
-          pointBorderWidth: 2,
-          pointHoverRadius: 7,
-          fill: true,
-          tension: 0.42,
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        animation: { duration: 1400, easing: 'easeInOutQuart' },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            ...tt,
-            callbacks: {
-              title: c => 'IDH · ' + c[0].label,
-              label: c => 'Índice: ' + c.parsed.y.toFixed(3),
-              afterLabel: c => {
-                const i = c.dataIndex;
-                if (i === 0) return 'Referência base';
-                const d = (idhY[i] - idhY[i - 1]).toFixed(3);
-                return '▲ +' + d + ' vs período anterior';
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: C.chartGrid, drawTicks: false },
-            border: { display: false },
-            ticks: { color: C.chartTick, maxRotation: 0 }
-          },
-          y: {
-            min: 0.70, max: 0.88,
-            grid: { color: C.chartGrid, drawTicks: false },
-            border: { display: false },
-            ticks: { color: C.chartTick, callback: v => v.toFixed(2) }
-          }
-        },
-        onHover: (e, els) => {
-          const ann = document.getElementById('idhAnn');
-          if (els.length && els[0].index === 4) {
-            const el = els[0].element;
-            ann.style.display = 'block';
-            ann.style.top = Math.max(0, el.y - 28) + 'px';
-            ann.style.left = Math.max(0, el.x - 85) + 'px';
-          } else { ann.style.display = 'none' }
-        }
-      }
-    });
 
     async function downloadPDF() {
       const { jsPDF } = window.jspdf;

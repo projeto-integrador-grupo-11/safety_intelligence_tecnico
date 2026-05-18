@@ -7,6 +7,23 @@ var populacaoS3Service = require("./populacaoS3Service");
 var BUCKET = process.env.S3_BUCKET || "17042026-safety";
 var REGION = process.env.AWS_REGION || "us-east-1";
 var EVENTO_LATROCINIO = "Roubo seguido de morte (latrocínio)";
+var EVENTO_HOMICIDIO = "Homicídio doloso";
+
+var SLUGS_EVENTO = ["latrocinio", "homicidio"];
+
+function eventoParaSlug(eventoStr) {
+  if (eventoStr === EVENTO_LATROCINIO) return "latrocinio";
+  if (eventoStr === EVENTO_HOMICIDIO) return "homicidio";
+  return null;
+}
+
+function criarEntradaPorEvento() {
+  var entrada = {};
+  SLUGS_EVENTO.forEach(function (slug) {
+    entrada[slug] = { porAno: {}, porMes: {} };
+  });
+  return entrada;
+}
 
 var ANOS = [2021, 2022, 2023, 2024, 2025];
 
@@ -56,12 +73,28 @@ function chavesBusca(nome) {
   return Object.keys(set);
 }
 
-function buscarNoMapa(mapa, nome) {
+function buscarNoMapa(mapa, nome, slug) {
   var chaves = chavesBusca(nome);
   for (var i = 0; i < chaves.length; i++) {
-    if (mapa[chaves[i]]) return mapa[chaves[i]];
+    var item = mapa[chaves[i]];
+    if (item && item[slug]) return item[slug];
   }
   return null;
+}
+
+function agregarMapaEstado(mapa, slug) {
+  var entrada = { porAno: {}, porMes: {} };
+  Object.keys(mapa || {}).forEach(function (key) {
+    var item = mapa[key] && mapa[key][slug];
+    if (!item) return;
+    Object.keys(item.porAno || {}).forEach(function (ano) {
+      entrada.porAno[ano] = (entrada.porAno[ano] || 0) + (item.porAno[ano] || 0);
+    });
+    Object.keys(item.porMes || {}).forEach(function (ref) {
+      entrada.porMes[ref] = (entrada.porMes[ref] || 0) + (item.porMes[ref] || 0);
+    });
+  });
+  return entrada;
 }
 
 function mesReferencia(serial) {
@@ -88,14 +121,14 @@ function mensalDoAno(porMes, ano) {
   });
 }
 
-function criarVazio() {
+function criarVazio(eventoLabel) {
   var labels = ANOS.map(String);
   var porMesPorAno = {};
   labels.forEach(function (ano) {
     porMesPorAno[ano] = mensalDoAno(null, ano);
   });
   return {
-    evento: EVENTO_LATROCINIO,
+    evento: eventoLabel || EVENTO_LATROCINIO,
     anos: labels.slice(),
     labels: labels.slice(),
     anual: labels.map(function (ano) {
@@ -107,40 +140,74 @@ function criarVazio() {
   };
 }
 
-function parsePlanilhaLatrocinio(linhas, ufFiltro, anoRef) {
+var CHUNK_LINHAS_SEGURANCA = 6000;
+
+function processarLinhaSeguranca(mapa, row, ufNorm, prefixoAno) {
+  if (!row) return;
+
+  var slug = eventoParaSlug(row[2]);
+  if (!slug) return;
+
+  var uf = String(row[0] || "")
+    .trim()
+    .toUpperCase();
+  if (ufNorm && uf !== ufNorm) return;
+
+  var nome = String(row[1] || "").trim();
+  if (!nome) return;
+
+  var key = chaveNome(nome);
+  if (!key) return;
+
+  var ref = mesReferencia(row[3]);
+  var qtd = parseVitima(row[10]);
+  if (qtd <= 0) qtd = parseVitima(row[11]);
+
+  if (!mapa[key]) {
+    mapa[key] = {};
+  }
+  if (!mapa[key][slug]) {
+    mapa[key][slug] = { total: 0, porMes: {} };
+  }
+  if (ref && ref.indexOf(prefixoAno) === 0) {
+    mapa[key][slug].porMes[ref] =
+      (mapa[key][slug].porMes[ref] || 0) + qtd;
+    mapa[key][slug].total += qtd;
+  }
+}
+
+function parsePlanilhaSeguranca(linhas, ufFiltro, anoRef) {
   var mapa = {};
   var ufNorm = ufFiltro ? String(ufFiltro).trim().toUpperCase() : null;
   var prefixoAno = String(anoRef) + "-";
 
   for (var i = 1; i < linhas.length; i++) {
-    var row = linhas[i];
-    if (!row || row[2] !== EVENTO_LATROCINIO) continue;
-
-    var uf = String(row[0] || "")
-      .trim()
-      .toUpperCase();
-    if (ufNorm && uf !== ufNorm) continue;
-
-    var nome = String(row[1] || "").trim();
-    if (!nome) continue;
-
-    var key = chaveNome(nome);
-    if (!key) continue;
-
-    var ref = mesReferencia(row[3]);
-    var qtd = parseVitima(row[10]);
-    if (qtd <= 0) qtd = parseVitima(row[11]);
-
-    if (!mapa[key]) {
-      mapa[key] = { total: 0, porMes: {} };
-    }
-    if (ref && ref.indexOf(prefixoAno) === 0) {
-      mapa[key].porMes[ref] = (mapa[key].porMes[ref] || 0) + qtd;
-      mapa[key].total += qtd;
-    }
+    processarLinhaSeguranca(mapa, linhas[i], ufNorm, prefixoAno);
   }
 
   return mapa;
+}
+
+function parsePlanilhaSegurancaChunked(linhas, ufFiltro, anoRef) {
+  var mapa = {};
+  var ufNorm = ufFiltro ? String(ufFiltro).trim().toUpperCase() : null;
+  var prefixoAno = String(anoRef) + "-";
+  var i = 1;
+
+  return new Promise(function (resolve) {
+    function step() {
+      var fim = Math.min(i + CHUNK_LINHAS_SEGURANCA, linhas.length);
+      for (; i < fim; i++) {
+        processarLinhaSeguranca(mapa, linhas[i], ufNorm, prefixoAno);
+      }
+      if (i < linhas.length) {
+        setImmediate(step);
+      } else {
+        resolve(mapa);
+      }
+    }
+    setImmediate(step);
+  });
 }
 
 function mesclarMapasPorAno(partes) {
@@ -152,12 +219,16 @@ function mesclarMapasPorAno(partes) {
 
     Object.keys(parcial).forEach(function (key) {
       if (!mapa[key]) {
-        mapa[key] = { porAno: {}, porMes: {} };
+        mapa[key] = criarEntradaPorEvento();
       }
-      mapa[key].porAno[ano] = parcial[key].total || 0;
-      var porMes = parcial[key].porMes || {};
-      Object.keys(porMes).forEach(function (ref) {
-        mapa[key].porMes[ref] = porMes[ref];
+      SLUGS_EVENTO.forEach(function (slug) {
+        var src = parcial[key] && parcial[key][slug];
+        if (!src) return;
+        mapa[key][slug].porAno[ano] = src.total || 0;
+        var porMes = src.porMes || {};
+        Object.keys(porMes).forEach(function (ref) {
+          mapa[key][slug].porMes[ref] = porMes[ref];
+        });
       });
     });
   });
@@ -165,8 +236,8 @@ function mesclarMapasPorAno(partes) {
   return mapa;
 }
 
-function mapaParaResposta(entrada) {
-  if (!entrada) return criarVazio();
+function mapaParaResposta(entrada, eventoLabel) {
+  if (!entrada) return criarVazio(eventoLabel);
 
   var labels = ANOS.map(String);
   var porMesPorAno = {};
@@ -181,7 +252,7 @@ function mapaParaResposta(entrada) {
   });
 
   return {
-    evento: EVENTO_LATROCINIO,
+    evento: eventoLabel || EVENTO_LATROCINIO,
     anos: labels.slice(),
     labels: labels.slice(),
     anual: anual,
@@ -203,7 +274,55 @@ function dirCache() {
 }
 
 function arquivoCacheUf(ufNorm) {
+  return path.join(dirCache(), "seguranca_" + ufNorm + ".json");
+}
+
+function arquivoCacheLegadoUf(ufNorm) {
   return path.join(dirCache(), "latrocinio_" + ufNorm + ".json");
+}
+
+function mapaEhFormatoLegado(amostra) {
+  return !!(amostra && amostra.porAno && !amostra.latrocinio);
+}
+
+function normalizarMapaCache(mapa) {
+  if (!mapa || typeof mapa !== "object") return mapa;
+  var keys = Object.keys(mapa);
+  if (!keys.length) return mapa;
+  if (!mapaEhFormatoLegado(mapa[keys[0]])) return mapa;
+
+  var out = {};
+  keys.forEach(function (key) {
+    var leg = mapa[key];
+    out[key] = criarEntradaPorEvento();
+    out[key].latrocinio = {
+      porAno: Object.assign({}, leg.porAno || {}),
+      porMes: Object.assign({}, leg.porMes || {}),
+    };
+  });
+  return out;
+}
+
+function cacheTemDadosHomicidio(mapa) {
+  var keys = Object.keys(mapa || {});
+  var limite = Math.min(keys.length, 100);
+  for (var i = 0; i < limite; i++) {
+    var h = mapa[keys[i]] && mapa[keys[i]].homicidio;
+    if (!h || !h.porAno) continue;
+    var anos = Object.keys(h.porAno);
+    for (var j = 0; j < anos.length; j++) {
+      if ((h.porAno[anos[j]] || 0) > 0) return true;
+    }
+  }
+  return false;
+}
+
+function resolverArquivoCacheDisco(ufNorm) {
+  var atual = arquivoCacheUf(ufNorm);
+  if (fs.existsSync(atual)) return atual;
+  var legado = arquivoCacheLegadoUf(ufNorm);
+  if (fs.existsSync(legado)) return legado;
+  return null;
 }
 
 function resolverArquivoLocalAno(ano) {
@@ -226,8 +345,8 @@ function resolverArquivoLocalAno(ano) {
 }
 
 function cacheDiscoValido(ufNorm) {
-  var cacheFile = arquivoCacheUf(ufNorm);
-  if (!fs.existsSync(cacheFile)) return false;
+  var cacheFile = resolverArquivoCacheDisco(ufNorm);
+  if (!cacheFile) return false;
   var cacheMtime = fs.statSync(cacheFile).mtimeMs;
   for (var i = 0; i < ANOS.length; i++) {
     var arq = resolverArquivoLocalAno(ANOS[i]);
@@ -237,7 +356,25 @@ function cacheDiscoValido(ufNorm) {
 }
 
 function lerCacheDisco(ufNorm) {
-  return JSON.parse(fs.readFileSync(arquivoCacheUf(ufNorm), "utf8"));
+  var cacheFile = resolverArquivoCacheDisco(ufNorm);
+  if (!cacheFile) return null;
+  var mapa = normalizarMapaCache(
+    JSON.parse(fs.readFileSync(cacheFile, "utf8"))
+  );
+  if (cacheFile !== arquivoCacheUf(ufNorm)) {
+    try {
+      gravarCacheDisco(ufNorm, mapa);
+      console.log(
+        "\nSegurança: cache legado (latrocínio) migrado para " + ufNorm + "."
+      );
+    } catch (erro) {
+      console.log(
+        "\nSegurança: falha ao migrar cache legado:",
+        erro.message || erro
+      );
+    }
+  }
+  return mapa;
 }
 
 function gravarCacheDisco(ufNorm, mapa) {
@@ -255,7 +392,30 @@ function parseBuffer(buffer, uf, ano) {
       : workbook.SheetNames[0];
   var sheet = workbook.Sheets[nomeAba];
   var linhas = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
-  return parsePlanilhaLatrocinio(linhas, uf, ano);
+  return parsePlanilhaSeguranca(linhas, uf, ano);
+}
+
+function parseBufferAsync(buffer, uf, ano) {
+  return new Promise(function (resolve, reject) {
+    setImmediate(function () {
+      try {
+        var workbook = XLSX.read(buffer, READ_OPTS);
+        var anoStr = String(ano);
+        var nomeAba =
+          workbook.SheetNames.indexOf(anoStr) >= 0
+            ? anoStr
+            : workbook.SheetNames[0];
+        var sheet = workbook.Sheets[nomeAba];
+        var linhas = XLSX.utils.sheet_to_json(sheet, {
+          header: 1,
+          defval: null,
+        });
+        parsePlanilhaSegurancaChunked(linhas, uf, ano).then(resolve).catch(reject);
+      } catch (erro) {
+        reject(erro);
+      }
+    });
+  });
 }
 
 function streamToBuffer(stream) {
@@ -323,13 +483,35 @@ function carregarBufferAno(ano) {
 var cacheMapaPorUf = {};
 var cacheEmPorUf = {};
 var cacheCarregandoPorUf = {};
+var reindexAgendadoPorUf = {};
 var progressoPorUf = {};
 var CACHE_MS = 15 * 60 * 1000;
 
 function aplicarMapaEmCache(ufNorm, mapa) {
-  cacheMapaPorUf[ufNorm] = mapa;
+  var norm = normalizarMapaCache(mapa);
+  cacheMapaPorUf[ufNorm] = norm;
   cacheEmPorUf[ufNorm] = Date.now();
-  return mapa;
+  return norm;
+}
+
+function agendarReindexacaoCompleta(ufNorm) {
+  if (cacheCarregandoPorUf[ufNorm] || reindexAgendadoPorUf[ufNorm]) {
+    return;
+  }
+  reindexAgendadoPorUf[ufNorm] = true;
+  console.log(
+    "\nSegurança: reindexação em segundo plano (" +
+      ufNorm +
+      ", homicídio + atualização)…"
+  );
+  setImmediate(function () {
+    cacheCarregandoPorUf[ufNorm] = carregarMapaUfFromExcel(ufNorm).finally(
+      function () {
+        delete cacheCarregandoPorUf[ufNorm];
+        delete reindexAgendadoPorUf[ufNorm];
+      }
+    );
+  });
 }
 
 function carregarMapaUfFromExcel(ufNorm) {
@@ -352,7 +534,7 @@ function carregarMapaUfFromExcel(ufNorm) {
       }
       delete progressoPorUf[ufNorm];
       console.log(
-        "\nSegurança (latrocínio " +
+        "\nSegurança (" +
           ufNorm +
           ", " +
           ANOS[0] +
@@ -360,7 +542,7 @@ function carregarMapaUfFromExcel(ufNorm) {
           ANOS[ANOS.length - 1] +
           "): " +
           Object.keys(mapa).length +
-          " municípios indexados."
+          " municípios indexados (latrocínio + homicídio)."
       );
       return aplicarMapaEmCache(ufNorm, mapa);
     }
@@ -379,11 +561,13 @@ function carregarMapaUfFromExcel(ufNorm) {
         console.log(
           "\nSegurança: processando planilha " + ano + " (" + ufNorm + ")…"
         );
-        partes.push({
-          ano: ano,
-          mapa: parseBuffer(buffer, ufNorm, ano),
+        return parseBufferAsync(buffer, ufNorm, ano).then(function (mapaAno) {
+          partes.push({
+            ano: ano,
+            mapa: mapaAno,
+          });
+          return proximoAno();
         });
-        return proximoAno();
       })
       .catch(function (erro) {
         console.log("\nSegurança (" + ano + "):", erro.message || erro);
@@ -401,6 +585,73 @@ function carregarMapaUfFromExcel(ufNorm) {
   return proximoAno();
 }
 
+function mapaEmMemoriaValido(ufNorm) {
+  var agora = Date.now();
+  var cacheMapa = cacheMapaPorUf[ufNorm];
+  var cacheEm = cacheEmPorUf[ufNorm] || 0;
+  return (
+    cacheMapa &&
+    Object.keys(cacheMapa).length > 0 &&
+    agora - cacheEm < CACHE_MS
+  );
+}
+
+function tentarCarregarDoDisco(ufNorm) {
+  if (!cacheDiscoValido(ufNorm)) return null;
+  try {
+    var doDisco = lerCacheDisco(ufNorm);
+    if (doDisco && Object.keys(doDisco).length > 0) {
+      console.log(
+        "\nSegurança: " +
+          ufNorm +
+          " carregado do cache em disco (" +
+          Object.keys(doDisco).length +
+          " municípios)."
+      );
+      var mapaDisco = aplicarMapaEmCache(ufNorm, doDisco);
+      if (!cacheTemDadosHomicidio(mapaDisco)) {
+        agendarReindexacaoCompleta(ufNorm);
+      }
+      return mapaDisco;
+    }
+  } catch (erro) {
+    console.log("\nSegurança: cache em disco inválido:", erro.message || erro);
+  }
+  return null;
+}
+
+function iniciarCarregamentoEmSegundoPlano(ufNorm) {
+  if (mapaEmMemoriaValido(ufNorm)) return;
+  if (tentarCarregarDoDisco(ufNorm)) return;
+  if (cacheCarregandoPorUf[ufNorm] || reindexAgendadoPorUf[ufNorm]) return;
+
+  console.log(
+    "\nSegurança: indexação em segundo plano (" + ufNorm + ")…"
+  );
+  setImmediate(function () {
+    if (mapaEmMemoriaValido(ufNorm) || cacheCarregandoPorUf[ufNorm]) return;
+    cacheCarregandoPorUf[ufNorm] = carregarMapaUfFromExcel(ufNorm).finally(
+      function () {
+        delete cacheCarregandoPorUf[ufNorm];
+      }
+    );
+  });
+}
+
+function resolverMapaParaConsulta(ufNorm) {
+  if (mapaEmMemoriaValido(ufNorm)) {
+    return Promise.resolve(cacheMapaPorUf[ufNorm]);
+  }
+
+  var doDisco = tentarCarregarDoDisco(ufNorm);
+  if (doDisco) {
+    return Promise.resolve(doDisco);
+  }
+
+  iniciarCarregamentoEmSegundoPlano(ufNorm);
+  return Promise.resolve(null);
+}
+
 function carregarMapaUf(uf) {
   var ufNorm = String(uf || "SP")
     .trim()
@@ -409,28 +660,13 @@ function carregarMapaUf(uf) {
     return Promise.reject(new Error("UF inválida"));
   }
 
-  var agora = Date.now();
-  var cacheMapa = cacheMapaPorUf[ufNorm];
-  var cacheEm = cacheEmPorUf[ufNorm] || 0;
-
-  if (cacheMapa && Object.keys(cacheMapa).length > 0 && agora - cacheEm < CACHE_MS) {
-    return Promise.resolve(cacheMapa);
+  if (mapaEmMemoriaValido(ufNorm)) {
+    return Promise.resolve(cacheMapaPorUf[ufNorm]);
   }
 
-  if (cacheDiscoValido(ufNorm)) {
-    try {
-      var doDisco = lerCacheDisco(ufNorm);
-      console.log(
-        "\nSegurança: latrocínio " +
-          ufNorm +
-          " carregado do cache em disco (" +
-          Object.keys(doDisco).length +
-          " municípios)."
-      );
-      return Promise.resolve(aplicarMapaEmCache(ufNorm, doDisco));
-    } catch (erro) {
-      console.log("\nSegurança: cache em disco inválido:", erro.message || erro);
-    }
+  var doDisco = tentarCarregarDoDisco(ufNorm);
+  if (doDisco) {
+    return Promise.resolve(doDisco);
   }
 
   if (cacheCarregandoPorUf[ufNorm]) {
@@ -449,11 +685,13 @@ function obterStatusUf(uf) {
     .trim()
     .toUpperCase();
   var prog = progressoPorUf[ufNorm];
-  var pronto =
-    cacheMapaPorUf[ufNorm] && Object.keys(cacheMapaPorUf[ufNorm]).length > 0;
+  var mapa = cacheMapaPorUf[ufNorm];
+  var pronto = mapa && Object.keys(mapa).length > 0;
+  var homicidioPronto = pronto && cacheTemDadosHomicidio(mapa);
   return {
     uf: ufNorm,
     pronto: !!pronto,
+    homicidioPronto: !!homicidioPronto,
     carregando: !!cacheCarregandoPorUf[ufNorm] || !!(prog && prog.carregando),
     cacheDisco: cacheDiscoValido(ufNorm),
     progresso: prog || null,
@@ -469,25 +707,72 @@ function buscarLatrocinio(uf, nome) {
     .trim()
     .toUpperCase();
   if (!chavesBusca(nome).length) {
-    return Promise.resolve(criarVazio());
+    return Promise.resolve(criarVazio(EVENTO_LATROCINIO));
   }
 
-  return carregarMapaUf(ufNorm)
+  return resolverMapaParaConsulta(ufNorm)
     .then(function (mapa) {
-      return mapaParaResposta(buscarNoMapa(mapa, nome));
+      if (!mapa) return criarVazio(EVENTO_LATROCINIO);
+      return mapaParaResposta(
+        buscarNoMapa(mapa, nome, "latrocinio"),
+        EVENTO_LATROCINIO
+      );
     })
     .catch(function (erro) {
       console.log("\nSegurança (latrocínio):", erro.message || erro);
-      return criarVazio();
+      return criarVazio(EVENTO_LATROCINIO);
+    });
+}
+
+function buscarHomicidio(uf, nome) {
+  var ufNorm = String(uf || "SP")
+    .trim()
+    .toUpperCase();
+  if (!chavesBusca(nome).length) {
+    return Promise.resolve(criarVazio(EVENTO_HOMICIDIO));
+  }
+
+  return resolverMapaParaConsulta(ufNorm)
+    .then(function (mapa) {
+      if (!mapa) return criarVazio(EVENTO_HOMICIDIO);
+      return mapaParaResposta(
+        buscarNoMapa(mapa, nome, "homicidio"),
+        EVENTO_HOMICIDIO
+      );
+    })
+    .catch(function (erro) {
+      console.log("\nSegurança (homicídio):", erro.message || erro);
+      return criarVazio(EVENTO_HOMICIDIO);
+    });
+}
+
+function buscarLatrocinioEstado(uf) {
+  var ufNorm = String(uf || "SP")
+    .trim()
+    .toUpperCase();
+  return resolverMapaParaConsulta(ufNorm)
+    .then(function (mapa) {
+      if (!mapa) return criarVazio(EVENTO_LATROCINIO);
+      return mapaParaResposta(
+        agregarMapaEstado(mapa, "latrocinio"),
+        EVENTO_LATROCINIO
+      );
+    })
+    .catch(function (erro) {
+      console.log("\nSegurança (latrocínio estado):", erro.message || erro);
+      return criarVazio(EVENTO_LATROCINIO);
     });
 }
 
 module.exports = {
   buscarLatrocinio,
+  buscarHomicidio,
+  buscarLatrocinioEstado,
   carregarMapaUf,
   obterStatusUf,
   precarregar,
   EVENTO_LATROCINIO,
+  EVENTO_HOMICIDIO,
   criarVazio,
   ANOS,
 };
