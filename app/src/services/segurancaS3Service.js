@@ -1,5 +1,6 @@
 var fs = require("fs");
 var path = require("path");
+var { Worker } = require("worker_threads");
 var XLSX = require("xlsx");
 var { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 var populacaoS3Service = require("./populacaoS3Service");
@@ -397,22 +398,24 @@ function parseBuffer(buffer, uf, ano) {
 
 function parseBufferAsync(buffer, uf, ano) {
   return new Promise(function (resolve, reject) {
-    setImmediate(function () {
-      try {
-        var workbook = XLSX.read(buffer, READ_OPTS);
-        var anoStr = String(ano);
-        var nomeAba =
-          workbook.SheetNames.indexOf(anoStr) >= 0
-            ? anoStr
-            : workbook.SheetNames[0];
-        var sheet = workbook.Sheets[nomeAba];
-        var linhas = XLSX.utils.sheet_to_json(sheet, {
-          header: 1,
-          defval: null,
-        });
-        parsePlanilhaSegurancaChunked(linhas, uf, ano).then(resolve).catch(reject);
-      } catch (erro) {
-        reject(erro);
+    var worker = new Worker(
+      path.join(__dirname, "segurancaPlanilhaWorker.js"),
+      { workerData: { buffer: buffer, uf: uf, ano: ano } }
+    );
+
+    worker.on("message", function (mapa) {
+      if (mapa && mapa.__erro) {
+        reject(new Error(mapa.__erro));
+        return;
+      }
+      resolve(mapa);
+    });
+    worker.on("error", reject);
+    worker.on("exit", function (code) {
+      if (code !== 0) {
+        reject(
+          new Error("Worker de planilha encerrou com código " + code)
+        );
       }
     });
   });
@@ -485,13 +488,85 @@ var cacheEmPorUf = {};
 var cacheCarregandoPorUf = {};
 var reindexAgendadoPorUf = {};
 var progressoPorUf = {};
+var anosIndexadosPorUf = {};
 var CACHE_MS = 15 * 60 * 1000;
+var CONCORRENCIA_ANOS = 2;
 
 function aplicarMapaEmCache(ufNorm, mapa) {
   var norm = normalizarMapaCache(mapa);
   cacheMapaPorUf[ufNorm] = norm;
   cacheEmPorUf[ufNorm] = Date.now();
   return norm;
+}
+
+function executarComLimite(itens, limite, fn) {
+  return new Promise(function (resolve, reject) {
+    if (!itens.length) {
+      resolve([]);
+      return;
+    }
+
+    var resultados = new Array(itens.length);
+    var proximoIndice = 0;
+    var emExecucao = 0;
+    var falhou = false;
+
+    function iniciarProximo() {
+      while (!falhou && emExecucao < limite && proximoIndice < itens.length) {
+        var indiceAtual = proximoIndice++;
+        emExecucao++;
+        fn(itens[indiceAtual], indiceAtual)
+          .then(function (valor) {
+            resultados[indiceAtual] = valor;
+            emExecucao--;
+            finalizarOuContinuar();
+          })
+          .catch(function (erro) {
+            falhou = true;
+            reject(erro);
+          });
+      }
+    }
+
+    function finalizarOuContinuar() {
+      if (falhou) return;
+      if (proximoIndice >= itens.length && emExecucao === 0) {
+        resolve(resultados);
+        return;
+      }
+      iniciarProximo();
+    }
+
+    iniciarProximo();
+  });
+}
+
+function aplicarPartesParciais(ufNorm, partes) {
+  var ordenadas = partes.slice().sort(function (a, b) {
+    return ANOS.indexOf(a.ano) - ANOS.indexOf(b.ano);
+  });
+  var mapaParcial = mesclarMapasPorAno(ordenadas);
+  if (!Object.keys(mapaParcial).length) return mapaParcial;
+
+  aplicarMapaEmCache(ufNorm, mapaParcial);
+  anosIndexadosPorUf[ufNorm] = ordenadas.length;
+  progressoPorUf[ufNorm] = {
+    carregando: true,
+    ano: ordenadas[ordenadas.length - 1].ano,
+    indice: ordenadas.length,
+    total: ANOS.length,
+  };
+
+  try {
+    gravarCacheDisco(ufNorm, mapaParcial);
+  } catch (erro) {
+    console.log(
+      "\nSegurança: falha ao gravar cache parcial:",
+      erro.message || erro
+    );
+  }
+
+  return mapaParcial;
 }
 
 function agendarReindexacaoCompleta(ufNorm) {
@@ -504,23 +579,71 @@ function agendarReindexacaoCompleta(ufNorm) {
       ufNorm +
       ", homicídio + atualização)…"
   );
-  setImmediate(function () {
-    cacheCarregandoPorUf[ufNorm] = carregarMapaUfFromExcel(ufNorm).finally(
-      function () {
-        delete cacheCarregandoPorUf[ufNorm];
-        delete reindexAgendadoPorUf[ufNorm];
-      }
-    );
-  });
+  cacheCarregandoPorUf[ufNorm] = carregarMapaUfFromExcel(ufNorm).finally(
+    function () {
+      delete cacheCarregandoPorUf[ufNorm];
+      delete reindexAgendadoPorUf[ufNorm];
+      delete anosIndexadosPorUf[ufNorm];
+    }
+  );
+}
+
+function iniciarCarregamentoSeguranca(ufNorm) {
+  if (cacheCarregandoPorUf[ufNorm] || reindexAgendadoPorUf[ufNorm]) {
+    return;
+  }
+  if (mapaEmMemoriaValido(ufNorm)) return;
+  if (tentarCarregarDoDisco(ufNorm)) return;
+
+  console.log("\nSegurança: indexação (" + ufNorm + ")…");
+  cacheCarregandoPorUf[ufNorm] = carregarMapaUfFromExcel(ufNorm).finally(
+    function () {
+      delete cacheCarregandoPorUf[ufNorm];
+      delete anosIndexadosPorUf[ufNorm];
+    }
+  );
 }
 
 function carregarMapaUfFromExcel(ufNorm) {
-  var partes = [];
-  var indice = 0;
+  var partesAcumuladas = [];
 
-  function proximoAno() {
-    if (indice >= ANOS.length) {
-      var mapa = mesclarMapasPorAno(partes);
+  progressoPorUf[ufNorm] = {
+    carregando: true,
+    ano: null,
+    indice: 0,
+    total: ANOS.length,
+  };
+
+  function processarAno(ano) {
+    return carregarBufferAno(ano)
+      .then(function (buffer) {
+        console.log(
+          "\nSegurança: processando planilha " + ano + " (" + ufNorm + ")…"
+        );
+        return parseBufferAsync(buffer, ufNorm, ano);
+      })
+      .then(function (mapaAno) {
+        var parte = { ano: ano, mapa: mapaAno };
+        partesAcumuladas.push(parte);
+        aplicarPartesParciais(ufNorm, partesAcumuladas);
+        return parte;
+      })
+      .catch(function (erro) {
+        console.log("\nSegurança (" + ano + "):", erro.message || erro);
+        var parte = { ano: ano, mapa: {} };
+        partesAcumuladas.push(parte);
+        aplicarPartesParciais(ufNorm, partesAcumuladas);
+        return parte;
+      });
+  }
+
+  return executarComLimite(ANOS, CONCORRENCIA_ANOS, processarAno)
+    .then(function (partes) {
+      var mapa = mesclarMapasPorAno(
+        partes.filter(function (p) {
+          return p && p.ano;
+        })
+      );
       try {
         gravarCacheDisco(ufNorm, mapa);
         console.log(
@@ -545,44 +668,7 @@ function carregarMapaUfFromExcel(ufNorm) {
           " municípios indexados (latrocínio + homicídio)."
       );
       return aplicarMapaEmCache(ufNorm, mapa);
-    }
-
-    var ano = ANOS[indice];
-    progressoPorUf[ufNorm] = {
-      carregando: true,
-      ano: ano,
-      indice: indice + 1,
-      total: ANOS.length,
-    };
-    indice++;
-
-    return carregarBufferAno(ano)
-      .then(function (buffer) {
-        console.log(
-          "\nSegurança: processando planilha " + ano + " (" + ufNorm + ")…"
-        );
-        return parseBufferAsync(buffer, ufNorm, ano).then(function (mapaAno) {
-          partes.push({
-            ano: ano,
-            mapa: mapaAno,
-          });
-          return proximoAno();
-        });
-      })
-      .catch(function (erro) {
-        console.log("\nSegurança (" + ano + "):", erro.message || erro);
-        partes.push({ ano: ano, mapa: {} });
-        return proximoAno();
-      });
-  }
-
-  progressoPorUf[ufNorm] = {
-    carregando: true,
-    ano: null,
-    indice: 0,
-    total: ANOS.length,
-  };
-  return proximoAno();
+    });
 }
 
 function mapaEmMemoriaValido(ufNorm) {
@@ -621,21 +707,7 @@ function tentarCarregarDoDisco(ufNorm) {
 }
 
 function iniciarCarregamentoEmSegundoPlano(ufNorm) {
-  if (mapaEmMemoriaValido(ufNorm)) return;
-  if (tentarCarregarDoDisco(ufNorm)) return;
-  if (cacheCarregandoPorUf[ufNorm] || reindexAgendadoPorUf[ufNorm]) return;
-
-  console.log(
-    "\nSegurança: indexação em segundo plano (" + ufNorm + ")…"
-  );
-  setImmediate(function () {
-    if (mapaEmMemoriaValido(ufNorm) || cacheCarregandoPorUf[ufNorm]) return;
-    cacheCarregandoPorUf[ufNorm] = carregarMapaUfFromExcel(ufNorm).finally(
-      function () {
-        delete cacheCarregandoPorUf[ufNorm];
-      }
-    );
-  });
+  iniciarCarregamentoSeguranca(ufNorm);
 }
 
 function resolverMapaParaConsulta(ufNorm) {
@@ -694,12 +766,27 @@ function obterStatusUf(uf) {
     homicidioPronto: !!homicidioPronto,
     carregando: !!cacheCarregandoPorUf[ufNorm] || !!(prog && prog.carregando),
     cacheDisco: cacheDiscoValido(ufNorm),
+    anosIndexados: anosIndexadosPorUf[ufNorm] || (pronto ? ANOS.length : 0),
     progresso: prog || null,
   };
 }
 
 function precarregar(uf) {
-  return carregarMapaUf(uf || "SP");
+  var ufNorm = String(uf || "SP")
+    .trim()
+    .toUpperCase();
+
+  if (mapaEmMemoriaValido(ufNorm)) {
+    return Promise.resolve(cacheMapaPorUf[ufNorm]);
+  }
+
+  var doDisco = tentarCarregarDoDisco(ufNorm);
+  if (doDisco) {
+    return Promise.resolve(doDisco);
+  }
+
+  iniciarCarregamentoSeguranca(ufNorm);
+  return Promise.resolve(null);
 }
 
 function buscarLatrocinio(uf, nome) {
