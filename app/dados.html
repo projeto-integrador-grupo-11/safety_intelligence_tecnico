@@ -1585,6 +1585,8 @@
     var segPollTimer = null;
     var segFetchCtx = null;
     var segAguardandoIndex = false;
+    var segAnosIndexadosVistos = 0;
+    var homAnosIndexadosVistos = 0;
 
     function serieSegurancaZerada(dados) {
       if (!dados || !dados.anual || !dados.anual.length) return true;
@@ -1609,88 +1611,87 @@
       }
     }
 
+    function atualizarPollSeguranca(uf, alvo) {
+      fetch('/municipios/seguranca/status?uf=' + encodeURIComponent(uf))
+        .then(function (res) {
+          return res.ok ? res.json() : null;
+        })
+        .then(function (st) {
+          if (!st) return;
+          var ctx = alvo === 'hom' ? homFetchCtx : segFetchCtx;
+          if (!ctx) return;
+
+          var msgId = alvo === 'hom' ? 'hom-loading-msg' : 'seg-loading-msg';
+          var el = document.getElementById(msgId);
+          if (el) {
+            if (st.carregando && st.progresso && st.progresso.ano) {
+              el.textContent =
+                'Indexando planilhas · ' +
+                st.progresso.ano +
+                ' (' +
+                st.progresso.indice +
+                '/' +
+                st.progresso.total +
+                ')…';
+            } else if (st.carregando) {
+              el.textContent =
+                'Preparando indicadores (primeira vez pode levar alguns minutos)…';
+            }
+          }
+
+          if (!st.pronto) return;
+
+          var anos = Number(st.anosIndexados) || 0;
+          var vistos = alvo === 'hom' ? homAnosIndexadosVistos : segAnosIndexadosVistos;
+          var deveAtualizar = !st.carregando || anos > vistos;
+
+          if (!deveAtualizar) return;
+
+          if (alvo === 'hom') {
+            homAnosIndexadosVistos = anos;
+          } else {
+            segAnosIndexadosVistos = anos;
+          }
+
+          var carregar =
+            alvo === 'hom' ? carregarHomicidio : carregarLatrocinio;
+          var aplicar =
+            alvo === 'hom' ? aplicarHomicidio : aplicarSeguranca;
+          var nome =
+            alvo === 'hom' ? homNomeMunicipio : segNomeMunicipio;
+
+          carregar(ctx.uf, ctx.nome, ctx.id).then(function (dados) {
+            aplicar(dados, nome);
+          });
+
+          if (!st.carregando) {
+            if (alvo === 'hom') pararPollHomicidio();
+            else pararPollLatrocinio();
+          }
+        })
+        .catch(function () {});
+    }
+
     function iniciarPollLatrocinio(uf) {
       if (segPollTimer || !segFetchCtx) return;
       segAguardandoIndex = true;
+      segAnosIndexadosVistos = 0;
       setSegurancaLoading(true);
+      atualizarPollSeguranca(uf, 'seg');
       segPollTimer = setInterval(function () {
-        fetch('/municipios/seguranca/status?uf=' + encodeURIComponent(uf))
-          .then(function (res) {
-            return res.ok ? res.json() : null;
-          })
-          .then(function (st) {
-            if (!st) return;
-            const el = document.getElementById('seg-loading-msg');
-            if (el) {
-              if (st.carregando && st.progresso && st.progresso.ano) {
-                el.textContent =
-                  'Indexando latrocínio · planilha ' +
-                  st.progresso.ano +
-                  ' (' +
-                  st.progresso.indice +
-                  '/' +
-                  st.progresso.total +
-                  ')…';
-              } else if (st.carregando) {
-                el.textContent =
-                  'Indexando latrocínio (primeira vez pode levar alguns minutos)…';
-              }
-            }
-            if (st.pronto && segFetchCtx) {
-              pararPollLatrocinio();
-              carregarLatrocinio(
-                segFetchCtx.uf,
-                segFetchCtx.nome,
-                segFetchCtx.id
-              ).then(function (dados) {
-                aplicarSeguranca(dados, segNomeMunicipio);
-              });
-            }
-          })
-          .catch(function () {});
-      }, 2500);
+        atualizarPollSeguranca(uf, 'seg');
+      }, 1000);
     }
 
     function iniciarPollHomicidio(uf) {
       if (homPollTimer || !homFetchCtx) return;
       homAguardandoIndex = true;
+      homAnosIndexadosVistos = 0;
       setHomicidioLoading(true);
+      atualizarPollSeguranca(uf, 'hom');
       homPollTimer = setInterval(function () {
-        fetch('/municipios/seguranca/status?uf=' + encodeURIComponent(uf))
-          .then(function (res) {
-            return res.ok ? res.json() : null;
-          })
-          .then(function (st) {
-            if (!st) return;
-            const el = document.getElementById('hom-loading-msg');
-            if (el) {
-              if (st.carregando && st.progresso && st.progresso.ano) {
-                el.textContent =
-                  'Indexando homicídio · planilha ' +
-                  st.progresso.ano +
-                  ' (' +
-                  st.progresso.indice +
-                  '/' +
-                  st.progresso.total +
-                  ')…';
-              } else if (st.carregando) {
-                el.textContent =
-                  'Indexando homicídio doloso (primeira vez pode levar alguns minutos)…';
-              }
-            }
-            if (st.homicidioPronto && homFetchCtx) {
-              pararPollHomicidio();
-              carregarHomicidio(
-                homFetchCtx.uf,
-                homFetchCtx.nome,
-                homFetchCtx.id
-              ).then(function (dados) {
-                aplicarHomicidio(dados, homNomeMunicipio);
-              });
-            }
-          })
-          .catch(function () {});
-      }, 2500);
+        atualizarPollSeguranca(uf, 'hom');
+      }, 1000);
     }
     var furtoChartInst = null;
     var segDadosLatrocinio = null;

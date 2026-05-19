@@ -18,17 +18,6 @@ var municipioRouter = require("./app/src/routes/municipios");
 var populacaoS3Service = require("./app/src/services/populacaoS3Service");
 var segurancaS3Service = require("./app/src/services/segurancaS3Service");
 
-populacaoS3Service.carregarMapa().catch(function () {});
-
-console.log("\nPré-carregando índice de latrocínio (SP)…");
-segurancaS3Service.precarregar("SP").then(function () {
-  console.log("\nÍndice de latrocínio (SP) pronto.");
-}).catch(function (erro) {
-  console.log("\nLatrocínio (SP):", erro.message || erro);
-});
-
-
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -43,6 +32,17 @@ app.use("/municipios", municipioRouter);
 
 
 app.listen(PORTA_APP, function () {
+    populacaoS3Service.carregarMapa().catch(function () {});
+
+    console.log("\nPré-carregando índice de segurança (SP) em segundo plano…");
+    segurancaS3Service.precarregar("SP").then(function (mapa) {
+      if (mapa) {
+        console.log("\nÍndice de segurança (SP) pronto.");
+      }
+    }).catch(function (erro) {
+      console.log("\nSegurança (SP):", erro.message || erro);
+    });
+
     console.log(`
     ##   ##  ######   #####             ####       ##     ######     ##              ##  ##    ####    ######  
     ##   ##  ##       ##  ##            ## ##     ####      ##      ####             ##  ##     ##         ##  
