@@ -26,6 +26,14 @@ router.get("/seguranca/latrocinio-estado", function (req, res) {
   municipioController.latrocinioEstado(req, res);
 });
 
+router.get("/seguranca/roubo-veiculo-estado", function (req, res) {
+  municipioController.rouboVeiculoEstado(req, res);
+});
+
+router.get("/seguranca/furto-veiculo-estado", function (req, res) {
+  municipioController.furtoVeiculoEstado(req, res);
+});
+
 router.get("/seguranca/status", function (req, res) {
   municipioController.statusLatrocinio(req, res);
 });
