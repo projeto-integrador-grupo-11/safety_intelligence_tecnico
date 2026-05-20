@@ -524,6 +524,10 @@
       font-weight: 700;
     }
 
+    .bn-text strong.bn-seg-num {
+      color: var(--red);
+    }
+
     .bn-text em {
       color: var(--yellow);
       font-style: normal
@@ -629,9 +633,18 @@
 
     .kpi-head {
       display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
       margin-bottom: 14px
+    }
+
+    .kpi-head .kpi-lbl {
+      flex: 0 1 auto;
+    }
+
+    .kpi-head .kpi-badge {
+      margin-left: auto;
+      flex-shrink: 0;
     }
 
     .kpi-lbl {
@@ -961,11 +974,26 @@
       border-collapse: collapse
     }
 
-      .tooltip-container {
-      position: absolute;
-      top: 20px;
-      right: 35%;
-      display: inline-block;
+    .kpi-head .tooltip-container {
+      position: relative;
+      top: auto;
+      right: auto;
+      display: inline-flex;
+      flex-shrink: 0;
+    }
+
+    .kpi-fonte {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--t4);
+      letter-spacing: 0.04em;
+      margin: -4px 0 12px;
+      line-height: 1.4;
+    }
+
+    .kpi-fonte strong {
+      color: var(--t3);
+      font-weight: 600;
     }
 
     .tooltip-btn {
@@ -1279,10 +1307,8 @@
       <!-- INSIGHT BANNER -->
       <div class="banner" id="banner">
         <div class="bn-body">
-           <div class="bn-tag">Principal Insight · 2024</div>
-          <div class="bn-text">
-           Numero <strong style=" color: var(--red);">elevado</strong> de roubo de veículo, <strong>alto</strong> interesse em garagens
-          </div>
+          <div class="bn-tag" id="bn-tag">Principal Insight</div>
+          <div class="bn-text" id="bn-text">Carregando análise do estado…</div>
         </div>
         <div class="bn-close" onclick="document.getElementById('banner').style.display='none'">×</div>
       </div>
@@ -1292,17 +1318,17 @@
 
         <!-- Latrocínio -->
         <div class="kpi-card c-red" id="kpi-card-lat">
-              <div class="tooltip-container">
+          <div class="kpi-head">
+            <div class="kpi-lbl">Latrocínio · 2025</div>
+            <div class="tooltip-container">
               <button class="tooltip-btn" aria-describedby="tooltip-kpi-lat">
                 ?
               </button>
 
               <div class="tooltip-content" id="tooltip-kpi-lat">
-               Total de boletins de roubo seguido de morte (latrocínio) no estado, somando todos os municípios. Os dados exibidos referem-se ao ano de <strong>2025</strong> (fonte: banco de segurança SSP).
+               Total de boletins de roubo seguido de morte (latrocínio) no estado, somando todos os municípios. Os dados exibidos referem-se ao ano de <strong>2025</strong>. Fonte: Dados Nacionais de Segurança Pública do Governo Federal.
               </div>
             </div>
-          <div class="kpi-head">
-            <div class="kpi-lbl">Latrocínio · 2025</div>
             <div class="kpi-badge b-y" id="kpi-badge-lat">—</div>
           </div>
           <div class="kpi-main">
@@ -1316,49 +1342,49 @@
         </div>
 
         <!-- Roubo de Veículo -->
-        <div class="kpi-card c-orange">
+        <div class="kpi-card c-orange" id="kpi-card-roubo">
+          <div class="kpi-head">
+            <div class="kpi-lbl" id="kpi-lbl-roubo">Roubo de Veículo · 2022</div>
             <div class="tooltip-container">
-              <button class="tooltip-btn" aria-describedby="tooltip-kpi">
+              <button class="tooltip-btn" aria-describedby="tooltip-kpi-roubo">
                 ?
               </button>
 
-              <div class="tooltip-content" id="tooltip-kpi">
-               É quantidade boletins de roubo de veículo deste estado durante 1 ano
+              <div class="tooltip-content" id="tooltip-kpi-roubo">
+               Total de ocorrências de roubo de veículo no estado em <strong>2022</strong> (soma dos meses), comparado com <strong>2021</strong>. Fonte: Dados Nacionais de Segurança Pública do Governo Federal.
               </div>
             </div>
-          <div class="kpi-head">
-            <div class="kpi-lbl">Roubo de Veículo</div>
-            <div class="kpi-badge b-o">Atenção ■</div>
+            <div class="kpi-badge b-o" id="kpi-badge-roubo">—</div>
           </div>
           <div class="kpi-main">
             <div class="kpi-val" id="kv-roubo">0</div>
           </div>
-          <div class="kpi-ctx"><strong>45% acima</strong> da média nacional, tendência a preferir garagens</div>
+          <div class="kpi-ctx" id="kpi-ctx-roubo">Carregando comparação com 2021…</div>
           <div class="kpi-bar">
             <div class="kpi-bar-fill" id="pb-roubo" style="width:0%;background:linear-gradient(90deg,#F97316,#FB923C)">
             </div>
           </div>
         </div>
 
-        <!-- Furto -->
-        <div class="kpi-card c-yellow">
+        <!-- Furto de Veículo -->
+        <div class="kpi-card c-yellow" id="kpi-card-furto">
+          <div class="kpi-head">
+            <div class="kpi-lbl" id="kpi-lbl-furto">Furto de Veículo · 2022</div>
             <div class="tooltip-container">
-              <button class="tooltip-btn" aria-describedby="tooltip-kpi">
+              <button class="tooltip-btn" aria-describedby="tooltip-kpi-furto">
                 ?
               </button>
 
-              <div class="tooltip-content" id="tooltip-kpi">
-               É quantidade boletins de furto seguido  deste estado durante 1 ano
+              <div class="tooltip-content" id="tooltip-kpi-furto">
+               Total de ocorrências de furto de veículo no estado em <strong>2022</strong> (soma dos meses), comparado com <strong>2021</strong>. Fonte: Dados Nacionais de Segurança Pública do Governo Federal.
               </div>
             </div>
-          <div class="kpi-head">
-            <div class="kpi-lbl">Total de Furto</div>
-            <div class="kpi-badge b-y">média</div>
+            <div class="kpi-badge b-y" id="kpi-badge-furto">—</div>
           </div>
           <div class="kpi-main">
             <div class="kpi-val" id="kv-furto">0</div>
           </div>
-          <div class="kpi-ctx">Queda <strong>Tendência positiva</strong></div>
+          <div class="kpi-ctx" id="kpi-ctx-furto">Carregando comparação com 2021…</div>
           <div class="kpi-bar">
             <div class="kpi-bar-fill" id="pb-furto" style="width:0%;background:linear-gradient(90deg,#F59E0B,#FCD34D)">
             </div>
@@ -1387,6 +1413,10 @@
          
         </div>
         </div>
+
+      <p class="kpi-fonte">
+        Fonte: <strong>Dados Nacionais de Segurança Pública do Governo Federal</strong>
+      </p>
 
         <!-- CONTROLS -->
         <div class="controls">
@@ -1468,11 +1498,142 @@
 
     const estadoAtual = obterEstadoDaUrl();
 
+    var insightEstado = { carregando: true };
+
+    function patchInsightEstado(partial) {
+      Object.assign(insightEstado, partial);
+      renderInsightBannerEstado();
+    }
+
+    function fmtBannerNum(n) {
+      return Math.round(Number(n) || 0).toLocaleString('pt-BR');
+    }
+
+    function fmtBannerIdhm(v) {
+      if (v == null || Number.isNaN(Number(v))) return '—';
+      return Number(v).toFixed(3).replace('.', ',');
+    }
+
+    function calcularInsightMunicipios(lista) {
+      var popTotal = 0;
+      var comPop = 0;
+      var comIdhm = [];
+
+      (lista || []).forEach(function (c) {
+        var pop = c.pop != null ? Number(c.pop) : null;
+        if (pop != null && !Number.isNaN(pop) && pop > 0) {
+          popTotal += pop;
+          comPop++;
+        }
+        var idhm = obterIdhm(c);
+        if (idhm != null) {
+          comIdhm.push({ nome: c.nome, idhm: idhm });
+        }
+      });
+
+      comIdhm.sort(function (a, b) {
+        return b.idhm - a.idhm;
+      });
+
+      return {
+        popTotal: comPop > 0 ? popTotal : null,
+        topIdhm: comIdhm.slice(0, 3),
+      };
+    }
+
+    function formatarTopIdhmBanner(topIdhm) {
+      if (!topIdhm || !topIdhm.length) {
+        return 'IDHM municipal em atualização para este estado.';
+      }
+      var itens = topIdhm.map(function (c) {
+        return (
+          '<strong>' +
+          escapeHtml(c.nome) +
+          '</strong> (' +
+          fmtBannerIdhm(c.idhm) +
+          ')'
+        );
+      });
+      var lista =
+        itens.length === 1
+          ? itens[0]
+          : itens.length === 2
+            ? itens[0] + ' e ' + itens[1]
+            : itens.slice(0, -1).join(', ') + ' e ' + itens[itens.length - 1];
+      return 'Melhores IDHM: ' + lista + '.';
+    }
+
+    function renderInsightBannerEstado() {
+      var tag = document.getElementById('bn-tag');
+      var text = document.getElementById('bn-text');
+      if (!tag || !text) return;
+
+      var nome = insightEstado.nome || estadoAtual.nome || 'Estado';
+      var uf = insightEstado.uf || estadoAtual.uf || '';
+      tag.textContent =
+        'Principal Insight · ' + nome + (uf ? ' (' + uf + ')' : '');
+
+      var partes = [];
+
+      if (insightEstado.carregando && insightEstado.qtdMunicipios == null) {
+        partes.push(
+          'Montando panorama de <strong>' +
+            escapeHtml(nome) +
+            '</strong> com população e IDHM dos municípios…'
+        );
+      }
+
+      if (insightEstado.popTotal != null) {
+        var linhaPop =
+          '<strong>' +
+          escapeHtml(nome) +
+          '</strong>, população total estimada de <strong class="bn-seg-num">' +
+          fmtBannerNum(insightEstado.popTotal) +
+          '</strong> habitantes';
+        if (insightEstado.qtdMunicipios != null) {
+          linhaPop +=
+            ' em <strong>' +
+            fmtBannerNum(insightEstado.qtdMunicipios) +
+            '</strong> municípios';
+        }
+        partes.push(linhaPop + '.');
+      } else if (insightEstado.qtdMunicipios != null) {
+        partes.push(
+          '<strong>' +
+            escapeHtml(nome) +
+            '</strong> reúne <strong>' +
+            fmtBannerNum(insightEstado.qtdMunicipios) +
+            '</strong> municípios. População total em atualização.'
+        );
+      }
+
+      if (insightEstado.topIdhm) {
+        partes.push(formatarTopIdhmBanner(insightEstado.topIdhm));
+      } else if (insightEstado.qtdMunicipios != null && !insightEstado.erro) {
+        partes.push('Ranking de IDHM municipal em atualização…');
+      }
+
+      if (insightEstado.erro) {
+        partes.push(
+          'Não foi possível carregar todos os dados deste estado. Exibindo informações disponíveis.'
+        );
+      }
+
+      text.innerHTML = partes.length
+        ? partes.join('<br>')
+        : 'Carregando análise do estado…';
+    }
+
     function aplicarEstadoNaPagina() {
       document.title =
         'CidadeData — ' + estadoAtual.nome + ' (' + estadoAtual.uf + ') · Safety Intelligence';
       const el = document.getElementById('tb-estado-nome');
       if (el) el.textContent = estadoAtual.nome + ' (' + estadoAtual.uf + ')';
+      patchInsightEstado({
+        nome: estadoAtual.nome,
+        uf: estadoAtual.uf,
+        carregando: true,
+      });
     }
 
     let cidades = [];
@@ -1698,41 +1859,65 @@
       return 0;
     }
 
-    function variacaoPctLatrocinio(total2025, total2024) {
-      if (!total2024) return null;
-      return Math.round(((total2025 - total2024) / total2024) * 100);
+    function variacaoPctAnos(totalAtual, totalAnterior) {
+      if (!totalAnterior) return null;
+      return Math.round(((totalAtual - totalAnterior) / totalAnterior) * 100);
     }
 
-    function textoVariacaoLatrocinio(total2025, total2024) {
-      var pct = variacaoPctLatrocinio(total2025, total2024);
+    function variacaoPctLatrocinio(total2025, total2024) {
+      return variacaoPctAnos(total2025, total2024);
+    }
+
+    function textoVariacaoAnos(totalAtual, totalAnterior, anoAtual, anoAnterior) {
+      var pct = variacaoPctAnos(totalAtual, totalAnterior);
       if (pct === null) {
-        if (total2025 > 0) {
-          return 'Total de <strong>2025</strong> sem base comparável em <strong>2024</strong>';
+        if (totalAtual > 0) {
+          return (
+            'Total de <strong>' +
+            anoAtual +
+            '</strong> sem base comparável em <strong>' +
+            anoAnterior +
+            '</strong>'
+          );
         }
-        return 'Sem registros em <strong>2024</strong> e <strong>2025</strong>';
+        return (
+          'Sem registros em <strong>' +
+          anoAnterior +
+          '</strong> e <strong>' +
+          anoAtual +
+          '</strong>'
+        );
       }
       if (pct === 0) {
-        return 'Mesmo total registrado em <strong>2024</strong>';
+        return 'Mesmo total registrado em <strong>' + anoAnterior + '</strong>';
       }
       if (pct > 0) {
         return (
           '<strong>' +
           pct +
-          '% a mais</strong> que em <strong>2024</strong>'
+          '% a mais</strong> que em <strong>' +
+          anoAnterior +
+          '</strong>'
         );
       }
       return (
         '<strong>' +
         Math.abs(pct) +
-        '% a menos</strong> que em <strong>2024</strong>'
+        '% a menos</strong> que em <strong>' +
+        anoAnterior +
+        '</strong>'
       );
     }
 
-    function nivelLatrocinio(total2025, total2024, dados) {
-      var pct = variacaoPctLatrocinio(total2025, total2024);
+    function textoVariacaoLatrocinio(total2025, total2024) {
+      return textoVariacaoAnos(total2025, total2024, '2025', '2024');
+    }
+
+    function nivelVariacaoKpi(totalAtual, totalAnterior, dados, anoAtual) {
+      var pct = variacaoPctAnos(totalAtual, totalAnterior);
       var barBase = 50;
       if (pct === null) {
-        if (total2025 <= 0) {
+        if (totalAtual <= 0) {
           return {
             card: 'c-yellow',
             badgeCls: 'b-y',
@@ -1747,12 +1932,12 @@
             maxAnual = Math.max(maxAnual, Number(item.valor) || 0);
           });
         }
-        var share = maxAnual > 0 ? (total2025 / maxAnual) * 100 : 50;
+        var share = maxAnual > 0 ? (totalAtual / maxAnual) * 100 : 50;
         if (share >= 85) {
           return {
             card: 'c-red',
             badgeCls: 'b-r',
-            badgeTxt: 'Alto · 2025',
+            badgeTxt: 'Alto · ' + anoAtual,
             barPct: Math.min(100, Math.round(share)),
             barBg: 'linear-gradient(90deg,#EF4444,#F87171)',
           };
@@ -1760,7 +1945,7 @@
         return {
           card: 'c-orange',
           badgeCls: 'b-o',
-          badgeTxt: 'Atenção · 2025',
+          badgeTxt: 'Atenção · ' + anoAtual,
           barPct: Math.min(100, Math.round(share)),
           barBg: 'linear-gradient(90deg,#F97316,#FB923C)',
         };
@@ -1802,13 +1987,19 @@
       };
     }
 
-    function aplicarVisualLatrocinio(total2025, total2024, dados) {
-      var nivel = nivelLatrocinio(total2025, total2024, dados);
-      var elCard = document.getElementById('kpi-card-lat');
-      var elBadge = document.getElementById('kpi-badge-lat');
-      var elBar = document.getElementById('pb-lat');
+    function nivelLatrocinio(total2025, total2024, dados) {
+      return nivelVariacaoKpi(total2025, total2024, dados, '2025');
+    }
+
+    function aplicarVisualKpi(nivel, idCard, idBadge, idBar, classesCard) {
+      var elCard = document.getElementById(idCard);
+      var elBadge = document.getElementById(idBadge);
+      var elBar = document.getElementById(idBar);
       if (elCard) {
-        elCard.classList.remove('c-red', 'c-orange', 'c-yellow', 'c-green');
+        elCard.classList.remove.apply(
+          elCard.classList,
+          classesCard || ['c-red', 'c-orange', 'c-yellow', 'c-green']
+        );
         elCard.classList.add(nivel.card);
       }
       if (elBadge) {
@@ -1822,6 +2013,11 @@
           elBar.style.width = nivel.barPct + '%';
         }, 200);
       }
+    }
+
+    function aplicarVisualLatrocinio(total2025, total2024, dados) {
+      var nivel = nivelLatrocinio(total2025, total2024, dados);
+      aplicarVisualKpi(nivel, 'kpi-card-lat', 'kpi-badge-lat', 'pb-lat');
     }
 
     async function carregarKpiLatrocinio() {
@@ -1848,6 +2044,110 @@
         elCtx.textContent = 'Não foi possível carregar latrocínio';
         if (elBadge) {
           elBadge.classList.remove('b-r', 'b-o');
+          elBadge.classList.add('b-y');
+          elBadge.textContent = 'Indisponível';
+        }
+      }
+    }
+
+    async function carregarKpiFurtoVeiculo() {
+      var elVal = document.getElementById('kv-furto');
+      var elCtx = document.getElementById('kpi-ctx-furto');
+      var elBadge = document.getElementById('kpi-badge-furto');
+      if (!elVal || !elCtx) return;
+
+      var anoRef = 2022;
+      var anoAnt = anoRef - 1;
+
+      try {
+        var res = await fetch(
+          '/municipios/seguranca/furto-veiculo-estado?uf=' +
+            encodeURIComponent(estadoAtual.uf) +
+            '&ano=' +
+            anoRef
+        );
+        if (!res.ok) throw new Error('Falha ao carregar furto de veículo');
+        var dados = await res.json();
+        var totalAtual = Number(dados.total) || 0;
+        var totalAnterior = Number(dados.totalAnterior) || 0;
+        elCtx.innerHTML = textoVariacaoAnos(
+          totalAtual,
+          totalAnterior,
+          String(anoRef),
+          String(anoAnt)
+        );
+        var nivel = nivelVariacaoKpi(
+          totalAtual,
+          totalAnterior,
+          dados,
+          String(anoRef)
+        );
+        aplicarVisualKpi(
+          nivel,
+          'kpi-card-furto',
+          'kpi-badge-furto',
+          'pb-furto',
+          ['c-red', 'c-orange', 'c-yellow', 'c-green']
+        );
+        countUp(elVal, totalAtual, false, 1400);
+      } catch (erro) {
+        console.error(erro);
+        elVal.textContent = '—';
+        elCtx.textContent = 'Não foi possível carregar furto de veículo';
+        if (elBadge) {
+          elBadge.classList.remove('b-r', 'b-o', 'b-g');
+          elBadge.classList.add('b-y');
+          elBadge.textContent = 'Indisponível';
+        }
+      }
+    }
+
+    async function carregarKpiRouboVeiculo() {
+      var elVal = document.getElementById('kv-roubo');
+      var elCtx = document.getElementById('kpi-ctx-roubo');
+      var elBadge = document.getElementById('kpi-badge-roubo');
+      if (!elVal || !elCtx) return;
+
+      var anoRef = 2022;
+      var anoAnt = anoRef - 1;
+
+      try {
+        var res = await fetch(
+          '/municipios/seguranca/roubo-veiculo-estado?uf=' +
+            encodeURIComponent(estadoAtual.uf) +
+            '&ano=' +
+            anoRef
+        );
+        if (!res.ok) throw new Error('Falha ao carregar roubo de veículo');
+        var dados = await res.json();
+        var totalAtual = Number(dados.total) || 0;
+        var totalAnterior = Number(dados.totalAnterior) || 0;
+        elCtx.innerHTML = textoVariacaoAnos(
+          totalAtual,
+          totalAnterior,
+          String(anoRef),
+          String(anoAnt)
+        );
+        var nivel = nivelVariacaoKpi(
+          totalAtual,
+          totalAnterior,
+          dados,
+          String(anoRef)
+        );
+        aplicarVisualKpi(
+          nivel,
+          'kpi-card-roubo',
+          'kpi-badge-roubo',
+          'pb-roubo',
+          ['c-red', 'c-orange', 'c-yellow', 'c-green']
+        );
+        countUp(elVal, totalAtual, false, 1300);
+      } catch (erro) {
+        console.error(erro);
+        elVal.textContent = '—';
+        elCtx.textContent = 'Não foi possível carregar roubo de veículo';
+        if (elBadge) {
+          elBadge.classList.remove('b-r', 'b-o', 'b-g');
           elBadge.classList.add('b-y');
           elBadge.textContent = 'Indisponível';
         }
@@ -1892,11 +2192,19 @@
           mapaPop
         );
         render(getFiltered());
+        var insightMun = calcularInsightMunicipios(cidades);
+        patchInsightEstado({
+          qtdMunicipios: cidades.length,
+          popTotal: insightMun.popTotal,
+          topIdhm: insightMun.topIdhm,
+          carregando: false,
+        });
       } catch (erro) {
         console.error(erro);
         cidades = [];
         tbody.innerHTML = '';
         empty.style.display = 'flex';
+        patchInsightEstado({ erro: true, carregando: false });
         empty.querySelector('.empty-txt').textContent = 'Não foi possível carregar as cidades';
         empty.querySelector('.empty-sub').textContent =
           erro.message || 'Execute o JAR do leitor Excel ou configure o acesso ao S3.';
@@ -1909,12 +2217,8 @@
       aplicarEstadoNaPagina();
       carregarMunicipios();
       carregarKpiLatrocinio();
-      setTimeout(() => {
-        countUp(document.getElementById('kv-roubo'), 68592, false, 1300);
-        countUp(document.getElementById('kv-furto'), 506653, false, 1400);
-        setTimeout(() => { document.getElementById('pb-roubo').style.width = '82%' }, 350);
-        setTimeout(() => { document.getElementById('pb-furto').style.width = '55%' }, 500);
-      }, 300);
+      carregarKpiRouboVeiculo();
+      carregarKpiFurtoVeiculo();
     });
 
        async function downloadPDF() {

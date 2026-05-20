@@ -2,6 +2,7 @@ var municipioModel = require("../models/municipioModel");
 var municipioS3Service = require("../services/municipioS3Service");
 var populacaoS3Service = require("../services/populacaoS3Service");
 var segurancaS3Service = require("../services/segurancaS3Service");
+var indicadoresSegurancaService = require("../services/indicadoresSegurancaService");
 
 function limparNome(nome) {
   return municipioS3Service.limparNome(nome);
@@ -366,6 +367,62 @@ function latrocinioEstado(req, res) {
     });
 }
 
+function rouboVeiculoEstado(req, res) {
+  var uf = obterUfQuery(req);
+  var ano = parseInt(req.query.ano || "2022", 10);
+  if (!populacaoS3Service.isUfValida(uf)) {
+    res.status(400).json({ mensagem: "UF inválida." });
+    return;
+  }
+  if (!Number.isFinite(ano)) {
+    res.status(400).json({ mensagem: "Ano inválido." });
+    return;
+  }
+  indicadoresSegurancaService
+    .totalRouboVeiculoEstado(uf, ano)
+    .then(function (dados) {
+      res.status(200).json(dados);
+    })
+    .catch(function (erro) {
+      console.log(
+        "\nErro em /municipios/seguranca/roubo-veiculo-estado:",
+        erro.message || erro
+      );
+      res.status(500).json({
+        mensagem:
+          "Não foi possível carregar roubo de veículo (indicadores_seguranca_publica.xlsx).",
+      });
+    });
+}
+
+function furtoVeiculoEstado(req, res) {
+  var uf = obterUfQuery(req);
+  var ano = parseInt(req.query.ano || "2022", 10);
+  if (!populacaoS3Service.isUfValida(uf)) {
+    res.status(400).json({ mensagem: "UF inválida." });
+    return;
+  }
+  if (!Number.isFinite(ano)) {
+    res.status(400).json({ mensagem: "Ano inválido." });
+    return;
+  }
+  indicadoresSegurancaService
+    .totalFurtoVeiculoEstado(uf, ano)
+    .then(function (dados) {
+      res.status(200).json(dados);
+    })
+    .catch(function (erro) {
+      console.log(
+        "\nErro em /municipios/seguranca/furto-veiculo-estado:",
+        erro.message || erro
+      );
+      res.status(500).json({
+        mensagem:
+          "Não foi possível carregar furto de veículo (indicadores_seguranca_publica.xlsx).",
+      });
+    });
+}
+
 module.exports = {
   listar,
   detalhe,
@@ -373,5 +430,7 @@ module.exports = {
   latrocinio,
   homicidio,
   latrocinioEstado,
+  rouboVeiculoEstado,
+  furtoVeiculoEstado,
   statusLatrocinio,
 };
