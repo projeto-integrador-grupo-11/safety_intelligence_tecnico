@@ -1,52 +1,33 @@
-var database = require("../database/config")
+var database = require("../database/config");
 
-function autenticar(email, senha) {
-    console.log("ACESSEI O USUARIO MODEL \n \n\t\t >> Se aqui der erro de 'Error: connect ECONNREFUSED',\n \t\t >> verifique suas credenciais de acesso ao banco\n \t\t >> e se o servidor de seu BD está rodando corretamente. \n\n function entrar(): ", email, senha)
+function buscarPorEmail(email) {
     var instrucaoSql = `
-        SELECT idUsuario, senha, email FROM usuario WHERE email = '${email}' AND senha = '${senha}';
+        SELECT idUsuario AS id_usuario, email, senha
+        FROM usuario
+        WHERE email = ?
     `;
-    console.log("Executando a instrução SQL: \n" + instrucaoSql);
-    return database.executar(instrucaoSql);
+    return database.executar(instrucaoSql, [email]);
 }
 
-// Coloque os mesmos parâmetros aqui. Vá para a var instrucaoSql
-function cadastrar(email, senha) {
-    console.log("ACESSEI O USUARIO MODEL \n \n\t\t >> Se aqui der erro de 'Error: connect ECONNREFUSED',\n \t\t >> verifique suas credenciais de acesso ao banco\n \t\t >> e se o servidor de seu BD está rodando corretamente. \n\n function cadastrar():",email, senha);
-    
-    // Insira exatamente a query do banco aqui, lembrando da nomenclatura exata nos valores
-    //  e na ordem de inserção dos dados.
-    var instrucaoSql = `INSERT INTO usuario (email, senha)
-        VALUES ('${email}', '${senha}');
+function cadastrar(email, senhaHash) {
+    var instrucaoSql = `
+        INSERT INTO usuario (email, senha)
+        VALUES (?, ?)
     `;
-    console.log("Executando a instrução SQL: \n" + instrucaoSql);
-    return database.executar(instrucaoSql);
+    return database.executar(instrucaoSql, [email, senhaHash]);
 }
 
-function trocarSenha(novaSenha, email, senhaAtual){
-
-    var instrucaoSql0 = `SELECT senha FROM usuario WHERE email = '${email}'`;
-
-    return database.executar(instrucaoSql0)
-        .then(function(senhaBanco){
-
-            if (senhaBanco[0].senha == senhaAtual){
-
-                var instrucaoSql = `
-                    UPDATE usuario
-                    SET senha = '${novaSenha}'
-                    WHERE email = '${email}'
-                `;
-
-                console.log("Executando a instrução SQL: \n" + instrucaoSql);
-                return database.executar(instrucaoSql);
-            }
-            console.log('senha errada')
-            return false;
-        });
+function atualizarSenha(novaSenhaHash, email) {
+    var instrucaoSql = `
+        UPDATE usuario
+        SET senha = ?
+        WHERE email = ?
+    `;
+    return database.executar(instrucaoSql, [novaSenhaHash, email]);
 }
 
 module.exports = {
-    autenticar,
+    buscarPorEmail,
     cadastrar,
-    trocarSenha
+    atualizarSenha
 };
