@@ -97,59 +97,69 @@
         </section>
     </div>
 
-    <script>
-        function togglePw(btn) {
-            var input = btn.parentElement.querySelector('input');
-            var aberto = input.type === 'password';
-            input.type = aberto ? 'text' : 'password';
-            btn.setAttribute('aria-label', aberto ? 'Ocultar senha' : 'Mostrar senha');
-        }
-
-        function finalizarAguardar(texto) {
-            var card = document.getElementById('cardErro');
-            var msg = document.getElementById('mensagem_erro');
-            if (texto) {
-                card.style.display = 'block';
-                msg.textContent = texto;
-            }
-        }
-
-        function entrar() {
-            var emailVar = email_input.value;
-            var senhaVar = senha_input.value;
-
-            if (emailVar == "" || senhaVar == "") {
-                cardErro.style.display = "block";
-                mensagem_erro.textContent = "Preencha e-mail e senha para continuar.";
-                return false;
-            }
-
-            fetch("/usuarios/autenticar", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ emailServer: emailVar, senhaServer: senhaVar })
-            }).then(function (resposta) {
-                if (resposta.ok) {
-                    resposta.json().then(function (json) {
-                        sessionStorage.EMAIL_USUARIO = json.email;
-                        sessionStorage.NOME_USUARIO = json.nome;
-                        sessionStorage.ID_USUARIO = json.id;
-                        sessionStorage.setItem("TOKEN_JWT", json.token);
-                        setTimeout(function () { window.location = "dashboard.html"; }, 600);
-                    });
-                } else {
-                    resposta.text().then(function (texto) {
-                        finalizarAguardar(texto || "Não foi possível entrar.");
-                    });
-                }
-            }).catch(function () {
-                finalizarAguardar("Erro de conexão. Tente novamente.");
-            });
-
-            return false;
-        }
-    </script>
-
 </body>
 
 </html>
+
+<script>
+    function mostrarErro(mensagem) {
+        var cardErro = document.getElementById("cardErro");
+        var mensagem_erro = document.getElementById("mensagem_erro");
+        if (cardErro && mensagem_erro) {
+            cardErro.style.display = "block";
+            mensagem_erro.innerHTML = mensagem;
+        }
+    }
+
+    function limparErro() {
+        var cardErro = document.getElementById("cardErro");
+        if (cardErro) cardErro.style.display = "none";
+    }
+
+    function entrar() {
+        limparErro();
+
+        var emailVar = document.getElementById("email_input").value;
+        var senhaVar = document.getElementById("senha_input").value;
+
+        if (emailVar == "" || senhaVar == "") {
+            mostrarErro("Preencha e-mail e senha para continuar.");
+            return false;
+        }
+
+        fetch("/usuarios/autenticar", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                emailServer: emailVar,
+                senhaServer: senhaVar
+            })
+        }).then(function (resposta) {
+            if (resposta.ok) {
+                resposta.json().then(function (json) {
+                    sessionStorage.EMAIL_USUARIO = json.email;
+                    sessionStorage.NOME_USUARIO = json.nome;
+                    sessionStorage.ID_USUARIO = json.id;
+                    sessionStorage.setItem("TOKEN_JWT", json.token);
+
+                    setTimeout(function () {
+                        window.location = "/dashboard.html";
+                    }, 800);
+                });
+            } else {
+                resposta.text().then(function (texto) {
+                    console.error(texto);
+                    mostrarErro(texto || "E-mail ou senha inválidos.");
+                });
+            }
+        }).catch(function (erro) {
+            console.log(erro);
+            mostrarErro("Não foi possível conectar ao servidor.");
+        });
+
+        return false;
+    }
+
+</script>
