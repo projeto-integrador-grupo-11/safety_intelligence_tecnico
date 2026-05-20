@@ -1,4 +1,5 @@
 var usuarioModel = require("../models/usuarioModel");
+var autenticacao = require("../middlewares/autenticarJwt");
 
 function autenticar(req, res) {
     var email = req.body.emailServer;
@@ -16,13 +17,15 @@ function autenticar(req, res) {
                 if (resultadoAutenticar.length === 1) {
 
                     const usuario = resultadoAutenticar[0];
+                    const token = autenticacao.gerarToken(usuario);
 
                     res.json({
                         id: usuario.id_usuario,
                         email: usuario.email,
                         nome: usuario.nome_usuario,
                         empresaId: usuario.empresaId,
-                        privilegio: usuario.privilegio
+                        privilegio: usuario.privilegio,
+                        token: token
                     });
 
                 } else if (resultadoAutenticar.length === 0) {
