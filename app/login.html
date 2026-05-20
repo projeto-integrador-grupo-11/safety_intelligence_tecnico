@@ -16,107 +16,140 @@
 
 <body>
 
-    <header class="navbar">
-        <div class="logoNav">
-            <a href="/index.html" class="logo-link" aria-label="Ir para o início">
-                <img src="public/img/marca.png" class="logo" alt="Safety Intelligence">
-            </a>
-        </div>
-    </header>
+    <button type="button" class="back-btn" aria-label="Voltar" onclick="history.length > 1 ? history.back() : window.location.href='/index.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+        </svg>
+    </button>
 
     <div class="posicao">
-        <div class="container">
-
-            <div class="logoCadastro">
-                <img src="public/img/logo.png" alt="">
+        <aside class="brand-panel" aria-hidden="true">
+            <div>
+                <h1 class="brand-headline">Decisões mais <span>seguras</span> começam aqui.</h1>
+                <p class="brand-sub">
+                    Acesse sua plataforma de inteligência territorial e transforme dados de
+                    segurança pública em estratégia para o setor imobiliário.
+                </p>
+                <div class="brand-stats">
+                    <div>
+                        <div class="brand-stat-num">27</div>
+                        <div class="brand-stat-lbl">Estados</div>
+                    </div>
+                    <div>
+                        <div class="brand-stat-num">5.5K+</div>
+                        <div class="brand-stat-lbl">Municípios</div>
+                    </div>
+                    <div>
+                        <div class="brand-stat-num">+ 1 milhão </div>
+                        <div class="brand-stat-lbl">Dados </div>
+                    </div>
+                </div>
             </div>
+            <div class="brand-footer">© 2026 Safety Intelligence · Inteligência territorial</div>
+        </aside>
 
-            <label>E-mail</label>
-            <input type="email" id="email_input" placeholder="Digite seu e-mail" autocomplete="username">
+        <section class="form-side container">
+                <div class="logoCadastro">
+                    <img src="public/img/logo.png" alt="">
+                </div>
 
-            <label>Senha</label>
-            <input type="password" id="senha_input" placeholder="Digite sua senha" autocomplete="current-password">
+                <h2 class="form-title">Entrar na plataforma</h2>
+                <p class="form-subtitle">Use suas credenciais para acessar o painel</p>
 
-            <p class="forgot"><a href="/confirmar-email.html">Esqueceu a senha?</a></p>
+                <div id="cardErro"><span id="mensagem_erro"></span></div>
 
-            <button type="button" onclick="entrar()" class="cadastrar" id="btn-entrar">Entrar</button>
+                <div class="field">
+                    <label for="email_input">E-mail</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="5" width="18" height="14" rx="2"/>
+                            <path d="m3 7 9 6 9-6"/>
+                        </svg>
+                        <input type="email" id="email_input" placeholder="seu@email.com" autocomplete="username">
+                    </div>
+                </div>
 
-            <p class="login">Ainda não tem conta? <a href="/cadastro.html">Cadastre-se</a></p>
+                <div class="field">
+                    <label for="senha_input">Senha</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="11" width="16" height="10" rx="2"/>
+                            <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+                        </svg>
+                        <input type="password" id="senha_input" placeholder="Digite sua senha" autocomplete="current-password">
+                        <button type="button" class="toggle-pw" aria-label="Mostrar senha" onclick="togglePw(this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-        </div>
+                <p class="forgot"><a href="/confirmar-email.html">Esqueceu a senha?</a></p>
+
+                
+                <p class="login">Ainda não tem conta? <a href="/cadastro.html">Cadastre-se</a></p>
+                <button type="button" onclick="entrar()" class="cadastrar" id="btn-entrar">Entrar</button>
+
+
+                
+        </section>
     </div>
 
-     <script>
-//document.getElementById('btn-entrar').addEventListener('click', function () {
-  //          window.location.href = '/dashboard.html';
-    //    });
+    <script>
+        function togglePw(btn) {
+            var input = btn.parentElement.querySelector('input');
+            var aberto = input.type === 'password';
+            input.type = aberto ? 'text' : 'password';
+            btn.setAttribute('aria-label', aberto ? 'Ocultar senha' : 'Mostrar senha');
+        }
+
+        function finalizarAguardar(texto) {
+            var card = document.getElementById('cardErro');
+            var msg = document.getElementById('mensagem_erro');
+            if (texto) {
+                card.style.display = 'block';
+                msg.textContent = texto;
+            }
+        }
+
+        function entrar() {
+            var emailVar = email_input.value;
+            var senhaVar = senha_input.value;
+
+            if (emailVar == "" || senhaVar == "") {
+                cardErro.style.display = "block";
+                mensagem_erro.textContent = "Preencha e-mail e senha para continuar.";
+                return false;
+            }
+
+            fetch("/usuarios/autenticar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ emailServer: emailVar, senhaServer: senhaVar })
+            }).then(function (resposta) {
+                if (resposta.ok) {
+                    resposta.json().then(function (json) {
+                        sessionStorage.EMAIL_USUARIO = json.email;
+                        sessionStorage.NOME_USUARIO = json.nome;
+                        sessionStorage.ID_USUARIO = json.id;
+                        sessionStorage.setItem("TOKEN_JWT", json.token);
+                        setTimeout(function () { window.location = "dashboard.html"; }, 600);
+                    });
+                } else {
+                    resposta.text().then(function (texto) {
+                        finalizarAguardar(texto || "Não foi possível entrar.");
+                    });
+                }
+            }).catch(function () {
+                finalizarAguardar("Erro de conexão. Tente novamente.");
+            });
+
+            return false;
+        }
     </script>
 
 </body>
 
 </html>
-
-<script>
-    function entrar() {
-     
-        var emailVar = email_input.value;
-        var senhaVar = senha_input.value;
-
-        if (emailVar == "" || senhaVar == "") {
-            cardErro.style.display = "block"
-            mensagem_erro.innerHTML = "(Mensagem de erro para todos os campos em branco)";
-            finalizarAguardar();
-            return false;
-        }
-      
-
-        console.log("FORM LOGIN: ", emailVar);
-        console.log("FORM SENHA: ", senhaVar);
-
-        fetch("/usuarios/autenticar", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                emailServer: emailVar,
-                senhaServer: senhaVar
-            })
-        }).then(function (resposta) {
-            console.log("ESTOU NO THEN DO entrar()!")
-
-            if (resposta.ok) {
-                console.log(resposta);
-
-                resposta.json().then(json => {
-                    console.log(json);
-                    console.log(JSON.stringify(json));
-                    sessionStorage.EMAIL_USUARIO = json.email;
-                    sessionStorage.NOME_USUARIO = json.nome;
-                    sessionStorage.ID_USUARIO = json.id;
-                    sessionStorage.setItem("TOKEN_JWT", json.token);
-
-                    setTimeout(function () {
-                        window.location = "dashboard.html";
-                    }, 1000); // apenas para exibir o loading
-
-                });
-
-            } else {
-
-                console.log("Houve um erro ao tentar realizar o login!");
-
-                resposta.text().then(texto => {
-                    console.error(texto);
-                    finalizarAguardar(texto);
-                });
-            }
-
-        }).catch(function (erro) {
-            console.log(erro);
-        })
-
-        return false;
-    }
-
-</script>

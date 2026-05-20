@@ -16,42 +16,113 @@
 
 <body>
 
-    <header class="navbar">
-        <div class="logoNav">
-            <a href="/index.html" class="logo-link" aria-label="Ir para o início">
-                <img src="public/img/marca.png" class="logo" alt="Safety Intelligence">
-            </a>
-        </div>
-    </header>
+    <button type="button" class="back-btn" aria-label="Voltar" onclick="history.length > 1 ? history.back() : window.location.href='/index.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+        </svg>
+    </button>
 
     <div class="posicao">
-        <div class="container">
-
-            <div class="logoCadastro">
-                <img src="public/img/logo.png">
+        <aside class="brand-panel" aria-hidden="true">
+            <div>
+                
+                <h1 class="brand-headline">Inteligência <span>territorial</span> em poucos cliques.</h1>
+                <p class="brand-sub">
+                    Junte-se a quem já transforma dados de segurança pública em decisões estratégicas
+                    para o setor imobiliário.
+                </p>
+                <ul class="benefits-list">
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg>
+                        Mapas interativos do Brasil inteiro
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg>
+                        KPIs de segurança pública atualizados
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg>
+                        Comparação entre estados e municípios
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg>
+                        Acesso seguro com autenticação JWT
+                    </li>
+                </ul>
             </div>
+            <div class="brand-footer">© 2026 Safety Intelligence · Inteligência territorial</div>
+        </aside>
 
-            <label>Nome de usuário</label>
-            <input type="text" id="ipt_nome" placeholder="Digite seu nome">
+        <section class="form-side container">
 
-            <label>E-mail</label>
-            <input type="email" oninput="analisarEmail()" id="ipt_email" placeholder="Digite seu e-mail">
-            <div id="div_email"></div>
 
-            <label>Senha</label>
-            <input oninput="validarSenha()" id="ipt_senha"  type="password" placeholder="Digite sua senha">
-            <div id="div_senha" style="font-size: 13px"></div>
+                <h2 class="form-title">Criar conta</h2>
+                <p class="form-subtitle">Preencha os dados para começar a usar</p>
 
-            <label>Confirmar senha</label>
-            <input oninput="confirmarSenha()" id="ipt_confSenha"  type="password" placeholder="Confirme sua senha">
-            <div id="div_confirmSenha"></div>
+                <div class="field">
+                    <label for="ipt_nome">Nome de usuário</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="4"/>
+                            <path d="M4 21a8 8 0 0 1 16 0"/>
+                        </svg>
+                        <input type="text" id="ipt_nome" placeholder="Como devemos te chamar?">
+                    </div>
+                </div>
 
-            <button onclick="cadastrar()" class="cadastrar">Cadastrar</button>
+                <div class="field">
+                    <label for="ipt_email">E-mail</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="5" width="18" height="14" rx="2"/>
+                            <path d="m3 7 9 6 9-6"/>
+                        </svg>
+                        <input type="email" oninput="analisarEmail()" id="ipt_email" placeholder="seu@email.com">
+                    </div>
+                    <div class="field-feedback" id="div_email"></div>
+                </div>
 
-            <p class="info">Preencha os dados para utilizar nosso serviço</p>
-            <p class="login">Já tem conta? <a href="/login.html">Login</a></p>
+                <div class="field">
+                    <label for="ipt_senha">Senha</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="11" width="16" height="10" rx="2"/>
+                            <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+                        </svg>
+                        <input oninput="validarSenha()" id="ipt_senha" type="password" placeholder="Crie uma senha forte">
+                        <button type="button" class="toggle-pw" aria-label="Mostrar senha" onclick="togglePw(this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="pw-strength">
+                        <div class="pw-bars" id="pw_bars" data-strength="0">
+                            <span class="pw-bar"></span>
+                            <span class="pw-bar"></span>
+                            <span class="pw-bar"></span>
+                            <span class="pw-bar"></span>
+                        </div>
+                    </div>
+                </div>
 
-        </div>
+                <div class="field">
+                    <label for="ipt_confSenha">Confirmar senha</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 12 11 14 15 10"/>
+                            <rect x="4" y="4" width="16" height="16" rx="3"/>
+                        </svg>
+                        <input oninput="confirmarSenha()" id="ipt_confSenha" type="password" placeholder="Repita a senha">
+                    </div>
+                    <div class="field-feedback" id="div_confirmSenha"></div>
+                </div>
+
+                <p class="login">Já tem uma conta? <a href="/cadastro.html">entrar</a></p>
+                <button onclick="cadastrar()" class="cadastrar">Criar conta</button>
+
+        </section>
     </div>
 
 </body>
@@ -59,175 +130,126 @@
 </html>
 
 <script>
-
-
-    function index() {
-        window.location.href = 'index.html'
-    }
     var listaCaracteres = ['!', '@', '#', '$', '%', '&', '*'];
     var listaNumeros = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
 
-    // Variáveis de validação de cadastro
     var emailValido = false;
     var senhaValida = false;
     var confirmValido = false;
 
+    function togglePw(btn) {
+        var input = btn.parentElement.querySelector('input');
+        var aberto = input.type === 'password';
+        input.type = aberto ? 'text' : 'password';
+        btn.setAttribute('aria-label', aberto ? 'Ocultar senha' : 'Mostrar senha');
+    }
+
+    function setClass(el, cls, on) {
+        if (on) el.classList.add(cls); else el.classList.remove(cls);
+    }
 
     function cadastrar() {
-        // Variavel do campo token
-
-
-        // Validação dos tokens cadastrados no Banco de Dados + validações dos campos preechidos para efetuar cadastro
         if (senhaValida && confirmValido && emailValido) {
-
-
             var nome = ipt_nome.value;
             var email = ipt_email.value;
             var senha = ipt_senha.value;
 
-
-            fetch("http://safetyintelligence.duckdns.org:3333/usuarios/cadastrar", {
+            fetch("/usuarios/cadastrar", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    // crie um atributo que recebe o valor recuperado aqui
-                    // Agora vá para o arquivo routes/usuario.js
-                //  nomeServer: nome,
-                    emailServer: email,
-                    senhaServer: senha
-                }),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nomeServer: nome, emailServer: email, senhaServer: senha }),
             })
                 .then(function (resposta) {
-                    console.log("resposta: ", resposta);
-
                     if (resposta.ok) {
-                        alert(
-                            "Cadastro realizado com sucesso! Redirecionando para tela de Login...");
-
-                        setTimeout(() => {
-                            window.location = "login.html";
-                        }, "2000");
-
+                        alert("Cadastro realizado com sucesso! Redirecionando para o login…");
+                        setTimeout(function () { window.location = "login.html"; }, 1500);
                     } else {
                         throw "Houve um erro ao tentar realizar o cadastro!";
                     }
                 })
-                .catch(function (resposta) {
-                    console.log(`#ERRO: ${resposta}`);
-                 //   finalizarAguardar();
-                });
+                .catch(function (e) { console.log("#ERRO:", e); });
 
             return false;
         }
-
-
     }
 
-
     function analisarEmail() {
-        // Variável do campo email
         var email = ipt_email.value;
-
-        if (!email.includes('@')) {
-            div_email.innerHTML = '<span style="color:red">Incluir @</span>'
-        } else {
-            emailValido = true;
-            div_email.innerHTML = '';
+        var input = ipt_email;
+        var fb = div_email;
+        if (!email) {
+            fb.innerHTML = "";
+            setClass(input, 'is-valid', false);
+            setClass(input, 'is-invalid', false);
+            emailValido = false;
+            return;
         }
-
-        if (email == '') {
-            div_email.innerHTML = '';
+        if (!email.includes('@') || !email.includes('.')) {
+            fb.innerHTML = '<span class="err">E-mail inválido</span>';
+            setClass(input, 'is-invalid', true);
+            setClass(input, 'is-valid', false);
+            emailValido = false;
+        } else {
+            fb.innerHTML = '<span class="ok">E-mail válido</span>';
+            setClass(input, 'is-valid', true);
+            setClass(input, 'is-invalid', false);
+            emailValido = true;
         }
     }
 
     function validarSenha() {
-        // Variável do campo senha
         var senha = ipt_senha.value;
+        var regras = {
+            len: senha.length >= 8,
+            upp: /[A-Z]/.test(senha),
+            low: /[a-z]/.test(senha),
+            num: /[0-9]/.test(senha),
+            spc: /[!@#$%&*]/.test(senha)
+        };
 
-        // Variáveis de configuração
-        var tamanhoSenha = senha.length;
-        var cont1 = 0;
-        var cont2 = 0;
-        var mensagem = "";
+        var pass = 0;
+        Object.keys(regras).forEach(function (k) {
+            var li = document.querySelector('#pw_rules li[data-rule="' + k + '"]');
+            if (regras[k]) { li.classList.add('ok'); pass++; } else { li.classList.remove('ok'); }
+        });
 
-        // Valores booleanos com padrões de senha
-        var tamanhoValido = false;
-        var caractereValido = false;
-        var numeroValido = false;
-        var minusculoValido = false;
-        var maiusculoValido = false;
+        var strength = 0;
+        if (senha.length === 0) strength = 0;
+        else if (pass <= 2) strength = 1;
+        else if (pass === 3) strength = 2;
+        else if (pass === 4) strength = 3;
+        else if (pass === 5) strength = 4;
 
-        // Mínimo 8 caracteres - validação quando o padrão é atingido
-        if (tamanhoSenha < 8) {
-            mensagem += `<span style="color:red"> 8 caracteres </span>, `;
-        } else {
-            tamanhoValido = true;
-        }
+        document.getElementById('pw_bars').dataset.strength = strength;
 
-        // Mínimo um caractere especial - validação quando o padrão é atingido
-        // Usando while até o includes validar todos os caracteres da Lista de Caracteres Especiais
-        while (cont1 < listaCaracteres.length) {
-            if (senha.includes(listaCaracteres[cont1])) {
-                caractereValido = true;
-            }
-            cont1++;
-        } if (!caractereValido) {
-            mensagem += `<span style="color:red"> 1 especial </span>, `;
-        }
+        senhaValida = pass === 5;
+        setClass(ipt_senha, 'is-valid', senhaValida);
+        setClass(ipt_senha, 'is-invalid', senha.length > 0 && !senhaValida);
 
-        // Mínimo um número - validação quando o padrão é atingido
-        // Usando while até o includes validar todos os número da Lista de Números
-        while (cont2 < listaNumeros.length) {
-            if (senha.includes(listaNumeros[cont2])) {
-                numeroValido = true;
-            }
-            cont2++;
-        } if (!numeroValido) {
-            mensagem += `<span style="color:red"> 1 número</span>, `;
-        }
-
-        // Mínimo uma letra maiúscula - validação quando o padrão é atingido
-        if (senha == senha.toLowerCase()) {
-            mensagem += '<span style="color:red"> 1 Maiúscula</span>, ';
-        } else {
-            maiusculoValido = true;
-        }
-
-        // Mínimo uma letra minúscula - validação quando o padrão é atingido
-        if (senha == senha.toUpperCase()) {
-            mensagem += '<span style="color:red">1 Minúscula</span>';
-        } else {
-            minusculoValido = true;
-        }
-
-        div_senha.innerHTML = mensagem;
-
-        // Validação geral 
-        if (tamanhoValido && caractereValido && numeroValido && maiusculoValido && minusculoValido) {
-            senhaValida = true;
-        }
+        if (ipt_confSenha.value) confirmarSenha();
     }
 
     function confirmarSenha() {
-        // Variáveis do campo confirmar senha
         var senha = ipt_senha.value;
         var confirmSenha = ipt_confSenha.value;
-
-        // Variável de configuração
-        var validacao = "";
-
-        if (senha != confirmSenha) {
-            validacao = '<span style="color:red">Senha Incorreta</span>';
+        var fb = div_confirmSenha;
+        if (!confirmSenha) {
+            fb.innerHTML = "";
+            setClass(ipt_confSenha, 'is-valid', false);
+            setClass(ipt_confSenha, 'is-invalid', false);
+            confirmValido = false;
+            return;
+        }
+        if (senha !== confirmSenha) {
+            fb.innerHTML = '<span class="err">As senhas não coincidem</span>';
+            setClass(ipt_confSenha, 'is-invalid', true);
+            setClass(ipt_confSenha, 'is-valid', false);
+            confirmValido = false;
         } else {
+            fb.innerHTML = '<span class="ok">Senhas iguais</span>';
+            setClass(ipt_confSenha, 'is-valid', true);
+            setClass(ipt_confSenha, 'is-invalid', false);
             confirmValido = true;
         }
-
-        if (confirmSenha == '') {
-            validacao = "";
-        }
-
-        div_confirmSenha.innerHTML = validacao;
     }
 </script>
