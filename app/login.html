@@ -41,37 +41,44 @@
 
             <button type="button" onclick="entrar()" class="cadastrar" id="btn-entrar">Entrar</button>
 
+            <div id="cardErro" style="display:none; color:#b00020; margin-top:10px;">
+                <p id="mensagem_erro"></p>
+            </div>
+
             <p class="login">Ainda não tem conta? <a href="/cadastro.html">Cadastre-se</a></p>
 
         </div>
     </div>
-
-     <script>
-//document.getElementById('btn-entrar').addEventListener('click', function () {
-  //          window.location.href = '/dashboard.html';
-    //    });
-    </script>
 
 </body>
 
 </html>
 
 <script>
+    function mostrarErro(mensagem) {
+        var cardErro = document.getElementById("cardErro");
+        var mensagem_erro = document.getElementById("mensagem_erro");
+        if (cardErro && mensagem_erro) {
+            cardErro.style.display = "block";
+            mensagem_erro.innerHTML = mensagem;
+        }
+    }
+
+    function limparErro() {
+        var cardErro = document.getElementById("cardErro");
+        if (cardErro) cardErro.style.display = "none";
+    }
+
     function entrar() {
-     
-        var emailVar = email_input.value;
-        var senhaVar = senha_input.value;
+        limparErro();
+
+        var emailVar = document.getElementById("email_input").value;
+        var senhaVar = document.getElementById("senha_input").value;
 
         if (emailVar == "" || senhaVar == "") {
-            cardErro.style.display = "block"
-            mensagem_erro.innerHTML = "(Mensagem de erro para todos os campos em branco)";
-            finalizarAguardar();
+            mostrarErro("Preencha e-mail e senha para continuar.");
             return false;
         }
-      
-
-        console.log("FORM LOGIN: ", emailVar);
-        console.log("FORM SENHA: ", senhaVar);
 
         fetch("/usuarios/autenticar", {
             method: "POST",
@@ -83,38 +90,27 @@
                 senhaServer: senhaVar
             })
         }).then(function (resposta) {
-            console.log("ESTOU NO THEN DO entrar()!")
-
             if (resposta.ok) {
-                console.log(resposta);
-
-                resposta.json().then(json => {
-                    console.log(json);
-                    console.log(JSON.stringify(json));
+                resposta.json().then(function (json) {
                     sessionStorage.EMAIL_USUARIO = json.email;
                     sessionStorage.NOME_USUARIO = json.nome;
                     sessionStorage.ID_USUARIO = json.id;
                     sessionStorage.setItem("TOKEN_JWT", json.token);
 
                     setTimeout(function () {
-                        window.location = "dashboard.html";
-                    }, 1000); // apenas para exibir o loading
-
+                        window.location = "/dashboard.html";
+                    }, 800);
                 });
-
             } else {
-
-                console.log("Houve um erro ao tentar realizar o login!");
-
-                resposta.text().then(texto => {
+                resposta.text().then(function (texto) {
                     console.error(texto);
-                    finalizarAguardar(texto);
+                    mostrarErro(texto || "E-mail ou senha inválidos.");
                 });
             }
-
         }).catch(function (erro) {
             console.log(erro);
-        })
+            mostrarErro("Não foi possível conectar ao servidor.");
+        });
 
         return false;
     }
