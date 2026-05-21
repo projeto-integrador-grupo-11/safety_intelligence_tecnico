@@ -127,10 +127,33 @@ function trocarSenha(req, res) {
             console.log("\nHouve um erro ao atualizar a senha!", erro.sqlMessage || erro.message || erro);
             res.status(500).json("Erro interno do servidor");
         });
+
+
+
+
+}
+function excluir(req, res) {
+
+    var idUsuario = req.params.idUsuario;
+
+    usuarioModel.excluir(idUsuario)
+        .then(function (resultado) {
+
+            res.status(200).send("Usuário excluído");
+
+        })
+        .catch(function (erro) {
+
+            console.log(erro);
+
+            res.status(500).json(erro);
+
+        });
 }
 
 module.exports = {
     autenticar,
     cadastrar,
-    trocarSenha
+    trocarSenha,
+    excluir
 };

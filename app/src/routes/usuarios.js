@@ -16,4 +16,9 @@ router.put("/trocarSenha", function (req, res) {
     usuarioController.trocarSenha(req, res);
 })
 
+router.delete("/excluir/:idUsuario", function (req, res) {
+    usuarioController.excluir(req, res);
+});
+
+
 module.exports = router;
