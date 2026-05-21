@@ -341,7 +341,15 @@ function statusLatrocinio(req, res) {
     res.status(400).json({ mensagem: "UF inválida." });
     return;
   }
-  res.status(200).json(segurancaS3Service.obterStatusUf(uf));
+  segurancaS3Service
+    .obterStatusUf(uf)
+    .then(function (status) {
+      res.status(200).json(status);
+    })
+    .catch(function (erro) {
+      console.log("\nErro em /municipios/seguranca/status:", erro.message || erro);
+      res.status(500).json({ mensagem: "Erro ao consultar status." });
+    });
 }
 
 function latrocinioEstado(req, res) {
