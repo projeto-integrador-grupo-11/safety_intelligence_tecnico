@@ -976,6 +976,71 @@
         grid-template-columns: 1fr;
       }
     }
+
+    .modal {
+      display: none;
+
+      position: fixed;
+      top: 0;
+      left: 0;
+
+      width: 100%;
+      height: 100%;
+
+      background-color: rgba(0, 0, 0, 0.5);
+
+      justify-content: center;
+      align-items: center;
+
+      z-index: 999;
+    }
+
+    .modal-content {
+      background: white;
+
+      padding: 30px;
+
+      border-radius: 12px;
+
+      width: 400px;
+
+      text-align: center;
+    }
+
+    .modal-buttons {
+      margin-top: 20px;
+
+      display: flex;
+      gap: 10px;
+
+      justify-content: center;
+    }
+
+    .btn-confirmar {
+      background-color: red;
+      color: white;
+
+      border: none;
+
+      padding: 10px 20px;
+
+      border-radius: 8px;
+
+      cursor: pointer;
+    }
+
+    .btn-cancelar {
+      background-color: gray;
+      color: white;
+
+      border: none;
+
+      padding: 10px 20px;
+
+      border-radius: 8px;
+
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -1227,8 +1292,36 @@
               <div class="danger-info-title">Excluir conta permanentemente</div>
               <div class="danger-info-sub">Remove todos os dados. Esta ação não pode ser desfeita.</div>
             </div>
-            <button class="btn btn-danger btn-sm">Excluir conta</button>
+            <button class="btn btn-danger btn-sm" onclick="abrirModalExcluir()" class="btn-excluir">Excluir conta</button>
           </div>
+        </div>
+
+        <!-- MODAL -->
+        <div id="modalExcluir" class="modal">
+
+          <div class="modal-content">
+
+            <h2>Cuidado!</h2>
+
+            <p>
+              Essa ação não pode ser revertida! <br>
+              Você tem certeza disso?
+            </p>
+
+            <div class="modal-buttons">
+
+              <button class="btn-confirmar" onclick="excluirConta()">
+                Sim, quero excluir!
+              </button>
+
+              <button class="btn-cancelar" onclick="fecharModalExcluir()">
+                Não, quero permanecer!
+              </button>
+
+            </div>
+
+          </div>
+
         </div>
 
         <!-- ACTIONS BAR -->
@@ -1283,59 +1376,66 @@
     }
 
     function alterarSenha() {
-  var senhaAtual = ipt_senhaAtual.value.trim()
-  var novaSenha = ipt_novaSenha.value.trim()
-  var corfirmarNovaSenha = ipt_confirmarNovaSenha.value.trim()
-  var emailSessao = sessionStorage.EMAIL_USUARIO;
+      var senhaAtual = ipt_senhaAtual.value.trim()
+      var novaSenha = ipt_novaSenha.value.trim()
+      var corfirmarNovaSenha = ipt_confirmarNovaSenha.value.trim()
+      var emailSessao = sessionStorage.EMAIL_USUARIO;
 
-  if (senhaAtual == "" || novaSenha == "" || corfirmarNovaSenha == "") {
-    alert('Preencha todos os campos!!');
-    return;
-  }
-
-  if (novaSenha != corfirmarNovaSenha) {
-    alert('Senhas precisam ser iguais');
-    return;
-  }
-
-  fetch("/usuarios/trocarSenha", {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      senhaServer: senhaAtual,
-      novaSenhaServer: novaSenha,
-      confirmarSenhaServer: corfirmarNovaSenha,
-      emailServer: emailSessao,
-    }),
-  })
-    .then(function (resposta) {
-      console.log("resposta: ", resposta);
-
-      if (resposta.ok) {
-
-        alert("Senha atualizada com sucesso!!");
-
-        ipt_novaSenha.value = ""
-        ipt_senhaAtual.value = ""
-        ipt_confirmarNovaSenha.value = ""
-
-      } else if (resposta.status == 401) {
-
-        alert("Senha atual incorreta");
-
-      } else {
-
-        throw "Houve um erro ao tentar troca de senha";
+      if (senhaAtual == "" || novaSenha == "" || corfirmarNovaSenha == "") {
+        alert('Preencha todos os campos!!');
+        return;
       }
-    })
-    .catch(function (resposta) {
-      console.log(`#ERRO: ${resposta}`);
-    });
 
-  return false;
-}
+      if (novaSenha != corfirmarNovaSenha) {
+        alert('Senhas precisam ser iguais');
+        return;
+      }
+
+      fetch("/usuarios/trocarSenha", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          senhaServer: senhaAtual,
+          novaSenhaServer: novaSenha,
+          confirmarSenhaServer: corfirmarNovaSenha,
+          emailServer: emailSessao,
+        }),
+      })
+        .then(function (resposta) {
+          console.log("resposta: ", resposta);
+
+          if (resposta.ok) {
+
+            alert("Senha atualizada com sucesso!!");
+
+            ipt_novaSenha.value = ""
+            ipt_senhaAtual.value = ""
+            ipt_confirmarNovaSenha.value = ""
+
+          } else if (resposta.status == 401) {
+
+            alert("Senha atual incorreta");
+
+          } else {
+
+            throw "Houve um erro ao tentar troca de senha";
+          }
+        })
+        .catch(function (resposta) {
+          console.log(`#ERRO: ${resposta}`);
+        });
+
+      return false;
+    }
+
+
+
+    function excluir() {
+
+    }
+
 
   </script>
 </body>

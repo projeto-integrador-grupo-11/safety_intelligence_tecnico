@@ -16,16 +16,18 @@
 
 <body>
 
-    <button type="button" class="back-btn" aria-label="Voltar" onclick="history.length > 1 ? history.back() : window.location.href='/index.html'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"/>
+    <button type="button" class="back-btn" aria-label="Voltar"
+        onclick="history.length > 1 ? history.back() : window.location.href='/index.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6" />
         </svg>
     </button>
 
     <div class="posicao">
         <aside class="brand-panel" aria-hidden="true">
             <div>
-                
+
                 <h1 class="brand-headline">Inteligência <span>territorial</span> em poucos cliques.</h1>
                 <p class="brand-sub">
                     Junte-se a quem já transforma dados de segurança pública em decisões estratégicas
@@ -33,19 +35,31 @@
                 </p>
                 <ul class="benefits-list">
                     <li>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="5 12 10 17 19 7" />
+                        </svg>
                         Mapas interativos do Brasil inteiro
                     </li>
                     <li>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="5 12 10 17 19 7" />
+                        </svg>
                         KPIs de segurança pública atualizados
                     </li>
                     <li>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="5 12 10 17 19 7" />
+                        </svg>
                         Comparação entre estados e municípios
                     </li>
                     <li>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="5 12 10 17 19 7" />
+                        </svg>
                         Acesso seguro com autenticação JWT
                     </li>
                 </ul>
@@ -56,71 +70,76 @@
         <section class="form-side container">
 
 
-                <h2 class="form-title">Criar conta</h2>
-                <p class="form-subtitle">Preencha os dados para começar a usar</p>
+            <h2 class="form-title">Criar conta</h2>
+            <p class="form-subtitle">Preencha os dados para começar a usar</p>
 
-                <div class="field">
-                    <label for="ipt_nome">Nome de usuário</label>
-                    <div class="input-wrap">
-                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="8" r="4"/>
-                            <path d="M4 21a8 8 0 0 1 16 0"/>
+            <div class="field">
+                <label for="ipt_nome">Nome de usuário</label>
+                <div class="input-wrap">
+                    <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="8" r="4" />
+                        <path d="M4 21a8 8 0 0 1 16 0" />
+                    </svg>
+                    <input type="text" id="ipt_nome" placeholder="Como devemos te chamar?">
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="ipt_email">E-mail</label>
+                <div class="input-wrap">
+                    <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="5" width="18" height="14" rx="2" />
+                        <path d="m3 7 9 6 9-6" />
+                    </svg>
+                    <input type="email" oninput="analisarEmail()" id="ipt_email" placeholder="seu@email.com">
+                </div>
+                <div class="field-feedback" id="div_email"></div>
+            </div>
+
+            <div class="field">
+                <label for="ipt_senha">Senha</label>
+                <div class="input-wrap">
+                    <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="11" width="16" height="10" rx="2" />
+                        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                    </svg>
+                    <input oninput="validarSenha()" id="ipt_senha" type="password" placeholder="Crie uma senha forte">
+                    <button type="button" class="toggle-pw" aria-label="Mostrar senha" onclick="togglePw(this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                            <circle cx="12" cy="12" r="3" />
                         </svg>
-                        <input type="text" id="ipt_nome" placeholder="Como devemos te chamar?">
+                    </button>
+                </div>
+                <div class="pw-strength">
+                    <div class="pw-bars" id="pw_bars" data-strength="0">
+                        <span class="pw-bar"></span>
+                        <span class="pw-bar"></span>
+                        <span class="pw-bar"></span>
+                        <span class="pw-bar"></span>
                     </div>
                 </div>
+            </div>
 
-                <div class="field">
-                    <label for="ipt_email">E-mail</label>
-                    <div class="input-wrap">
-                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="5" width="18" height="14" rx="2"/>
-                            <path d="m3 7 9 6 9-6"/>
-                        </svg>
-                        <input type="email" oninput="analisarEmail()" id="ipt_email" placeholder="seu@email.com">
-                    </div>
-                    <div class="field-feedback" id="div_email"></div>
+            <div class="field">
+                <label for="ipt_confSenha">Confirmar senha</label>
+                <div class="input-wrap">
+                    <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 12 11 14 15 10" />
+                        <rect x="4" y="4" width="16" height="16" rx="3" />
+                    </svg>
+                    <input oninput="confirmarSenha()" id="ipt_confSenha" type="password" placeholder="Repita a senha">
                 </div>
+                <div class="field-feedback" id="div_confirmSenha"></div>
+            </div>
 
-                <div class="field">
-                    <label for="ipt_senha">Senha</label>
-                    <div class="input-wrap">
-                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="4" y="11" width="16" height="10" rx="2"/>
-                            <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
-                        </svg>
-                        <input oninput="validarSenha()" id="ipt_senha" type="password" placeholder="Crie uma senha forte">
-                        <button type="button" class="toggle-pw" aria-label="Mostrar senha" onclick="togglePw(this)">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="pw-strength">
-                        <div class="pw-bars" id="pw_bars" data-strength="0">
-                            <span class="pw-bar"></span>
-                            <span class="pw-bar"></span>
-                            <span class="pw-bar"></span>
-                            <span class="pw-bar"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label for="ipt_confSenha">Confirmar senha</label>
-                    <div class="input-wrap">
-                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 12 11 14 15 10"/>
-                            <rect x="4" y="4" width="16" height="16" rx="3"/>
-                        </svg>
-                        <input oninput="confirmarSenha()" id="ipt_confSenha" type="password" placeholder="Repita a senha">
-                    </div>
-                    <div class="field-feedback" id="div_confirmSenha"></div>
-                </div>
-
-                <p class="login">Já tem uma conta? <a href="/cadastro.html">entrar</a></p>
-                <button onclick="cadastrar()" class="cadastrar">Criar conta</button>
+            <p class="login">Já tem uma conta? <a href="/cadastro.html">entrar</a></p>
+            <button onclick="cadastrar()" class="cadastrar">Criar conta</button>
 
         </section>
     </div>
@@ -209,8 +228,9 @@
 
         var pass = 0;
         Object.keys(regras).forEach(function (k) {
-            var li = document.querySelector('#pw_rules li[data-rule="' + k + '"]');
-            if (regras[k]) { li.classList.add('ok'); pass++; } else { li.classList.remove('ok'); }
+            if (regras[k]) {
+                pass++;
+            }
         });
 
         var strength = 0;
