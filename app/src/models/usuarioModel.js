@@ -26,8 +26,19 @@ function atualizarSenha(novaSenhaHash, email) {
     return database.executar(instrucaoSql, [novaSenhaHash, email]);
 }
 
+function excluir(idUsuario) {
+
+    var instrucaoSql = `
+        DELETE FROM usuario
+        WHERE idUsuario = ${idUsuario};
+    `;
+
+    return database.executar(instrucaoSql);
+}
+
 module.exports = {
     buscarPorEmail,
     cadastrar,
-    atualizarSenha
+    atualizarSenha,
+    excluir
 };

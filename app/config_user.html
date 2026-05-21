@@ -1292,7 +1292,8 @@
               <div class="danger-info-title">Excluir conta permanentemente</div>
               <div class="danger-info-sub">Remove todos os dados. Esta ação não pode ser desfeita.</div>
             </div>
-            <button class="btn btn-danger btn-sm" onclick="abrirModalExcluir()" class="btn-excluir">Excluir conta</button>
+            <button class="btn btn-danger btn-sm" onclick="abrirModalExcluir()" class="btn-excluir">Excluir
+              conta</button>
           </div>
         </div>
 
@@ -1432,10 +1433,44 @@
 
 
 
-    function excluir() {
-
+    function abrirModalExcluir() {
+      modalExcluir.style.display = "flex";
     }
 
+    function fecharModalExcluir() {
+      modalExcluir.style.display = "none";
+    }
+
+    function excluirConta() {
+
+      const idUsuario = sessionStorage.ID_USUARIO;
+
+      fetch(`/usuarios/excluir/${idUsuario}`, {
+        method: "DELETE"
+      })
+        .then(function (resposta) {
+
+          if (resposta.ok) {
+
+            alert("Conta excluída com sucesso!");
+
+            sessionStorage.clear();
+
+            window.location = "../login.html";
+
+          } else {
+
+            alert("Erro ao excluir conta");
+
+          }
+
+        })
+        .catch(function (erro) {
+          console.log(erro);
+        });
+
+    }
+    
 
   </script>
 </body>
