@@ -440,6 +440,96 @@ function furtoVeiculoEstado(req, res) {
     });
 }
 
+var NOMES_ESTADOS = {
+  AC: "Acre",
+  AL: "Alagoas",
+  AP: "Amapá",
+  AM: "Amazonas",
+  BA: "Bahia",
+  CE: "Ceará",
+  DF: "Distrito Federal",
+  ES: "Espírito Santo",
+  GO: "Goiás",
+  MA: "Maranhão",
+  MT: "Mato Grosso",
+  MS: "Mato Grosso do Sul",
+  MG: "Minas Gerais",
+  PA: "Pará",
+  PB: "Paraíba",
+  PR: "Paraná",
+  PE: "Pernambuco",
+  PI: "Piauí",
+  RJ: "Rio de Janeiro",
+  RN: "Rio Grande do Norte",
+  RS: "Rio Grande do Sul",
+  RO: "Rondônia",
+  RR: "Roraima",
+  SC: "Santa Catarina",
+  SP: "São Paulo",
+  SE: "Sergipe",
+  TO: "Tocantins",
+};
+
+function atribuirRanksEstados(estados) {
+  var sorted = estados.slice().sort(function (a, b) {
+    var av = a.idh == null ? -1 : a.idh;
+    var bv = b.idh == null ? -1 : b.idh;
+    return bv - av;
+  });
+  var pos = 0;
+  var ultimoIdh = null;
+  sorted.forEach(function (s, i) {
+    if (s.idh !== ultimoIdh) {
+      pos = i + 1;
+      ultimoIdh = s.idh;
+    }
+    s.rank = s.idh == null ? null : pos;
+  });
+  return estados;
+}
+
+function atratividadeEstados(req, res) {
+  Promise.all([
+    municipioModel.listarMediaIdhmPorUf(),
+    municipioModel.mediaIdhmNacional(),
+  ])
+    .then(function (resultados) {
+      var rows = resultados[0] || [];
+      var mediaNacional = resultados[1];
+      var porUf = {};
+      rows.forEach(function (row) {
+        var uf = String(row.uf || "").trim().toUpperCase();
+        if (!uf) return;
+        porUf[uf] = {
+          idh: parseNumero(row.idh),
+          municipios: parseInt(row.municipios, 10) || 0,
+        };
+      });
+
+      var estados = Object.keys(NOMES_ESTADOS).map(function (sig) {
+        var dados = porUf[sig];
+        return {
+          sig: sig,
+          name: NOMES_ESTADOS[sig],
+          idh: dados ? dados.idh : null,
+          municipios: dados ? dados.municipios : 0,
+          rank: null,
+        };
+      });
+
+      atribuirRanksEstados(estados);
+
+      res.status(200).json({
+        media_nacional: mediaNacional,
+        estados: estados,
+      });
+    })
+    .catch(function (erro) {
+      console.log("\nErro em /municipios/atratividade-estados:", erro.message || erro);
+      res.status(500).json({ mensagem: "Erro ao buscar atratividade por estado." });
+    });
+}
+
 function referenciasNacionais(req, res) {
   municipioModel
     .buscarReferenciasNacionais()
@@ -463,4 +553,5 @@ module.exports = {
   furtoVeiculoEstado,
   statusLatrocinio,
   referenciasNacionais,
+  atratividadeEstados,
 };
