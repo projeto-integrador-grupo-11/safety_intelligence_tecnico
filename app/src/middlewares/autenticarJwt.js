@@ -30,7 +30,7 @@ function gerarToken(usuario) {
     var payload = {
         id: usuario.id_usuario,
         email: usuario.email,
-        nome: usuario.nome_usuario,
+        nome: usuario.nome,
         empresaId: usuario.empresaId,
         privilegio: usuario.privilegio
     };

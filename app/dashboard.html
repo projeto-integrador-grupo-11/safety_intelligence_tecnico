@@ -523,13 +523,20 @@
       border-radius: var(--radius-md);
       padding: 10px 12px;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
+      gap: 10px;
       transition: box-shadow .15s;
+      cursor: pointer;
     }
 
     .kpi-ref-card:hover {
       box-shadow: var(--shadow-sm);
+    }
+
+    .kpi-ref-left {
+      min-width: 0;
+      flex: 1;
     }
 
     .kpi-ref-label {
@@ -545,10 +552,14 @@
       font-weight: 500;
       color: var(--text-1);
       margin-top: 1px;
+      line-height: 1.35;
+      word-break: break-word;
     }
 
     .kpi-ref-right {
+      flex-shrink: 0;
       text-align: right;
+      white-space: nowrap;
     }
 
     .kpi-ref-val {
@@ -565,6 +576,7 @@
       border-radius: 8px;
       margin-top: 2px;
       letter-spacing: .3px;
+      white-space: nowrap;
     }
 
     .badge-green {
@@ -1283,34 +1295,44 @@
       <div class="divider"></div>
       <div>
         <div class="sidebar-section-label">Referências nacionais</div>
-        <div class="kpi-refs">
-          <div class="kpi-ref-card">
+        <div class="kpi-refs" id="kpi-refs-nacionais">
+          <div class="kpi-ref-card" data-ref="idhm_geral" role="link" tabindex="0" aria-label="Ver município com maior IDHM geral">
             <div class="kpi-ref-left">
-              <div class="kpi-ref-label">Maior crescimento IDH</div>
-              <div class="kpi-ref-name">Distrito Federal</div>
+              <div class="kpi-ref-label">Maior IDHM geral</div>
+              <div class="kpi-ref-name">…</div>
             </div>
             <div class="kpi-ref-right">
-              <div class="kpi-ref-val val-green">0,824</div>
+              <div class="kpi-ref-val val-green">…</div>
               <div class="kpi-ref-badge badge-green">#1 Brasil</div>
             </div>
           </div>
-          <div class="kpi-ref-card">
+          <div class="kpi-ref-card" data-ref="longevidade" role="link" tabindex="0" aria-label="Ver município com maior longevidade">
             <div class="kpi-ref-left">
-              <div class="kpi-ref-label">Menor crime/população</div>
-              <div class="kpi-ref-name">Rio Grande do sul</div>
+              <div class="kpi-ref-label">Maior longevidade</div>
+              <div class="kpi-ref-name">…</div>
             </div>
             <div class="kpi-ref-right">
-              <div class="kpi-ref-val val-green">0,324</div>
+              <div class="kpi-ref-val val-green">…</div>
               <div class="kpi-ref-badge badge-green">#1 Brasil</div>
             </div>
           </div>
-          <div class="kpi-ref-card">
+          <div class="kpi-ref-card" data-ref="educacao" role="link" tabindex="0" aria-label="Ver município com maior educação">
+            <div class="kpi-ref-left">
+              <div class="kpi-ref-label">Maior educação</div>
+              <div class="kpi-ref-name">…</div>
+            </div>
+            <div class="kpi-ref-right">
+              <div class="kpi-ref-val val-green">…</div>
+              <div class="kpi-ref-badge badge-green">#1 Brasil</div>
+            </div>
+          </div>
+          <div class="kpi-ref-card" data-ref="renda" role="link" tabindex="0" aria-label="Ver município com maior renda">
             <div class="kpi-ref-left">
               <div class="kpi-ref-label">Maior renda</div>
-              <div class="kpi-ref-name">São Paulo</div>
+              <div class="kpi-ref-name">…</div>
             </div>
             <div class="kpi-ref-right">
-              <div class="kpi-ref-val val-green">0,800</div>
+              <div class="kpi-ref-val val-green">…</div>
               <div class="kpi-ref-badge badge-green">#1 Brasil</div>
             </div>
           </div>
@@ -1571,6 +1593,64 @@
     }
 
     // ─── RANKING ───
+    function fmtRefNome(item) {
+      if (!item || !item.nome) return '—';
+      var uf = item.uf ? ' (' + item.uf + ')' : '';
+      return item.nome + uf;
+    }
+
+    function preencherRefCard(chave, item) {
+      var card = document.querySelector('.kpi-ref-card[data-ref="' + chave + '"]');
+      if (!card) return;
+      var nomeEl = card.querySelector('.kpi-ref-name');
+      var valEl = card.querySelector('.kpi-ref-val');
+      if (!item) {
+        if (nomeEl) nomeEl.textContent = '—';
+        if (valEl) valEl.textContent = '—';
+        delete card.dataset.uf;
+        delete card.dataset.nome;
+        delete card.dataset.id;
+        return;
+      }
+      if (nomeEl) nomeEl.textContent = fmtRefNome(item);
+      if (valEl) valEl.textContent = fmtIDH(Number(item.valor));
+      card.dataset.uf = item.uf || '';
+      card.dataset.nome = item.nome || '';
+      if (item.id != null) card.dataset.id = String(item.id);
+      else delete card.dataset.id;
+    }
+
+    function irParaRefCard(card) {
+      if (!card || !card.dataset.uf || !card.dataset.nome) return;
+      var params = new URLSearchParams({
+        uf: card.dataset.uf,
+        nome: card.dataset.nome,
+      });
+      if (card.dataset.id) params.set('id', card.dataset.id);
+      var estado = STATES_DATA.find(function (x) {
+        return x.sig === card.dataset.uf;
+      });
+      if (estado && estado.name) params.set('estado', estado.name);
+      window.location.href = '/dados.html?' + params.toString();
+    }
+
+    function carregarReferenciasNacionais() {
+      fetch('/municipios/referencias-nacionais')
+        .then(function (res) {
+          return res.ok ? res.json() : null;
+        })
+        .catch(function () {
+          return null;
+        })
+        .then(function (dados) {
+          if (!dados) return;
+          preencherRefCard('idhm_geral', dados.idhm_geral);
+          preencherRefCard('longevidade', dados.longevidade);
+          preencherRefCard('educacao', dados.educacao);
+          preencherRefCard('renda', dados.renda);
+        });
+    }
+
     function buildRankings() {
       renderRankPopulacao();
       renderRankIPS();
@@ -1915,7 +1995,23 @@
 
     hookMapaReal();
     buildRankings();
+    carregarReferenciasNacionais();
     buildSearch();
+
+    var refsNacionais = document.getElementById('kpi-refs-nacionais');
+    if (refsNacionais) {
+      refsNacionais.addEventListener('click', function (e) {
+        var card = e.target.closest('.kpi-ref-card');
+        if (card) irParaRefCard(card);
+      });
+      refsNacionais.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        var card = e.target.closest('.kpi-ref-card');
+        if (!card) return;
+        e.preventDefault();
+        irParaRefCard(card);
+      });
+    }
   </script>
 
 </body>

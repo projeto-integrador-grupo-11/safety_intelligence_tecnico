@@ -53,6 +53,39 @@ async function main() {
     await conexao.query(sql);
     console.log("Schema aplicado com sucesso.");
 
+    console.log("Verificando migração da coluna uf em municipio…");
+    var [colsUf] = await conexao.query(
+      "SHOW COLUMNS FROM municipio LIKE 'uf'"
+    );
+    if (!colsUf.length) {
+      await conexao.query(
+        "ALTER TABLE municipio ADD COLUMN uf CHAR(2) NULL AFTER id"
+      );
+      await conexao.query(
+        "UPDATE municipio SET uf = 'SP' WHERE uf IS NULL OR uf = ''"
+      );
+      await conexao.query(
+        "ALTER TABLE municipio MODIFY uf CHAR(2) NOT NULL"
+      );
+      try {
+        await conexao.query(
+          "CREATE INDEX idx_municipio_uf ON municipio (uf)"
+        );
+      } catch (e) {
+        /* índice pode já existir */
+      }
+      try {
+        await conexao.query(
+          "CREATE INDEX idx_municipio_uf_nome ON municipio (uf, nome)"
+        );
+      } catch (e) {
+        /* índice pode já existir */
+      }
+      console.log("Coluna uf adicionada em municipio (registros antigos marcados como SP).");
+    } else {
+      console.log("Coluna uf já existe em municipio.");
+    }
+
     var [tabelas] = await conexao.query(
       "SHOW TABLES IN `" + config.database + "`"
     );

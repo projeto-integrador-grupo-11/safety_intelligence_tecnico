@@ -37,6 +37,10 @@ router.get("/seguranca/furto-veiculo-estado", function (req, res) {
   municipioController.furtoVeiculoEstado(req, res);
 });
 
+router.get("/referencias-nacionais", function (req, res) {
+  municipioController.referenciasNacionais(req, res);
+});
+
 router.get("/seguranca/status", function (req, res) {
   municipioController.statusLatrocinio(req, res);
 });
