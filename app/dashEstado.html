@@ -1234,6 +1234,40 @@
       box-shadow: 0 0 12px rgba(59, 130, 246, 0.15)
     }
 
+    /* FAVORITAR (★) */
+    .fav-btn {
+      background: transparent;
+      border: 1px solid rgba(148, 163, 184, .35);
+      color: #94a3b8;
+      border-radius: 8px;
+      width: 32px;
+      height: 30px;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      transition: color .15s, background .15s, border-color .15s, transform .12s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .fav-btn:hover {
+      color: #F5A623;
+      border-color: rgba(245, 166, 35, .45);
+      background: rgba(245, 166, 35, .08);
+    }
+
+    .fav-btn:active {
+      transform: scale(.92);
+    }
+
+    .fav-btn.is-fav {
+      color: #F5A623;
+      border-color: rgba(245, 166, 35, .55);
+      background: rgba(245, 166, 35, .12);
+    }
+
     /* EMPTY STATE */
     .empty-state {
       display: flex;
@@ -1282,6 +1316,7 @@
     }
   </style>
   <script src="/public/js/auth.js"></script>
+  <script src="/public/js/cidadesFixadas.js"></script>
   <script>
     if (window.Auth) window.Auth.protegerPagina();
   </script>
@@ -1461,6 +1496,7 @@
                 <th onclick="sortBy('pop')" id="th-pop">População <span class="sort-arrow">↕</span></th>
                 <th onclick="sortBy('idhm')" id="th-idhm" class="sorted">IDHM <span class="sort-arrow">↓</span></th>
                 <th>Classificação</th>
+                <th>Fixar</th>
                 <th>Dashboard</th>
               </tr>
             </thead>
@@ -1764,12 +1800,36 @@
           clsPop != null
             ? `<span class="idhm-badge pop-${clsPop}"><span class="idhm-dot"></span>${lblPop}</span>`
             : '—';
+        const fixavel = {
+          id: idStr ? Number(idStr) : null,
+          nome: c.nome,
+          uf: estadoAtual.uf,
+          estado: estadoAtual.nome,
+          idhm: idhmVal,
+        };
+        const fixada = window.CidadesFixadas
+          ? window.CidadesFixadas.estaFixada(fixavel)
+          : false;
+        const tituloFav = fixada ? 'Remover de Cidades fixadas' : 'Fixar cidade';
+        const estrela = fixada ? '★' : '☆';
         return `
       <tr>
         <td>${escapeHtml(c.nome)}</td>
         <td class="mono">${fmtPop(c.pop)}</td>
         <td class="mono">${idhmTxt}</td>
         <td>${celulaClassificacao}</td>
+        <td>
+          <button
+            type="button"
+            class="fav-btn${fixada ? ' is-fav' : ''}"
+            data-mun-id="${idStr}"
+            data-mun-nome="${nomeEnc}"
+            data-mun-idhm="${idhmVal != null ? idhmVal : ''}"
+            title="${tituloFav}"
+            aria-label="${tituloFav}"
+            aria-pressed="${fixada ? 'true' : 'false'}"
+          >${estrela}</button>
+        </td>
         <td><button type="button" class="dash-btn" data-mun-id="${idStr}" data-mun-nome="${nomeEnc}">↗ Acessar</button></td>
       </tr>`;
       }).join('');
@@ -1835,6 +1895,46 @@
         nome = '';
       }
       redirecionar(id, nome);
+    });
+
+    document.getElementById('listaCidades').addEventListener('click', function (e) {
+      const btn = e.target.closest('.fav-btn');
+      if (!btn) return;
+      if (!window.CidadesFixadas) return;
+
+      const idAttr = btn.getAttribute('data-mun-id');
+      const nomeEnc = btn.getAttribute('data-mun-nome');
+      const idhmAttr = btn.getAttribute('data-mun-idhm');
+      const id =
+        idAttr && idAttr !== '' && !Number.isNaN(Number(idAttr)) ? Number(idAttr) : null;
+      let nome = '';
+      try {
+        nome = nomeEnc ? decodeURIComponent(nomeEnc) : '';
+      } catch (err) {
+        nome = '';
+      }
+      const idhm =
+        idhmAttr && idhmAttr !== '' && !Number.isNaN(Number(idhmAttr))
+          ? Number(idhmAttr)
+          : null;
+
+      const cidade = {
+        id: id,
+        nome: nome,
+        uf: estadoAtual.uf,
+        estado: estadoAtual.nome,
+        idhm: idhm,
+      };
+
+      const ficouFixada = window.CidadesFixadas.alternar(cidade);
+      btn.classList.toggle('is-fav', ficouFixada);
+      btn.textContent = ficouFixada ? '★' : '☆';
+      btn.setAttribute('aria-pressed', ficouFixada ? 'true' : 'false');
+      const titulo = ficouFixada
+        ? 'Remover de Cidades fixadas'
+        : 'Fixar cidade';
+      btn.setAttribute('title', titulo);
+      btn.setAttribute('aria-label', titulo);
     });
 
     // COUNT-UP ANIMATION
@@ -2161,7 +2261,7 @@
     async function carregarMunicipios() {
       const tbody = document.getElementById('listaCidades');
       const empty = document.getElementById('emptyState');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Carregando municípios…</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Carregando municípios…</td></tr>';
       empty.style.display = 'none';
 
       try {

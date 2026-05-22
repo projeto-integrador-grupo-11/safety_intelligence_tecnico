@@ -532,8 +532,6 @@
       box-shadow: var(--shadow-sm);
     }
 
-    .kpi-ref-left {}
-
     .kpi-ref-label {
       font-size: 10px;
       text-transform: uppercase;
@@ -810,8 +808,6 @@
       flex-shrink: 0;
     }
 
-    .mapa_titulo-group {}
-
     .mapa_titulo {
       font-size: 16px;
       font-weight: 500;
@@ -1066,7 +1062,7 @@
 
     .painel-cols {
       display: grid;
-      grid-template-columns: 1fr 80px 100px;
+      grid-template-columns: 1fr 70px 130px;
       padding: 8px 20px;
       font-size: 10px;
       text-transform: uppercase;
@@ -1083,7 +1079,7 @@
 
     .painel-item {
       display: grid;
-      grid-template-columns: 1fr 80px 100px;
+      grid-template-columns: 1fr 70px 130px;
       align-items: center;
       padding: 10px 20px;
       border-bottom: 1px solid var(--border);
@@ -1097,6 +1093,16 @@
 
     .painel-cidade {
       font-weight: 500;
+      line-height: 1.25;
+    }
+
+    .painel-cidade-uf {
+      font-size: 10px;
+      color: var(--text-3);
+      font-weight: 500;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      margin-top: 2px;
     }
 
     .painel-idh {
@@ -1104,6 +1110,13 @@
       font-size: 12px;
       font-weight: 500;
       color: var(--blue-md);
+    }
+
+    .painel-acoes {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
     }
 
     .painel-btn {
@@ -1116,7 +1129,7 @@
       cursor: pointer;
       color: var(--text-1);
       font-family: var(--font-body);
-      transition: background .1s, color .1s;
+      transition: background .1s, color .1s, border-color .1s;
       text-align: center;
     }
 
@@ -1124,6 +1137,29 @@
       background: var(--blue-dk);
       color: #fff;
       border-color: var(--blue-dk);
+    }
+
+    .painel-remover {
+      width: 26px;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid var(--border-md);
+      border-radius: var(--radius-sm);
+      color: var(--text-3);
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+      transition: background .1s, color .1s, border-color .1s;
+    }
+
+    .painel-remover:hover {
+      color: #fff;
+      background: #C0392B;
+      border-color: #C0392B;
     }
 
     .painel-empty {
@@ -1182,6 +1218,7 @@
     }
   </style>
   <script src="/public/js/auth.js"></script>
+  <script src="/public/js/cidadesFixadas.js"></script>
   <script>
     if (window.Auth) window.Auth.protegerPagina();
   </script>
@@ -1282,20 +1319,26 @@
 
       <div class="divider"></div>
       <div>
-        <div class="sidebar-section-label">Top 5 · maior população / residência</div>
+        <div class="sidebar-section-label">Top 5 · maior população</div>
         <div class="rank-list" id="rank-top"></div>
+        <div style="font-size:10px;color:var(--text-3);margin-top:6px;padding:0 4px;line-height:1.4">
+          *Estimativas de 2025 com base no IBGE
+        </div>
       </div>
 
       <div class="divider"></div>
       <div>
-        <div class="sidebar-section-label">Top 5 · maior poder aquisitivo</div>
+        <div class="sidebar-section-label">Top 5 · maior qualidade de vida</div>
         <div class="rank-list" id="rank-bot"></div>
+        <div style="font-size:10px;color:var(--text-3);margin-top:6px;padding:0 4px;line-height:1.4">
+          *Municípios com pontuações mais altas no IPS Brasil 2026
+        </div>
       </div>
 
       <div class="divider"></div>
 
       <div style="font-size:10px;color:var(--text-3);text-align:center;padding-bottom:4px">
-        Dados: PNUD · IBGE · 2021
+        Dados: PNUD · IBGE · IPS Brasil 2026
       </div>
 
     </aside>
@@ -1359,7 +1402,7 @@
       <div class="painel-cols">
         <span>Cidade</span>
         <span>IDHM</span>
-        <span></span>
+        <span style="text-align:right">Ações</span>
       </div>
       <div class="painel-lista" id="fixadas-lista">
         <div class="painel-empty">Nenhuma cidade fixada ainda.<br>Use ★ nos painéis estaduais.</div>
@@ -1492,34 +1535,91 @@
     }
     function fmtIDH(v) { return v ? v.toFixed(3).replace('.', ',') : '—'; }
 
+    // ─── DADOS DE RANKING DE MUNICÍPIOS ───
+    // Top 5 municípios por população (IBGE - estimativa)
+    const TOP_POPULACAO = [
+      { sig: 'SP', name: 'São Paulo', val: 11451999, fmt: '11,45M' },
+      { sig: 'RJ', name: 'Rio de Janeiro', val: 6211423, fmt: '6,21M' },
+      { sig: 'DF', name: 'Brasília', val: 2817068, fmt: '2,82M' },
+      { sig: 'CE', name: 'Fortaleza', val: 2428708, fmt: '2,43M' },
+      { sig: 'BA', name: 'Salvador', val: 2418005, fmt: '2,42M' },
+    ];
+
+    // Top 5 municípios com maiores pontuações no IPS Brasil 2026
+    const TOP_IPS = [
+      { sig: 'SP', name: 'Gavião Peixoto', val: 73.10 },
+      { sig: 'SP', name: 'Jundiaí', val: 71.80 },
+      { sig: 'SP', name: 'Osvaldo Cruz', val: 71.76 },
+      { sig: 'SP', name: 'Pompéia', val: 71.76 },
+      { sig: 'PR', name: 'Curitiba', val: 71.29 },
+    ];
+
+    function fmtIPS(v) {
+      return v.toFixed(2).replace('.', ',');
+    }
+
+    function urlDashMunicipio(sig, nomeMunicipio) {
+      const estado = STATES_DATA.find(x => x.sig === sig);
+      const params = new URLSearchParams({ uf: sig });
+      if (estado && estado.name) params.set('estado', estado.name);
+      if (nomeMunicipio) params.set('nome', nomeMunicipio);
+      return '/dados.html?' + params.toString();
+    }
+
+    function selectMunicipio(sig, nomeMunicipio) {
+      window.location.href = urlDashMunicipio(sig, nomeMunicipio);
+    }
+
     // ─── RANKING ───
     function buildRankings() {
-      const sorted = [...STATES_DATA].sort((a, b) => b.idh - a.idh);
-      const top5 = sorted.slice(0, 5);
-      const bot5 = sorted.slice(-5).reverse();
-      const maxIDH = sorted[0].idh;
+      renderRankPopulacao();
+      renderRankIPS();
+    }
 
-      function renderList(containerId, list, colorFn) {
-        const el = document.getElementById(containerId);
-        el.innerHTML = '';
-        list.forEach((s, i) => {
-          const pct = Math.round((s.idh / maxIDH) * 100);
-          const c = colorFn(s.idh);
-          const li = document.createElement('div');
-          li.className = 'rank-item';
-          li.dataset.sig = s.sig;
-          li.innerHTML = `
-        <span class="rank-num">${sorted.indexOf(s) + 1}</span>
-        <span class="rank-sig">${s.sig}</span>
-        <span class="rank-name">${s.name.length > 14 ? s.name.substring(0, 13) + '…' : s.name}</span>
-        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%;background:${c}"></div></div>
-        <span class="rank-val" style="color:${c}">${fmtIDH(s.idh)}</span>`;
-          li.addEventListener('click', () => selectState(s.sig));
-          el.appendChild(li);
-        });
-      }
-      renderList('rank-top', top5, idhColor);
-      renderList('rank-bot', top5, idhColor);
+    function renderRankPopulacao() {
+      const el = document.getElementById('rank-top');
+      if (!el) return;
+      el.innerHTML = '';
+      const maxVal = TOP_POPULACAO[0].val;
+      const cor = '#1A5FAD';
+      TOP_POPULACAO.forEach((m, i) => {
+        const pct = Math.round((m.val / maxVal) * 100);
+        const li = document.createElement('div');
+        li.className = 'rank-item';
+        li.dataset.sig = m.sig;
+        li.dataset.municipio = m.name;
+        li.innerHTML = `
+        <span class="rank-num">${i + 1}</span>
+        <span class="rank-sig">${m.sig}</span>
+        <span class="rank-name">${m.name.length > 14 ? m.name.substring(0, 13) + '…' : m.name}</span>
+        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%;background:${cor}"></div></div>
+        <span class="rank-val" style="color:${cor}">${m.fmt}</span>`;
+        li.addEventListener('click', () => selectMunicipio(m.sig, m.name));
+        el.appendChild(li);
+      });
+    }
+
+    function renderRankIPS() {
+      const el = document.getElementById('rank-bot');
+      if (!el) return;
+      el.innerHTML = '';
+      const maxVal = TOP_IPS[0].val;
+      const cor = '#1D6A3A';
+      TOP_IPS.forEach((m, i) => {
+        const pct = Math.round((m.val / maxVal) * 100);
+        const li = document.createElement('div');
+        li.className = 'rank-item';
+        li.dataset.sig = m.sig;
+        li.dataset.municipio = m.name;
+        li.innerHTML = `
+        <span class="rank-num">${i + 1}</span>
+        <span class="rank-sig">${m.sig}</span>
+        <span class="rank-name">${m.name.length > 14 ? m.name.substring(0, 13) + '…' : m.name}</span>
+        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%;background:${cor}"></div></div>
+        <span class="rank-val" style="color:${cor}">${fmtIPS(m.val)}</span>`;
+        li.addEventListener('click', () => selectMunicipio(m.sig, m.name));
+        el.appendChild(li);
+      });
     }
 
     function urlDashEstado(sig, name) {
@@ -1719,8 +1819,56 @@
     }
 
 
+    function escapeHtmlFix(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function fmtIdhmFix(v) {
+      if (v == null || v === '' || isNaN(Number(v))) return '—';
+      return Number(v).toFixed(3).replace('.', ',');
+    }
+
+    function renderizarFixadas() {
+      const lista = document.getElementById('fixadas-lista');
+      if (!lista) return;
+      const fixadas = window.CidadesFixadas ? window.CidadesFixadas.listar() : [];
+      if (!fixadas.length) {
+        lista.innerHTML =
+          '<div class="painel-empty">Nenhuma cidade fixada ainda.<br>Use ★ nos painéis estaduais.</div>';
+        return;
+      }
+      lista.innerHTML = fixadas
+        .map(function (c) {
+          const chave = window.CidadesFixadas.chaveDe(c);
+          const nome = escapeHtmlFix(c.nome);
+          const uf = escapeHtmlFix(c.uf || '');
+          const estado = escapeHtmlFix(c.estado || '');
+          const local = uf ? (estado ? estado + ' (' + uf + ')' : uf) : estado;
+          return (
+            '<div class="painel-item" data-fix-chave="' + escapeHtmlFix(chave) + '">' +
+              '<div>' +
+                '<div class="painel-cidade">' + nome + '</div>' +
+                (local ? '<div class="painel-cidade-uf">' + local + '</div>' : '') +
+              '</div>' +
+              '<div class="painel-idh">' + fmtIdhmFix(c.idhm) + '</div>' +
+              '<div class="painel-acoes">' +
+                '<button type="button" class="painel-btn" data-fix-acao="abrir">↗ Ver</button>' +
+                '<button type="button" class="painel-remover" data-fix-acao="remover" title="Remover" aria-label="Remover">×</button>' +
+              '</div>' +
+            '</div>'
+          );
+        })
+        .join('');
+    }
+
     document.getElementById('btn-fixadas').addEventListener('click', () => {
       const p = document.getElementById('painel-fixadas');
+      renderizarFixadas();
       p.hidden = false;
       p.removeAttribute('aria-hidden');
     });
@@ -1734,6 +1882,36 @@
         document.getElementById('painel-fixadas').hidden = true;
       }
     });
+
+    document.getElementById('fixadas-lista').addEventListener('click', function (e) {
+      const btn = e.target.closest('[data-fix-acao]');
+      if (!btn) return;
+      const item = btn.closest('.painel-item');
+      if (!item) return;
+      const chave = item.getAttribute('data-fix-chave');
+      if (!chave || !window.CidadesFixadas) return;
+      const cidade = window.CidadesFixadas
+        .listar()
+        .find(function (c) { return window.CidadesFixadas.chaveDe(c) === chave; });
+      if (!cidade) return;
+
+      const acao = btn.getAttribute('data-fix-acao');
+      if (acao === 'abrir') {
+        window.location.href = window.CidadesFixadas.url(cidade);
+        return;
+      }
+      if (acao === 'remover') {
+        window.CidadesFixadas.remover(cidade);
+        renderizarFixadas();
+      }
+    });
+
+    if (window.CidadesFixadas && typeof window.CidadesFixadas.aoMudar === 'function') {
+      window.CidadesFixadas.aoMudar(function () {
+        const p = document.getElementById('painel-fixadas');
+        if (p && !p.hidden) renderizarFixadas();
+      });
+    }
 
     hookMapaReal();
     buildRankings();
