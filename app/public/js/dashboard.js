@@ -157,13 +157,27 @@ function adicionarRotulosUF(svg) {
 async function carregarMapa(container) {
   const resposta = await fetch("/public/img/mapa-brasil.html");
   const svgTexto = await resposta.text();
-  container.innerHTML = svgTexto;
+  const tooltip = container.querySelector("#mapa_tooltip");
+  const temp = document.createElement("div");
+  temp.innerHTML = svgTexto;
 
-  // Remove estilos embutidos do SVG para usar o CSS do projeto
-  const svg = container.querySelector("svg");
+  const svg = temp.querySelector("svg");
   if (!svg) return;
+
+  container.querySelectorAll("svg").forEach(function (el) {
+    el.remove();
+  });
+
+  if (tooltip) {
+    container.insertBefore(svg, tooltip);
+  } else {
+    container.appendChild(svg);
+  }
+
   const estilos = svg.querySelectorAll("style");
-  estilos.forEach((s) => s.remove());
+  estilos.forEach(function (s) {
+    s.remove();
+  });
 
   adicionarRotulosUF(svg);
 }
@@ -176,20 +190,9 @@ function montar() {
   const mapaContainer = document.getElementById("mapa_brasil");
 
   
-  carregarMapa(mapaContainer)
-    .then(() => {
-      // Clique nos estados do SVG (id = UF)
-      const estadosSvg = mapaContainer.querySelectorAll(".state[id]");
-      estadosSvg.forEach((el) => {
-        el.addEventListener("click", () => {
-          const uf = el.getAttribute("id");
-          if (uf) selecionarEstado(uf, input, dropdown, valorSelecionado, mapaContainer);
-        });
-      });
-    })
-    .catch(() => {
-      // Se falhar carregar o mapa, a busca continua funcionando
-    });
+  carregarMapa(mapaContainer).catch(function () {
+    // Se falhar carregar o mapa, a busca continua funcionando
+  });
 
   input.addEventListener("input", () =>
     renderizarLista(input.value, lista, input, dropdown, valorSelecionado, mapaContainer)

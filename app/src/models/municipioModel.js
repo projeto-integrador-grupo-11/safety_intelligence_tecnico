@@ -65,6 +65,29 @@ function topPorCampo(campo) {
   });
 }
 
+function listarMediaIdhmPorUf() {
+  var instrucaoSql = `
+    SELECT uf, AVG(idhm_geral) AS idh, COUNT(*) AS municipios
+    FROM municipio
+    WHERE idhm_geral IS NOT NULL
+    GROUP BY uf
+    ORDER BY uf ASC
+  `;
+  return database.executar(instrucaoSql);
+}
+
+function mediaIdhmNacional() {
+  var instrucaoSql = `
+    SELECT AVG(idhm_geral) AS media
+    FROM municipio
+    WHERE idhm_geral IS NOT NULL
+  `;
+  return database.executar(instrucaoSql).then(function (rows) {
+    if (!rows || !rows.length || rows[0].media == null) return null;
+    return Number(rows[0].media);
+  });
+}
+
 function buscarReferenciasNacionais() {
   return Promise.all([
     topPorCampo("idhm_geral"),
@@ -108,4 +131,6 @@ module.exports = {
   buscarPorNome,
   buscarPorNomeUf,
   buscarReferenciasNacionais,
+  listarMediaIdhmPorUf,
+  mediaIdhmNacional,
 };

@@ -875,8 +875,49 @@
       cursor: pointer;
     }
 
-    #mapa_brasil svg .state.selecionado {
-      fill: #4DA3D9;
+    .mapa-tooltip {
+      position: absolute;
+      z-index: 20;
+      pointer-events: none;
+      min-width: 160px;
+      max-width: 220px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 24px rgba(11, 60, 93, 0.18);
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--text-2);
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .mapa-tooltip.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .mapa-tooltip strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 4px;
+    }
+
+    .mapa-tooltip-val {
+      display: block;
+      font-weight: 600;
+      color: var(--blue);
+    }
+
+    .mapa-tooltip-rank {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--text-3);
     }
 
     #mapa_brasil svg .mapa-rotulos-uf .mapa-rotulo-uf {
@@ -1377,7 +1418,9 @@
         </header>
 
         <div class="wrapper-mapa">
-          <div class="mapa_conteudo" id="mapa_brasil" aria-label="Mapa interativo do Brasil" role="region"></div>
+          <div class="mapa_conteudo" id="mapa_brasil" aria-label="Mapa interativo do Brasil" role="region">
+            <div id="mapa_tooltip" class="mapa-tooltip" role="tooltip" aria-hidden="true" hidden></div>
+          </div>
 
           <footer class="mapa_legenda" aria-label="Legenda do IDHM">
             <div class="tooltip-container">
@@ -1763,9 +1806,77 @@
     const MAPA_HOVER_FILL = '#4DA3D9';
     const MAPA_HOVER_STROKE = '#0C3B6E';
     let estadoHoverAtivo = null;
+    let mapaTooltipEl = null;
 
     function sigEstado(el) {
       return (el.dataset.uf || el.dataset.id || el.id || '').toUpperCase();
+    }
+
+    function dadosEstado(sig) {
+      return STATES_DATA.find(function (x) {
+        return x.sig === sig;
+      });
+    }
+
+    function garantirTooltipMapa(container) {
+      if (mapaTooltipEl && container.contains(mapaTooltipEl)) return mapaTooltipEl;
+      mapaTooltipEl = container.querySelector('#mapa_tooltip');
+      if (!mapaTooltipEl) {
+        mapaTooltipEl = document.createElement('div');
+        mapaTooltipEl.id = 'mapa_tooltip';
+        mapaTooltipEl.className = 'mapa-tooltip';
+        mapaTooltipEl.setAttribute('role', 'tooltip');
+        mapaTooltipEl.hidden = true;
+        mapaTooltipEl.setAttribute('aria-hidden', 'true');
+        container.appendChild(mapaTooltipEl);
+      }
+      return mapaTooltipEl;
+    }
+
+    function conteudoTooltip(sig) {
+      const s = dadosEstado(sig);
+      if (!s) return '';
+      return (
+        '<strong>' + s.name + ' (' + s.sig + ')</strong>' +
+        '<span class="mapa-tooltip-val">' + fmtIDH(s.idh) + ' · ' + idhCat(s.idh) + '</span>' +
+        '<span class="mapa-tooltip-rank">#' + s.rank + ' no Brasil</span>'
+      );
+    }
+
+    function posicionarTooltip(tooltip, container, x, y) {
+      tooltip.style.left = '0';
+      tooltip.style.top = '0';
+      tooltip.hidden = false;
+      tooltip.classList.add('visible');
+      tooltip.setAttribute('aria-hidden', 'false');
+
+      const cRect = container.getBoundingClientRect();
+      const tRect = tooltip.getBoundingClientRect();
+      const pad = 12;
+      let left = x + 14;
+      let top = y - tRect.height - 8;
+
+      if (left + tRect.width > cRect.width - pad) left = x - tRect.width - 14;
+      if (left < pad) left = pad;
+      if (top < pad) top = y + 18;
+      if (top + tRect.height > cRect.height - pad) top = cRect.height - tRect.height - pad;
+
+      tooltip.style.left = left + 'px';
+      tooltip.style.top = top + 'px';
+    }
+
+    function mostrarTooltipMapa(container, sig, x, y) {
+      const tooltip = garantirTooltipMapa(container);
+      tooltip.innerHTML = conteudoTooltip(sig);
+      posicionarTooltip(tooltip, container, x, y);
+    }
+
+    function esconderTooltipMapa(container) {
+      const tooltip = garantirTooltipMapa(container);
+      tooltip.classList.remove('visible');
+      tooltip.hidden = true;
+      tooltip.setAttribute('aria-hidden', 'true');
+      tooltip.innerHTML = '';
     }
 
     function aplicarHoverEstado(state) {
@@ -1791,6 +1902,7 @@
       container.querySelectorAll('.state').forEach(function (state) {
         if (state.dataset.hoverBound === '1') return;
         state.dataset.hoverBound = '1';
+
         state.addEventListener('mouseenter', function () {
           if (estadoHoverAtivo && estadoHoverAtivo !== state) {
             limparHoverEstado(estadoHoverAtivo);
@@ -1800,9 +1912,18 @@
           const sig = sigEstado(state);
           if (sig) selectStateHover(sig);
         });
+
+        state.addEventListener('mousemove', function (e) {
+          const sig = sigEstado(state);
+          if (!sig) return;
+          const rect = container.getBoundingClientRect();
+          mostrarTooltipMapa(container, sig, e.clientX - rect.left, e.clientY - rect.top);
+        });
+
         state.addEventListener('mouseleave', function () {
           limparHoverEstado(state);
           if (estadoHoverAtivo === state) estadoHoverAtivo = null;
+          esconderTooltipMapa(container);
           limparPreviewEstado();
         });
       });
@@ -1812,16 +1933,19 @@
       const container = document.getElementById('mapa_brasil');
       if (!container) return;
 
+      garantirTooltipMapa(container);
+
       container.addEventListener('mouseleave', function (e) {
         if (e.relatedTarget && container.contains(e.relatedTarget)) return;
         if (estadoHoverAtivo) {
           limparHoverEstado(estadoHoverAtivo);
           estadoHoverAtivo = null;
         }
+        esconderTooltipMapa(container);
         limparPreviewEstado();
       });
 
-      container.addEventListener('click', e => {
+      container.addEventListener('click', function (e) {
         const state = e.target.closest('.state');
         if (!state) return;
         const sig = sigEstado(state);
@@ -1829,9 +1953,9 @@
       });
 
       function colorirEstados() {
-        STATES_DATA.forEach(s => {
+        STATES_DATA.forEach(function (s) {
           const el = container.querySelector(
-            `[data-uf="${s.sig}"], [data-id="${s.sig}"], #${s.sig}, .state-${s.sig}`
+            '[data-uf="' + s.sig + '"], [data-id="' + s.sig + '"], #' + s.sig + ', .state-' + s.sig
           );
           if (el) {
             const cor = idhColor(s.idh);
@@ -1846,7 +1970,7 @@
       if (container.querySelector('.state')) {
         colorirEstados();
       } else {
-        const mo = new MutationObserver(() => {
+        const mo = new MutationObserver(function () {
           if (container.querySelector('.state')) {
             colorirEstados();
             mo.disconnect();
