@@ -1041,6 +1041,104 @@
 
       cursor: pointer;
     }
+
+    .switch {
+      position: relative;
+
+      display: inline-block;
+
+      width: 52px;
+      height: 28px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+
+      cursor: pointer;
+
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+
+      background-color: #ccc;
+
+      transition: .3s;
+
+      border-radius: 30px;
+    }
+
+    .slider:before {
+      position: absolute;
+
+      content: "";
+
+      height: 22px;
+      width: 22px;
+
+      left: 3px;
+      bottom: 3px;
+
+      background-color: white;
+
+      transition: .3s;
+
+      border-radius: 50%;
+    }
+
+    input:checked+.slider {
+      background-color: #22c55e;
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(24px);
+    }
+
+    .slack-box {
+      margin-top: 10px;
+    }
+
+    .slack-link {
+      color: #2563eb;
+
+      text-decoration: none;
+
+      font-weight: bold;
+    }
+
+    .btn-save-slack {
+      margin-top: 20px;
+
+      background: #2563eb;
+
+      color: white;
+
+      border: none;
+
+      padding: 10px 18px;
+
+      border-radius: 8px;
+
+      cursor: pointer;
+    }
+
+    .avatar img {
+
+      width: 100%;
+
+      height: 100%;
+
+      object-fit: cover;
+
+      border-radius: 50%;
+
+    }
   </style>
 </head>
 
@@ -1129,11 +1227,25 @@
 
               <!-- Avatar -->
               <div class="avatar-block">
-                <div class="avatar">
-                  U
-                  <div class="avatar-overlay">📷</div>
+
+                <input type="file" id="ipt_foto" accept="image/*" style="display: none;" onchange="uploadFoto()">
+
+                <div class="avatar" onclick="document.getElementById('ipt_foto').click()">
+
+                  <img id="fotoPerfil" src="/assets/default-user.png">
+
+                  <div class="avatar-overlay">
+                    📷
+                  </div>
+
                 </div>
-                <div class="avatar-hint">Clique para<br>alterar foto</div>
+
+                <div class="avatar-hint" onclick="document.getElementById('ipt_foto').click()">
+
+                  Clique para<br>alterar foto
+
+                </div>
+
               </div>
 
               <!-- Inputs -->
@@ -1230,38 +1342,61 @@
 
         <!-- CARD: SESSÕES ATIVAS -->
         <div class="card">
+
           <div class="card-header">
+
             <div class="card-header-body">
-              <div class="card-title">Sessões Ativas</div>
-              <div class="card-sub">Dispositivos com acesso à sua conta no momento</div>
-            </div>
-            <span class="card-badge badge-blue">3 sessões</span>
-          </div>
-          <div class="card-body">
-            <div class="session-list">
-              <div class="session-item">
-                <div class="session-info">
-                  <div class="session-device">Chrome — Windows 11</div>
-                  <div class="session-meta">São Paulo, BR · Agora mesmo</div>
-                </div>
-                <span class="session-current">Sessão atual</span>
-              </div>
-              <div class="session-item">
-                <div class="session-info">
-                  <div class="session-device">Safari — iPhone 15</div>
-                  <div class="session-meta">São Paulo, BR · Há 2 horas</div>
-                </div>
-                <button class="session-revoke">Revogar</button>
-              </div>
-              <div class="session-item">
-                <div class="session-info">
-                  <div class="session-device">Firefox — macOS Sonoma</div>
-                  <div class="session-meta">Rio de Janeiro, BR · Ontem às 14h</div>
-                </div>
-                <button class="session-revoke">Revogar</button>
+              <div class="card-title">Notificações Slack</div>
+
+              <div class="card-sub">
+                Receba alertas e notificações diretamente no Slack
               </div>
             </div>
+
+            <label class="switch">
+              <input type="checkbox" id="switchSlack" onchange="toggleSlackNotif()">
+              <span class="slider"></span>
+            </label>
+
           </div>
+
+          <div class="card-body" id="slackOptions" style="display: none;">
+
+            <div class="slack-box">
+
+              <p class="slack-text">
+                Entre no workspace da empresa:
+              </p>
+
+              <a href="https://join.slack.com/t/safetyintelligenceco/shared_invite/zt-3xzhtk2h3-e09KwFvPOaU_NQnsHJPFDw"
+                target="_blank" class="slack-link">
+                Entrar no Slack Workspace
+              </a>
+
+              <div class="field">
+
+                <label>Seu nome</label>
+
+                <input type="text" id="ipt_nomeSlack" class="slack-input" placeholder="Digite seu nome">
+
+              </div>
+
+              <div class="field" style="margin-top:20px;">
+
+                <label>ID do usuário Slack</label>
+
+                <input type="text" id="ipt_slackId" placeholder="Digite seu ID do Slack">
+
+              </div>
+
+              <button class="btn-save-slack" onclick="salvarSlackNotif()">
+                Salvar configurações
+              </button>
+
+            </div>
+
+          </div>
+
         </div>
 
         <!-- ZONA DE PERIGO -->
@@ -1470,8 +1605,226 @@
         });
 
     }
-    
 
+    function toggleSlackNotif() {
+
+      const switchSlack =
+        document.getElementById("switchSlack");
+
+      const slackOptions =
+        document.getElementById("slackOptions");
+
+      if (switchSlack.checked) {
+
+        slackOptions.style.display = "block";
+
+      } else {
+
+        slackOptions.style.display = "none";
+
+        fetch("/usuarios/desativarSlack", {
+
+          method: "PUT",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            idUsuario: sessionStorage.ID_USUARIO
+          })
+
+        });
+
+      }
+
+
+    }
+
+
+    function salvarSlackNotif() {
+
+      const slackId =
+        document.getElementById("ipt_slackId").value;
+
+      fetch("/usuarios/configSlack", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+          idUsuario: sessionStorage.ID_USUARIO,
+
+          nome: document.getElementById("ipt_nomeSlack").value,
+
+          slackId: slackId,
+
+          notificacao: true
+
+        })
+
+      })
+        .then(function (resposta) {
+
+          if (resposta.ok) {
+
+            alert("Configuração salva!");
+
+          } else {
+
+            alert("Erro ao salvar");
+
+          }
+
+        });
+
+    }
+
+
+    function carregarSlack() {
+
+      console.log("Testando...")
+      fetch(`/usuarios/buscarSlack/${sessionStorage.ID_USUARIO}`)
+
+        .then(function (resposta) {
+
+          return resposta.json();
+
+        })
+
+        .then(function (dados) {
+
+          if (dados.length > 0) {
+
+            const config = dados[0];
+
+            if (config.notificacao == 1) {
+
+              document.getElementById("switchSlack").checked = true;
+
+              document.getElementById("slackOptions").style.display = "block";
+
+            }
+
+            document.getElementById("ipt_slackId").value =
+              config.idSlack || "";
+
+            document.getElementById("ipt_nomeSlack").value =
+              config.nomeCompleto || "";
+
+          }
+
+        });
+
+
+    }
+
+    function uploadFoto() {
+
+      const arquivo =
+        document.getElementById("ipt_foto").files[0];
+
+      const formData = new FormData();
+
+      formData.append("foto", arquivo);
+
+      formData.append(
+        "idUsuario",
+        sessionStorage.ID_USUARIO
+      );
+
+      fetch("/usuarios/uploadFoto", {
+
+        method: "POST",
+
+        body: formData
+
+      })
+
+        .then(function (resposta) {
+
+          if (resposta.ok) {
+
+            carregarFoto();
+
+          }
+
+        });
+
+    }
+
+
+
+
+    function uploadFoto() {
+
+      const arquivo =
+        document.getElementById("ipt_foto").files[0];
+
+      const formData = new FormData();
+
+      formData.append("foto", arquivo);
+
+      formData.append(
+        "idUsuario",
+        sessionStorage.ID_USUARIO
+      );
+
+      fetch("/usuarios/uploadFoto", {
+
+        method: "POST",
+
+        body: formData
+
+      })
+
+        .then(function (resposta) {
+
+          if (resposta.ok) {
+
+            carregarFoto();
+
+          }
+
+        });
+
+    }
+
+    function carregarFoto() {
+
+      fetch(`/usuarios/buscarFoto/${sessionStorage.ID_USUARIO}`)
+
+        .then(function (resposta) {
+
+          return resposta.json();
+
+        })
+
+        .then(function (dados) {
+
+          if (dados.length > 0) {
+
+            const foto = dados[0].fotoPerfil;
+
+            if (foto) {
+
+              document.getElementById("fotoPerfil").src =
+                foto;
+
+            }
+
+          }
+
+        });
+
+    }
+
+        carregarSlack();
+        carregarFoto();
   </script>
 </body>
 
