@@ -2638,25 +2638,19 @@
           if (crumb && m.nome) crumb.textContent = m.nome;
           atualizarTitulosCharts(m.nome);
 
-          if (ufEstado === 'SP') {
-            document.getElementById('rank1').textContent = '…';
-            document.getElementById('rank2').textContent = '…';
-            document.getElementById('rank3').textContent = '…';
-            fetch('/municipios/listar?uf=' + encodeURIComponent(ufEstado))
-              .then(function (res) {
-                return res.ok ? res.json() : [];
-              })
-              .catch(function () {
-                return [];
-              })
-              .then(function (lista) {
-                atualizarRanks(lista, m);
-              });
-          } else {
-            document.getElementById('rank1').textContent = '—';
-            document.getElementById('rank2').textContent = '—';
-            document.getElementById('rank3').textContent = '—';
-          }
+          document.getElementById('rank1').textContent = '…';
+          document.getElementById('rank2').textContent = '…';
+          document.getElementById('rank3').textContent = '…';
+          fetch('/municipios/listar?uf=' + encodeURIComponent(ufEstado))
+            .then(function (res) {
+              return res.ok ? res.json() : [];
+            })
+            .catch(function () {
+              return [];
+            })
+            .then(function (lista) {
+              atualizarRanks(lista, m);
+            });
 
           const lo =
             m.longevidade != null && !Number.isNaN(Number(m.longevidade))
