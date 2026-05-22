@@ -3,6 +3,7 @@ var municipioS3Service = require("../services/municipioS3Service");
 var populacaoS3Service = require("../services/populacaoS3Service");
 var segurancaS3Service = require("../services/segurancaS3Service");
 var indicadoresSegurancaService = require("../services/indicadoresSegurancaService");
+var atratividadeService = require("../services/atratividadeService");
 
 function limparNome(nome) {
   return municipioS3Service.limparNome(nome);
@@ -489,40 +490,10 @@ function atribuirRanksEstados(estados) {
 }
 
 function atratividadeEstados(req, res) {
-  Promise.all([
-    municipioModel.listarMediaIdhmPorUf(),
-    municipioModel.mediaIdhmNacional(),
-  ])
-    .then(function (resultados) {
-      var rows = resultados[0] || [];
-      var mediaNacional = resultados[1];
-      var porUf = {};
-      rows.forEach(function (row) {
-        var uf = String(row.uf || "").trim().toUpperCase();
-        if (!uf) return;
-        porUf[uf] = {
-          idh: parseNumero(row.idh),
-          municipios: parseInt(row.municipios, 10) || 0,
-        };
-      });
-
-      var estados = Object.keys(NOMES_ESTADOS).map(function (sig) {
-        var dados = porUf[sig];
-        return {
-          sig: sig,
-          name: NOMES_ESTADOS[sig],
-          idh: dados ? dados.idh : null,
-          municipios: dados ? dados.municipios : 0,
-          rank: null,
-        };
-      });
-
-      atribuirRanksEstados(estados);
-
-      res.status(200).json({
-        media_nacional: mediaNacional,
-        estados: estados,
-      });
+  atratividadeService
+    .calcularAtratividadeEstados()
+    .then(function (dados) {
+      res.status(200).json(dados);
     })
     .catch(function (erro) {
       console.log("\nErro em /municipios/atratividade-estados:", erro.message || erro);

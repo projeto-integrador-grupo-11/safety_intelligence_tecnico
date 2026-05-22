@@ -1326,7 +1326,7 @@
         <div class="selected-rank" id="selected-rank"></div>
       </div>
       <div class="insight-banner" id="insight-banner">
-        <div class="insight-tag">Análise · IDH</div>
+        <div class="insight-tag">Análise · Atratividade</div>
         <div class="insight-text" id="insight-text">—</div>
       </div>
       <button type="button" class="btn-fixadas" id="btn-fixadas">
@@ -1422,22 +1422,22 @@
             <div id="mapa_tooltip" class="mapa-tooltip" role="tooltip" aria-hidden="true" hidden></div>
           </div>
 
-          <footer class="mapa_legenda" aria-label="Legenda do IDHM">
+          <footer class="mapa_legenda" aria-label="Legenda de atratividade imobiliária">
             <div class="tooltip-container">
               <button class="tooltip-btn" aria-describedby="tooltip-kpi">
                 ?
               </button>
 
               <div class="tooltip-content" id="tooltip-kpi">
-                É calculado com base em:
+                Índice composto (0 a 1), média ponderada pela população de cada estado:
                 <br><br>
-                • IDH (qualidade de vida)
+                • IDH municipal — 25%
                 <br>
-                • Segurança (nível de risco)
+                • Renda per capita — 25%
                 <br>
-                • Densidade (demanda urbana)
+                • Segurança (inverso de latrocínio + homicídio por 100 mil hab.) — 25%
                 <br>
-                • Renda (poder de compra)
+                • Densidade urbana (população municipal) — 25%
               </div>
             </div>
             <span class="mapa_leg-label">ATRATIVIDADE <br> IMOBILIÁRIA:</span>
@@ -1477,7 +1477,7 @@
   <script src="public/js/dashboard.js"></script>
   <script>
     // ─── DATA ───
-    const STATES_DATA = [
+    const STATES_DATA_FALLBACK = [
       { sig: 'AC', name: 'Acre', idh: 0.663, rank: 22 },
       { sig: 'AL', name: 'Alagoas', idh: 0.631, rank: 27 },
       { sig: 'AP', name: 'Amapá', idh: 0.708, rank: 13 },
@@ -1507,12 +1507,23 @@
       { sig: 'TO', name: 'Tocantins', idh: 0.699, rank: 15 },
     ];
 
+    let STATES_DATA = STATES_DATA_FALLBACK.map(function (s) {
+      return Object.assign({}, s);
+    });
+    let NAT = 0.754;
+    let colorirEstadosMapa = null;
+
     function atribuirRanksPorIdh() {
-      const sorted = [...STATES_DATA].sort(function (a, b) {
+      const sorted = STATES_DATA.filter(function (s) {
+        return s.idh != null;
+      }).sort(function (a, b) {
         return b.idh - a.idh;
       });
       let pos = 0;
       let ultimoIdh = null;
+      STATES_DATA.forEach(function (s) {
+        if (s.idh == null) s.rank = null;
+      });
       sorted.forEach(function (s, i) {
         if (s.idh !== ultimoIdh) {
           pos = i + 1;
@@ -1525,9 +1536,43 @@
       });
     }
 
-    atribuirRanksPorIdh();
+    function aplicarDadosAtratividade(dados) {
+      if (!dados || !Array.isArray(dados.estados) || !dados.estados.length) return false;
 
-    const NAT = 0.754;
+      STATES_DATA = dados.estados.map(function (e) {
+        return {
+          sig: e.sig,
+          name: e.name,
+          idh: e.idh == null ? null : Number(e.idh),
+          rank: e.rank == null ? null : Number(e.rank),
+          municipios: e.municipios || 0,
+        };
+      });
+
+      if (dados.media_nacional != null && !isNaN(Number(dados.media_nacional))) {
+        NAT = Number(dados.media_nacional);
+      }
+
+      if (colorirEstadosMapa) colorirEstadosMapa();
+      return true;
+    }
+
+    function carregarAtratividadeEstados() {
+      return fetch('/municipios/atratividade-estados')
+        .then(function (res) {
+          return res.ok ? res.json() : null;
+        })
+        .catch(function () {
+          return null;
+        })
+        .then(function (dados) {
+          if (aplicarDadosAtratividade(dados)) return;
+          atribuirRanksPorIdh();
+          if (colorirEstadosMapa) colorirEstadosMapa();
+        });
+    }
+
+    atribuirRanksPorIdh();
 
     function idhColor(v) {
       if (!v) return '#CBD0D8';
@@ -1760,7 +1805,7 @@
 
     function selectStateHover(sig) {
       const s = STATES_DATA.find(x => x.sig === sig);
-      if (!s) return;
+      if (!s || s.idh == null) return;
       const diff = (s.idh - NAT);
       const diffStr = (diff >= 0 ? '+' : '') + diff.toFixed(3).replace('.', ',');
       const diffClass = diff >= 0 ? 'delta-up' : diff > -0.05 ? 'delta-nt' : 'delta-dn';
@@ -1836,10 +1881,13 @@
     function conteudoTooltip(sig) {
       const s = dadosEstado(sig);
       if (!s) return '';
+      var rankHtml = s.rank != null
+        ? '<span class="mapa-tooltip-rank">#' + s.rank + ' no Brasil</span>'
+        : '';
       return (
         '<strong>' + s.name + ' (' + s.sig + ')</strong>' +
         '<span class="mapa-tooltip-val">' + fmtIDH(s.idh) + ' · ' + idhCat(s.idh) + '</span>' +
-        '<span class="mapa-tooltip-rank">#' + s.rank + ' no Brasil</span>'
+        rankHtml
       );
     }
 
@@ -1966,6 +2014,8 @@
         bindEstadoHover(container);
         atualizarRotulosMapa(container);
       }
+
+      colorirEstadosMapa = colorirEstados;
 
       if (container.querySelector('.state')) {
         colorirEstados();
@@ -2118,6 +2168,7 @@
     }
 
     hookMapaReal();
+    carregarAtratividadeEstados();
     buildRankings();
     carregarReferenciasNacionais();
     buildSearch();
