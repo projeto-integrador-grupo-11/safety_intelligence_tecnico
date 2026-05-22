@@ -176,7 +176,10 @@
             fetch("/usuarios/cadastrar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nomeServer: nome, emailServer: email, senhaServer: senha }),
+                body: JSON.stringify({ 
+                    nomeServer: nome, 
+                    emailServer: email, 
+                    senhaServer: senha }),
             })
                 .then(function (resposta) {
                     if (resposta.ok) {
