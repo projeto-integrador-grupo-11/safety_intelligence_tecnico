@@ -172,13 +172,13 @@
             var nome = ipt_nome.value;
             var email = ipt_email.value;
             var senha = ipt_senha.value;
-
+ 
             fetch("/usuarios/cadastrar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
                     nomeServer: nome, 
-                    emailServer: email, 
+                    emailServer: email,
                     senhaServer: senha }),
             })
                 .then(function (resposta) {
