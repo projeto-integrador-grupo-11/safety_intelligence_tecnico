@@ -229,7 +229,6 @@ function buscarSlack(req, res) {
 
 function uploadFoto(req, res) {
 
-    console.log("CHEGOU AQUI");
     console.log(req.body);
     console.log(req.file);
 

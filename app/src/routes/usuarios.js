@@ -2,7 +2,9 @@ var express = require("express");
 var router = express.Router();
 const fs = require("fs");
 
-const dir = "public/uploads";
+const path = require("path");
+
+const dir = path.join(__dirname, "../../public/uploads");
 const multer = require("multer");
 
 var usuarioController = require("../controllers/usuarioController");
@@ -46,8 +48,8 @@ if (!fs.existsSync(dir)) {
 const storage = multer.diskStorage({
 
     destination: function (req, file, cb) {
-        cb(null, "public/uploads");
-    },
+    cb(null, dir);
+},
 
     filename: function(req, file, cb) {
 
