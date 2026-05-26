@@ -26,10 +26,14 @@ CREATE TABLE usuario (
 -- =====================
 CREATE TABLE lista_favoritos (
     idFavoritos INT PRIMARY KEY AUTO_INCREMENT,
-    fkUsuarios_favoritos INT,
-    nomeMunicipio VARCHAR(45),
-    idhm_geral decimal(5,1),
-    FOREIGN KEY (fkUsuarios_favoritos) REFERENCES usuario(idUsuario)
+    fkUsuarios_favoritos INT NOT NULL,
+    fkMunicipio BIGINT NULL,
+    nomeMunicipio VARCHAR(150) NOT NULL,
+    uf CHAR(2) NOT NULL,
+    nomeEstado VARCHAR(45),
+    idhm_geral DECIMAL(5,3),
+    FOREIGN KEY (fkUsuarios_favoritos) REFERENCES usuario(idUsuario),
+    UNIQUE KEY uk_favorito_usuario_cidade (fkUsuarios_favoritos, uf, nomeMunicipio)
 );
 
 -- =====================
@@ -95,3 +99,12 @@ CREATE TABLE logs_java (
 		autenticacao2FA BOOLEAN DEFAULT FALSE,
 		FOREIGN KEY (fkUsuario) REFERENCES usuario(idUsuario)
 	);
+
+-- Migração (banco já existente com lista_favoritos antiga):
+-- ALTER TABLE lista_favoritos
+--   ADD COLUMN fkMunicipio BIGINT NULL AFTER fkUsuarios_favoritos,
+--   ADD COLUMN uf CHAR(2) NOT NULL DEFAULT 'SP' AFTER nomeMunicipio,
+--   ADD COLUMN nomeEstado VARCHAR(45) NULL AFTER uf,
+--   MODIFY COLUMN nomeMunicipio VARCHAR(150) NOT NULL,
+--   MODIFY COLUMN idhm_geral DECIMAL(5,3) NULL,
+--   ADD UNIQUE KEY uk_favorito_usuario_cidade (fkUsuarios_favoritos, uf, nomeMunicipio);
