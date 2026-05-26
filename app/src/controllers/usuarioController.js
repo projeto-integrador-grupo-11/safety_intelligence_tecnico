@@ -141,18 +141,23 @@ function excluir(req, res) {
 
     var idUsuario = req.params.idUsuario;
 
-    usuarioModel.excluir(idUsuario)
-        .then(function (resultado) {
+    usuarioModel.excluirConfiguracoes(idUsuario)
 
-            res.status(200).send("Usuário excluído");
-
+        .then(function () {
+            return usuarioModel.excluirFavoritos(idUsuario);
         })
+
+        .then(function () {
+            return usuarioModel.excluirUsuario(idUsuario);
+        })
+
+        .then(function () {
+            res.status(200).send("Usuário excluído");
+        })
+
         .catch(function (erro) {
-
             console.log(erro);
-
             res.status(500).json(erro);
-
         });
 }
 
