@@ -26,7 +26,27 @@ function atualizarSenha(novaSenhaHash, email) {
     return database.executar(instrucaoSql, [novaSenhaHash, email]);
 }
 
-function excluir(idUsuario) {
+function excluirFavoritos(idUsuario) {
+
+    var instrucaoSql = `
+        DELETE FROM lista_favoritos
+        WHERE fkUsuarios_favoritos = ${idUsuario};
+    `;
+
+    return database.executar(instrucaoSql);
+}
+
+function excluirConfiguracoes(idUsuario) {
+
+    var instrucaoSql = `
+        DELETE FROM configuracoes_usuario
+        WHERE fkUsuario = ${idUsuario};
+    `;
+
+    return database.executar(instrucaoSql);
+}
+
+function excluirUsuario(idUsuario) {
 
     var instrucaoSql = `
         DELETE FROM usuario
@@ -133,7 +153,9 @@ module.exports = {
     buscarPorEmail,
     cadastrar,
     atualizarSenha,
-    excluir,
+    excluirUsuario,
+    excluirConfiguracoes,
+    excluirFavoritos,
     configSlack,
     desativarSlack,
     buscarSlack,
