@@ -15,6 +15,7 @@ var app = express();
 var indexRouter = require("./app/src/routes/index");
 var usuarioRouter = require("./app/src/routes/usuarios");
 var municipioRouter = require("./app/src/routes/municipios");
+var favoritoRouter = require("./app/src/routes/favoritos");
 var segurancaS3Service = require("./app/src/services/segurancaS3Service");
 
 app.use(express.json());
@@ -29,6 +30,7 @@ app.use(cors());
 app.use("/", indexRouter);
 app.use("/usuarios", usuarioRouter);
 app.use("/municipios", municipioRouter);
+app.use("/favoritos", favoritoRouter);
 
 
 

@@ -1940,6 +1940,12 @@
       btn.setAttribute('aria-label', titulo);
     });
 
+    if (window.CidadesFixadas && typeof window.CidadesFixadas.aoMudar === 'function') {
+      window.CidadesFixadas.aoMudar(function () {
+        render(getFiltered());
+      });
+    }
+
     // COUNT-UP ANIMATION
     function countUp(el, target, isFloat, dur) {
       const start = performance.now();
