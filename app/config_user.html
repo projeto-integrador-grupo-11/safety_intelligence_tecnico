@@ -830,6 +830,110 @@
       color: var(--red);
     }
 
+    /* ── SLACK ── */
+    .slack-connect {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+    }
+
+    .slack-connect-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .slack-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: #4A154B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #fff;
+      font-weight: 700;
+      font-size: 18px;
+      font-family: var(--mono);
+    }
+
+    .slack-connect-text .t1 {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--t1);
+      margin-bottom: 2px;
+    }
+
+    .slack-connect-text .t2 {
+      font-size: 11.5px;
+      color: var(--t3);
+      font-family: var(--mono);
+    }
+
+    .slack-status-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 3px rgba(var(--green-rgb), .15);
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .slack-status-dot.off {
+      background: var(--t4);
+      box-shadow: none;
+    }
+
+    .btn-slack {
+      background: #4A154B;
+      color: #fff;
+      border-color: #2E0D2F;
+      box-shadow: 0 1px 3px rgba(74, 21, 75, .3);
+    }
+
+    .btn-slack:hover {
+      background: #611f63;
+    }
+
+    .notif-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .notif-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 11px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+    }
+
+    .notif-item-text .t1 {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--t1);
+    }
+
+    .notif-item-text .t2 {
+      font-size: 11px;
+      color: var(--t3);
+      margin-top: 1px;
+    }
+
     /* ── DIVIDER ── */
     .divider {
       height: 1px;
@@ -1003,6 +1107,9 @@
         <button class="sb-item">
           <span class="sb-icon"></span> Notificações
         </button>
+        <button class="sb-item" onclick="document.getElementById('card-slack').scrollIntoView({behavior:'smooth'})">
+          <span class="sb-icon">#</span> Slack
+        </button>
       </nav>
 
       <div class="sb-footer">
@@ -1163,6 +1270,105 @@
           </div>
         </div>
 
+        <!-- CARD: INTEGRAÇÃO SLACK -->
+        <div class="card" id="card-slack">
+          <div class="card-header">
+            <div class="card-header-body">
+              <div class="card-title">Integração com Slack</div>
+              <div class="card-sub">Conecte sua conta para receber alertas e relatórios diretamente no Slack</div>
+            </div>
+            <span class="card-badge badge-green" id="slack-badge">
+              <span class="slack-status-dot" id="slack-dot"></span>Conectado
+            </span>
+          </div>
+          <div class="card-body">
+
+            <!-- Connect block -->
+            <div class="slack-connect">
+              <div class="slack-connect-info">
+                <div class="slack-logo">#</div>
+                <div class="slack-connect-text">
+                  <div class="t1" id="slack-workspace">Workspace: Safety Intelligence</div>
+                  <div class="t2" id="slack-user">conectado como @gustavo.santiago</div>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btn-slack-toggle" onclick="toggleSlackConnection()">Desconectar</button>
+            </div>
+
+            <!-- Channel + mention -->
+            <div class="input-row" style="margin-top:16px">
+              <div class="field">
+                <label class="field-label">Canal padrão</label>
+                <select id="slack-channel">
+                  <option value="#alertas-seguranca">#alertas-seguranca</option>
+                  <option value="#operacoes">#operacoes</option>
+                  <option value="#geral">#geral</option>
+                  <option value="dm">Mensagem direta</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label">Mencionar (@usuário)</label>
+                <input type="text" id="slack-mention" placeholder="@gustavo.santiago">
+              </div>
+            </div>
+
+            <div class="divider" style="margin-top:18px"></div>
+
+            <!-- Notification types -->
+            <div class="field" style="margin-top:14px">
+              <label class="field-label">Notificações no Slack</label>
+            </div>
+            <div class="notif-list">
+              <div class="notif-item">
+                <div class="notif-item-text">
+                  <div class="t1">Alertas críticos de segurança</div>
+                  <div class="t2">Incidentes de alta prioridade detectados em tempo real</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" checked>
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+              <div class="notif-item">
+                <div class="notif-item-text">
+                  <div class="t1">Relatórios diários</div>
+                  <div class="t2">Resumo das ocorrências do dia, enviado às 18h</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" checked>
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+              <div class="notif-item">
+                <div class="notif-item-text">
+                  <div class="t1">Menções e comentários</div>
+                  <div class="t2">Quando alguém te marca em uma ocorrência ou painel</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox">
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+              <div class="notif-item">
+                <div class="notif-item-text">
+                  <div class="t1">Novos cadastros</div>
+                  <div class="t2">Notificar quando um novo usuário for adicionado à organização</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox">
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px">
+              <button class="btn btn-secondary btn-sm" onclick="testarSlack()">Enviar mensagem teste</button>
+              <button class="btn btn-slack btn-sm" onclick="salvarSlack()">Salvar integração</button>
+            </div>
+
+          </div>
+        </div>
+
         <!-- CARD: SESSÕES ATIVAS -->
         <div class="card">
           <div class="card-header">
@@ -1276,6 +1482,56 @@
       fill.style.background = lvl.color;
       label.textContent = lvl.txt;
       label.style.color = lvl.color;
+    }
+
+    // Slack
+    let slackConectado = true;
+
+    function toggleSlackConnection() {
+      const badge = document.getElementById('slack-badge');
+      const dot = document.getElementById('slack-dot');
+      const btn = document.getElementById('btn-slack-toggle');
+      const ws = document.getElementById('slack-workspace');
+      const user = document.getElementById('slack-user');
+
+      slackConectado = !slackConectado;
+
+      if (slackConectado) {
+        badge.className = 'card-badge badge-green';
+        badge.innerHTML = '<span class="slack-status-dot" id="slack-dot"></span>Conectado';
+        btn.textContent = 'Desconectar';
+        btn.className = 'btn btn-secondary btn-sm';
+        ws.textContent = 'Workspace: Safety Intelligence';
+        user.textContent = 'conectado como @gustavo.santiago';
+      } else {
+        badge.className = 'card-badge badge-red';
+        badge.innerHTML = '<span class="slack-status-dot off" id="slack-dot"></span>Desconectado';
+        btn.textContent = 'Conectar com Slack';
+        btn.className = 'btn btn-slack btn-sm';
+        ws.textContent = 'Nenhum workspace conectado';
+        user.textContent = 'autorize o app para receber notificações';
+      }
+    }
+
+    function testarSlack() {
+      if (!slackConectado) {
+        alert('Conecte sua conta do Slack antes de enviar uma mensagem teste.');
+        return;
+      }
+      const canal = document.getElementById('slack-channel').value;
+      alert('Mensagem teste enviada para ' + canal + ' ✓');
+    }
+
+    function salvarSlack() {
+      if (!slackConectado) {
+        alert('Conecte sua conta do Slack para salvar a integração.');
+        return;
+      }
+      const canal = document.getElementById('slack-channel').value;
+      const mention = document.getElementById('slack-mention').value;
+      // TODO: integrar com backend
+      console.log('Slack config:', { canal, mention });
+      alert('Configurações do Slack salvas com sucesso!');
     }
 
     function handleSair() {

@@ -37,7 +37,6 @@ body {
     background: var(--c-bg);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    overflow: hidden;
 }
 
 /* ============================
@@ -99,7 +98,6 @@ body {
     display: grid;
     grid-template-columns: 1fr 1.1fr;
     min-height: 100vh;
-    height: 100vh;
 }
 
 .posicao::before {
@@ -354,11 +352,52 @@ body {
 .input-wrap input.is-valid {
     border-color: var(--c-success);
     background: rgba(22, 163, 74, .04);
+    padding-right: 40px;
 }
 
 .input-wrap input.is-invalid {
     border-color: var(--c-danger);
     background: rgba(225, 29, 72, .04);
+    padding-right: 40px;
+    animation: shake .28s var(--ease);
+}
+
+.input-wrap input.is-valid + .status-icon .ic-ok,
+.input-wrap input.is-invalid + .status-icon .ic-err {
+    display: block;
+}
+
+/* quando há toggle-pw (campos de senha), empurra o status-icon p/ a esquerda */
+.input-wrap input.is-valid ~ .toggle-pw,
+.input-wrap input.is-invalid ~ .toggle-pw {
+    right: 40px;
+}
+
+.status-icon {
+    position: absolute;
+    right: 12px;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.status-icon svg {
+    display: none;
+    width: 18px;
+    height: 18px;
+}
+
+.status-icon .ic-ok  { color: var(--c-success); }
+.status-icon .ic-err { color: var(--c-danger); }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-4px); }
+    50%      { transform: translateX(4px); }
+    75%      { transform: translateX(-2px); }
 }
 
 .toggle-pw {
@@ -416,6 +455,19 @@ body {
 .pw-bars[data-strength="2"] .pw-bar:nth-child(-n+2) { background: var(--c-warn); }
 .pw-bars[data-strength="3"] .pw-bar:nth-child(-n+3) { background: var(--c-accent); }
 .pw-bars[data-strength="4"] .pw-bar { background: var(--c-success); }
+
+.pw-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    color: var(--c-ink-3);
+    margin-bottom: 8px;
+}
+.pw-label[data-strength="1"] { color: var(--c-danger); }
+.pw-label[data-strength="2"] { color: var(--c-warn); }
+.pw-label[data-strength="3"] { color: var(--c-accent); }
+.pw-label[data-strength="4"] { color: var(--c-success); }
 
 .pw-rules {
     list-style: none;
@@ -598,7 +650,6 @@ body {
     .brand-panel { display: none; }
     .form-side {
         padding: 40px 24px;
-        min-height: 100vh;
     }
 }
 

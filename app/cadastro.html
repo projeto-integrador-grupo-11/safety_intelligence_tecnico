@@ -66,8 +66,13 @@
                             <circle cx="12" cy="8" r="4"/>
                             <path d="M4 21a8 8 0 0 1 16 0"/>
                         </svg>
-                        <input type="text" id="ipt_nome" placeholder="Como devemos te chamar?">
+                        <input type="text" oninput="validarNome()" id="ipt_nome" placeholder="Como devemos te chamar?">
+                        <span class="status-icon" aria-hidden="true">
+                            <svg class="ic-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg>
+                            <svg class="ic-err" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+                        </span>
                     </div>
+                    <div class="field-feedback" id="div_nome"></div>
                 </div>
 
                 <div class="field">
@@ -78,6 +83,10 @@
                             <path d="m3 7 9 6 9-6"/>
                         </svg>
                         <input type="email" oninput="analisarEmail()" id="ipt_email" placeholder="seu@email.com">
+                        <span class="status-icon" aria-hidden="true">
+                            <svg class="ic-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg>
+                            <svg class="ic-err" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+                        </span>
                     </div>
                     <div class="field-feedback" id="div_email"></div>
                 </div>
@@ -104,7 +113,15 @@
                             <span class="pw-bar"></span>
                             <span class="pw-bar"></span>
                         </div>
+                        <span class="pw-label" id="pw_label">Força da senha</span>
                     </div>
+                    <ul class="pw-rules" id="pw_rules">
+                        <li data-rule="len">Mínimo 8 caracteres</li>
+                        <li data-rule="upp">1 letra maiúscula</li>
+                        <li data-rule="low">1 letra minúscula</li>
+                        <li data-rule="num">1 número</li>
+                        <li data-rule="spc">1 caractere especial (!@#$%&amp;*)</li>
+                    </ul>
                 </div>
 
                 <div class="field">
@@ -115,12 +132,18 @@
                             <rect x="4" y="4" width="16" height="16" rx="3"/>
                         </svg>
                         <input oninput="confirmarSenha()" id="ipt_confSenha" type="password" placeholder="Repita a senha">
+                        <button type="button" class="toggle-pw" aria-label="Mostrar senha" onclick="togglePw(this)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
                     </div>
                     <div class="field-feedback" id="div_confirmSenha"></div>
                 </div>
 
-                <p class="login">Já tem uma conta? <a href="/cadastro.html">entrar</a></p>
-                <button onclick="cadastrar()" class="cadastrar">Criar conta</button>
+                <p class="login">Já tem uma conta? <a href="/login.html">entrar</a></p>
+                <button onclick="cadastrar()" id="btn_cadastrar" class="cadastrar" disabled>Criar conta</button>
 
         </section>
     </div>
@@ -133,9 +156,42 @@
     var listaCaracteres = ['!', '@', '#', '$', '%', '&', '*'];
     var listaNumeros = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
 
+    var nomeValido = false;
     var emailValido = false;
     var senhaValida = false;
     var confirmValido = false;
+
+    function atualizarBotao() {
+        document.getElementById('btn_cadastrar').disabled =
+            !(nomeValido && emailValido && senhaValida && confirmValido);
+    }
+
+    function validarNome() {
+        var nome = ipt_nome.value.trim();
+        var fb = div_nome;
+        if (!nome) {
+            fb.innerHTML = "";
+            setClass(ipt_nome, 'is-valid', false);
+            setClass(ipt_nome, 'is-invalid', false);
+            nomeValido = false;
+        } else if (nome.length < 3) {
+            fb.innerHTML = '<span class="err">O nome precisa ter ao menos 3 caracteres</span>';
+            setClass(ipt_nome, 'is-invalid', true);
+            setClass(ipt_nome, 'is-valid', false);
+            nomeValido = false;
+        } else if (!/^[A-Za-zÀ-ÿ\s'-]+$/.test(nome)) {
+            fb.innerHTML = '<span class="err">Use apenas letras e espaços</span>';
+            setClass(ipt_nome, 'is-invalid', true);
+            setClass(ipt_nome, 'is-valid', false);
+            nomeValido = false;
+        } else {
+            fb.innerHTML = '<span class="ok">Nome válido</span>';
+            setClass(ipt_nome, 'is-valid', true);
+            setClass(ipt_nome, 'is-invalid', false);
+            nomeValido = true;
+        }
+        atualizarBotao();
+    }
 
     function togglePw(btn) {
         var input = btn.parentElement.querySelector('input');
@@ -149,7 +205,7 @@
     }
 
     function cadastrar() {
-        if (senhaValida && confirmValido && emailValido) {
+        if (nomeValido && senhaValida && confirmValido && emailValido) {
             var nome = ipt_nome.value;
             var email = ipt_email.value;
             var senha = ipt_senha.value;
@@ -194,7 +250,9 @@
             setClass(input, 'is-valid', true);
             setClass(input, 'is-invalid', false);
             emailValido = true;
+            atualizarBotao();
         }
+        
     }
 
     function validarSenha() {
@@ -227,6 +285,7 @@
         setClass(ipt_senha, 'is-invalid', senha.length > 0 && !senhaValida);
 
         if (ipt_confSenha.value) confirmarSenha();
+        
     }
 
     function confirmarSenha() {
@@ -250,6 +309,7 @@
             setClass(ipt_confSenha, 'is-valid', true);
             setClass(ipt_confSenha, 'is-invalid', false);
             confirmValido = true;
+            atualizarBotao();
         }
     }
 </script>
