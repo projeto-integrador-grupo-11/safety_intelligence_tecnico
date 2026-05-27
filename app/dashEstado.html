@@ -1234,6 +1234,40 @@
       box-shadow: 0 0 12px rgba(59, 130, 246, 0.15)
     }
 
+    /* FAVORITAR (★) */
+    .fav-btn {
+      background: transparent;
+      border: 1px solid rgba(148, 163, 184, .35);
+      color: #94a3b8;
+      border-radius: 8px;
+      width: 32px;
+      height: 30px;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      transition: color .15s, background .15s, border-color .15s, transform .12s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .fav-btn:hover {
+      color: #F5A623;
+      border-color: rgba(245, 166, 35, .45);
+      background: rgba(245, 166, 35, .08);
+    }
+
+    .fav-btn:active {
+      transform: scale(.92);
+    }
+
+    .fav-btn.is-fav {
+      color: #F5A623;
+      border-color: rgba(245, 166, 35, .55);
+      background: rgba(245, 166, 35, .12);
+    }
+
     /* EMPTY STATE */
     .empty-state {
       display: flex;
@@ -1282,6 +1316,7 @@
     }
   </style>
   <script src="/public/js/auth.js"></script>
+  <script src="/public/js/cidadesFixadas.js"></script>
   <script>
     if (window.Auth) window.Auth.protegerPagina();
   </script>
@@ -1396,30 +1431,33 @@
         </div>
        
 
-         <div class="kpi-card c-yellow">
-            <div class="tooltip-container">
-              <button class="tooltip-btn" aria-describedby="tooltip-kpi">
-                ?
-              </button>
-
-              <div class="tooltip-content" id="tooltip-kpi">
-               É quantidade residências por casa, segundo dados do IBGE (população / residência )
-              </div>
-            </div>
+        <!-- Mercado Imobiliário -->
+        <div class="kpi-card c-yellow" id="kpi-card-mercado">
           <div class="kpi-head">
             <div class="kpi-lbl">Mercado imobiliário</div>
+            <div class="tooltip-container">
+              <button class="tooltip-btn" aria-describedby="tooltip-kpi-mercado">?</button>
+              <div class="tooltip-content" id="tooltip-kpi-mercado">
+                Indicador de demanda habitacional com base na concentração populacional
+                (cidades grandes e metrópoles) e no IDHM médio dos municípios do estado.
+                Fonte: IBGE · PNUD.
+              </div>
+            </div>
+            <div class="kpi-badge b-y" id="kpi-badge-mercado">—</div>
           </div>
           <div class="kpi-main">
-            <div class="kpi-txt" id="kv-furto" style="color: var(--green) ">ALTA</div>
+            <div class="kpi-txt" id="kv-mercado">—</div>
           </div>
-          <br>
-          <div class="kpi-ctx"><strong>Alta</strong> densidade populacional, indica <strong>grande</strong> procura por mais imoveis</div>
-         
+          <div class="kpi-ctx" id="kpi-ctx-mercado">Carregando análise do mercado…</div>
+          <div class="kpi-bar">
+            <div class="kpi-bar-fill" id="pb-mercado" style="width:0%;background:linear-gradient(90deg,#24A148,#1f8647)"></div>
+          </div>
         </div>
         </div>
 
       <p class="kpi-fonte">
-        Fonte: <strong>Dados Nacionais de Segurança Pública do Governo Federal</strong>
+        Fonte: <strong>Dados Nacionais de Segurança Pública do Governo Federal</strong> ·
+        <strong>IBGE / PNUD</strong> (população e IDHM)
       </p>
 
         <!-- CONTROLS -->
@@ -1461,6 +1499,7 @@
                 <th onclick="sortBy('pop')" id="th-pop">População <span class="sort-arrow">↕</span></th>
                 <th onclick="sortBy('idhm')" id="th-idhm" class="sorted">IDHM <span class="sort-arrow">↓</span></th>
                 <th>Classificação</th>
+                <th>Fixar</th>
                 <th>Dashboard</th>
               </tr>
             </thead>
@@ -1764,12 +1803,36 @@
           clsPop != null
             ? `<span class="idhm-badge pop-${clsPop}"><span class="idhm-dot"></span>${lblPop}</span>`
             : '—';
+        const fixavel = {
+          id: idStr ? Number(idStr) : null,
+          nome: c.nome,
+          uf: estadoAtual.uf,
+          estado: estadoAtual.nome,
+          idhm: idhmVal,
+        };
+        const fixada = window.CidadesFixadas
+          ? window.CidadesFixadas.estaFixada(fixavel)
+          : false;
+        const tituloFav = fixada ? 'Remover de Cidades fixadas' : 'Fixar cidade';
+        const estrela = fixada ? '★' : '☆';
         return `
       <tr>
         <td>${escapeHtml(c.nome)}</td>
         <td class="mono">${fmtPop(c.pop)}</td>
         <td class="mono">${idhmTxt}</td>
         <td>${celulaClassificacao}</td>
+        <td>
+          <button
+            type="button"
+            class="fav-btn${fixada ? ' is-fav' : ''}"
+            data-mun-id="${idStr}"
+            data-mun-nome="${nomeEnc}"
+            data-mun-idhm="${idhmVal != null ? idhmVal : ''}"
+            title="${tituloFav}"
+            aria-label="${tituloFav}"
+            aria-pressed="${fixada ? 'true' : 'false'}"
+          >${estrela}</button>
+        </td>
         <td><button type="button" class="dash-btn" data-mun-id="${idStr}" data-mun-nome="${nomeEnc}">↗ Acessar</button></td>
       </tr>`;
       }).join('');
@@ -1836,6 +1899,52 @@
       }
       redirecionar(id, nome);
     });
+
+    document.getElementById('listaCidades').addEventListener('click', function (e) {
+      const btn = e.target.closest('.fav-btn');
+      if (!btn) return;
+      if (!window.CidadesFixadas) return;
+
+      const idAttr = btn.getAttribute('data-mun-id');
+      const nomeEnc = btn.getAttribute('data-mun-nome');
+      const idhmAttr = btn.getAttribute('data-mun-idhm');
+      const id =
+        idAttr && idAttr !== '' && !Number.isNaN(Number(idAttr)) ? Number(idAttr) : null;
+      let nome = '';
+      try {
+        nome = nomeEnc ? decodeURIComponent(nomeEnc) : '';
+      } catch (err) {
+        nome = '';
+      }
+      const idhm =
+        idhmAttr && idhmAttr !== '' && !Number.isNaN(Number(idhmAttr))
+          ? Number(idhmAttr)
+          : null;
+
+      const cidade = {
+        id: id,
+        nome: nome,
+        uf: estadoAtual.uf,
+        estado: estadoAtual.nome,
+        idhm: idhm,
+      };
+
+      const ficouFixada = window.CidadesFixadas.alternar(cidade);
+      btn.classList.toggle('is-fav', ficouFixada);
+      btn.textContent = ficouFixada ? '★' : '☆';
+      btn.setAttribute('aria-pressed', ficouFixada ? 'true' : 'false');
+      const titulo = ficouFixada
+        ? 'Remover de Cidades fixadas'
+        : 'Fixar cidade';
+      btn.setAttribute('title', titulo);
+      btn.setAttribute('aria-label', titulo);
+    });
+
+    if (window.CidadesFixadas && typeof window.CidadesFixadas.aoMudar === 'function') {
+      window.CidadesFixadas.aoMudar(function () {
+        render(getFiltered());
+      });
+    }
 
     // COUNT-UP ANIMATION
     function countUp(el, target, isFloat, dur) {
@@ -2161,7 +2270,7 @@
     async function carregarMunicipios() {
       const tbody = document.getElementById('listaCidades');
       const empty = document.getElementById('emptyState');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Carregando municípios…</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Carregando municípios…</td></tr>';
       empty.style.display = 'none';
 
       try {
@@ -2203,6 +2312,7 @@
           topIdhm: insightMun.topIdhm,
           carregando: false,
         });
+        renderizarKpiMercadoImobiliario(cidades);
       } catch (erro) {
         console.error(erro);
         cidades = [];
@@ -2213,6 +2323,172 @@
         empty.querySelector('.empty-sub').textContent =
           erro.message || 'Execute o JAR do leitor Excel ou configure o acesso ao S3.';
         document.getElementById('countLabel').textContent = '0';
+        renderizarKpiMercadoImobiliario([]);
+      }
+    }
+
+    function calcularMercadoImobiliario(lista) {
+      var comPop = (lista || []).filter(function (c) {
+        var p = Number(c.pop);
+        return p != null && !Number.isNaN(p) && p > 0;
+      });
+
+      if (!comPop.length) {
+        return { disponivel: false };
+      }
+
+      var popTotal = 0;
+      var popGrandes = 0;
+      var qtdMetro = 0;
+      var qtdGrandes = 0;
+      var somaIdhm = 0;
+      var qtdIdhm = 0;
+
+      comPop.forEach(function (c) {
+        var p = Number(c.pop);
+        popTotal += p;
+
+        if (p > 1000000) qtdMetro++;
+        if (p >= 200000) {
+          popGrandes += p;
+          qtdGrandes++;
+        }
+
+        var idhm = obterIdhm(c);
+        if (idhm != null) {
+          somaIdhm += idhm;
+          qtdIdhm++;
+        }
+      });
+
+      var pctPopGrandes = popTotal > 0 ? (popGrandes / popTotal) * 100 : 0;
+      var idhmMedio = qtdIdhm > 0 ? somaIdhm / qtdIdhm : null;
+
+      var nivel = 'BAIXA';
+      if (pctPopGrandes >= 55 || qtdMetro >= 2 || (pctPopGrandes >= 35 && idhmMedio != null && idhmMedio >= 0.72)) {
+        nivel = 'ALTA';
+      } else if (pctPopGrandes >= 18 || qtdGrandes >= 3 || (idhmMedio != null && idhmMedio >= 0.68)) {
+        nivel = 'MÉDIA';
+      }
+
+      return {
+        disponivel: true,
+        nivel: nivel,
+        popTotal: popTotal,
+        pctPopGrandes: pctPopGrandes,
+        qtdGrandes: qtdGrandes,
+        qtdMetro: qtdMetro,
+        idhmMedio: idhmMedio,
+      };
+    }
+
+    function visualMercadoImobiliario(dados) {
+      if (dados.nivel === 'ALTA') {
+        return {
+          card: 'c-green',
+          badgeCls: 'b-g',
+          badgeTxt: 'Alta demanda',
+          corTxt: 'var(--green)',
+          barPct: Math.min(100, Math.max(20, Math.round(dados.pctPopGrandes))),
+          barBg: 'linear-gradient(90deg,#24A148,#1f8647)',
+        };
+      }
+      if (dados.nivel === 'MÉDIA') {
+        return {
+          card: 'c-yellow',
+          badgeCls: 'b-y',
+          badgeTxt: 'Demanda moderada',
+          corTxt: 'var(--yellow)',
+          barPct: Math.min(100, Math.max(15, Math.round(dados.pctPopGrandes))),
+          barBg: 'linear-gradient(90deg,#F59E0B,#FCD34D)',
+        };
+      }
+      return {
+        card: 'c-orange',
+        badgeCls: 'b-o',
+        badgeTxt: 'Demanda localizada',
+        corTxt: 'var(--orange, #c2410c)',
+        barPct: Math.min(100, Math.max(8, Math.round(dados.pctPopGrandes))),
+        barBg: 'linear-gradient(90deg,#F97316,#FB923C)',
+      };
+    }
+
+    function textoMercadoImobiliario(dados) {
+      var pct = dados.pctPopGrandes.toFixed(1).replace('.', ',');
+      var idhm =
+        dados.idhmMedio != null
+          ? dados.idhmMedio.toFixed(3).replace('.', ',')
+          : null;
+
+      if (dados.nivel === 'ALTA') {
+        return (
+          '<strong>' +
+          pct +
+          '%</strong> da população está em cidades grandes ou metrópoles' +
+          (idhm ? ', com IDHM médio de <strong>' + idhm + '</strong>.' : '.') +
+          ' Indica <strong>forte</strong> procura por novos imóveis.'
+        );
+      }
+      if (dados.nivel === 'MÉDIA') {
+        return (
+          '<strong>' +
+          pct +
+          '%</strong> da população em cidades acima de 200 mil habitantes' +
+          (dados.qtdGrandes ? ' (<strong>' + dados.qtdGrandes + '</strong> municípios)' : '') +
+          '. Mercado com potencial <strong>moderado</strong> de expansão.'
+        );
+      }
+      return (
+        'Predominância de cidades menores' +
+        (idhm ? ', IDHM médio <strong>' + idhm + '</strong>' : '') +
+        '. Demanda habitacional tende a ser mais <strong>localizada</strong>.'
+      );
+    }
+
+    function renderizarKpiMercadoImobiliario(lista) {
+      var elVal = document.getElementById('kv-mercado');
+      var elCtx = document.getElementById('kpi-ctx-mercado');
+      var elBadge = document.getElementById('kpi-badge-mercado');
+      var elBar = document.getElementById('pb-mercado');
+      var elCard = document.getElementById('kpi-card-mercado');
+      if (!elVal || !elCtx) return;
+
+      var dados = calcularMercadoImobiliario(lista);
+
+      if (!dados.disponivel) {
+        elVal.textContent = '—';
+        elVal.style.color = 'var(--t3)';
+        elCtx.textContent = 'Dados de população indisponíveis para este estado.';
+        if (elBadge) {
+          elBadge.classList.remove('b-r', 'b-o', 'b-g');
+          elBadge.classList.add('b-y');
+          elBadge.textContent = 'Indisponível';
+        }
+        return;
+      }
+
+      var visual = visualMercadoImobiliario(dados);
+
+      if (elCard) {
+        elCard.classList.remove('c-red', 'c-orange', 'c-yellow', 'c-green');
+        elCard.classList.add(visual.card);
+      }
+      if (elBadge) {
+        elBadge.classList.remove('b-r', 'b-o', 'b-y', 'b-g');
+        elBadge.classList.add(visual.badgeCls);
+        elBadge.textContent = visual.badgeTxt;
+      }
+
+      elVal.textContent = dados.nivel;
+      elVal.style.color = visual.corTxt;
+      elCtx.innerHTML = textoMercadoImobiliario(dados);
+
+      if (elBar) {
+        elBar.style.background = visual.barBg;
+        elBar.style.width = '0%';
+        setTimeout(function () {
+          elBar.style.width = visual.barPct + '%';
+        }, 200);
       }
     }
 

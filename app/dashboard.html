@@ -523,16 +523,21 @@
       border-radius: var(--radius-md);
       padding: 10px 12px;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
+      gap: 10px;
       transition: box-shadow .15s;
+      cursor: pointer;
     }
 
     .kpi-ref-card:hover {
       box-shadow: var(--shadow-sm);
     }
 
-    .kpi-ref-left {}
+    .kpi-ref-left {
+      min-width: 0;
+      flex: 1;
+    }
 
     .kpi-ref-label {
       font-size: 10px;
@@ -547,10 +552,14 @@
       font-weight: 500;
       color: var(--text-1);
       margin-top: 1px;
+      line-height: 1.35;
+      word-break: break-word;
     }
 
     .kpi-ref-right {
+      flex-shrink: 0;
       text-align: right;
+      white-space: nowrap;
     }
 
     .kpi-ref-val {
@@ -567,6 +576,7 @@
       border-radius: 8px;
       margin-top: 2px;
       letter-spacing: .3px;
+      white-space: nowrap;
     }
 
     .badge-green {
@@ -810,8 +820,6 @@
       flex-shrink: 0;
     }
 
-    .mapa_titulo-group {}
-
     .mapa_titulo {
       font-size: 16px;
       font-weight: 500;
@@ -867,8 +875,49 @@
       cursor: pointer;
     }
 
-    #mapa_brasil svg .state.selecionado {
-      fill: #4DA3D9;
+    .mapa-tooltip {
+      position: absolute;
+      z-index: 20;
+      pointer-events: none;
+      min-width: 160px;
+      max-width: 220px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 24px rgba(11, 60, 93, 0.18);
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--text-2);
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .mapa-tooltip.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .mapa-tooltip strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 4px;
+    }
+
+    .mapa-tooltip-val {
+      display: block;
+      font-weight: 600;
+      color: var(--blue);
+    }
+
+    .mapa-tooltip-rank {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--text-3);
     }
 
     #mapa_brasil svg .mapa-rotulos-uf .mapa-rotulo-uf {
@@ -1066,7 +1115,7 @@
 
     .painel-cols {
       display: grid;
-      grid-template-columns: 1fr 80px 100px;
+      grid-template-columns: 1fr 70px 130px;
       padding: 8px 20px;
       font-size: 10px;
       text-transform: uppercase;
@@ -1083,7 +1132,7 @@
 
     .painel-item {
       display: grid;
-      grid-template-columns: 1fr 80px 100px;
+      grid-template-columns: 1fr 70px 130px;
       align-items: center;
       padding: 10px 20px;
       border-bottom: 1px solid var(--border);
@@ -1097,6 +1146,16 @@
 
     .painel-cidade {
       font-weight: 500;
+      line-height: 1.25;
+    }
+
+    .painel-cidade-uf {
+      font-size: 10px;
+      color: var(--text-3);
+      font-weight: 500;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      margin-top: 2px;
     }
 
     .painel-idh {
@@ -1104,6 +1163,13 @@
       font-size: 12px;
       font-weight: 500;
       color: var(--blue-md);
+    }
+
+    .painel-acoes {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
     }
 
     .painel-btn {
@@ -1116,7 +1182,7 @@
       cursor: pointer;
       color: var(--text-1);
       font-family: var(--font-body);
-      transition: background .1s, color .1s;
+      transition: background .1s, color .1s, border-color .1s;
       text-align: center;
     }
 
@@ -1124,6 +1190,29 @@
       background: var(--blue-dk);
       color: #fff;
       border-color: var(--blue-dk);
+    }
+
+    .painel-remover {
+      width: 26px;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid var(--border-md);
+      border-radius: var(--radius-sm);
+      color: var(--text-3);
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+      transition: background .1s, color .1s, border-color .1s;
+    }
+
+    .painel-remover:hover {
+      color: #fff;
+      background: #C0392B;
+      border-color: #C0392B;
     }
 
     .painel-empty {
@@ -1182,6 +1271,7 @@
     }
   </style>
   <script src="/public/js/auth.js"></script>
+  <script src="/public/js/cidadesFixadas.js"></script>
   <script>
     if (window.Auth) window.Auth.protegerPagina();
   </script>
@@ -1236,7 +1326,7 @@
         <div class="selected-rank" id="selected-rank"></div>
       </div>
       <div class="insight-banner" id="insight-banner">
-        <div class="insight-tag">Análise · IDH</div>
+        <div class="insight-tag">Análise · Atratividade</div>
         <div class="insight-text" id="insight-text">—</div>
       </div>
       <button type="button" class="btn-fixadas" id="btn-fixadas">
@@ -1246,34 +1336,44 @@
       <div class="divider"></div>
       <div>
         <div class="sidebar-section-label">Referências nacionais</div>
-        <div class="kpi-refs">
-          <div class="kpi-ref-card">
+        <div class="kpi-refs" id="kpi-refs-nacionais">
+          <div class="kpi-ref-card" data-ref="idhm_geral" role="link" tabindex="0" aria-label="Ver município com maior IDHM geral">
             <div class="kpi-ref-left">
-              <div class="kpi-ref-label">Maior crescimento IDH</div>
-              <div class="kpi-ref-name">Distrito Federal</div>
+              <div class="kpi-ref-label">Maior IDHM geral</div>
+              <div class="kpi-ref-name">…</div>
             </div>
             <div class="kpi-ref-right">
-              <div class="kpi-ref-val val-green">0,824</div>
+              <div class="kpi-ref-val val-green">…</div>
               <div class="kpi-ref-badge badge-green">#1 Brasil</div>
             </div>
           </div>
-          <div class="kpi-ref-card">
+          <div class="kpi-ref-card" data-ref="longevidade" role="link" tabindex="0" aria-label="Ver município com maior longevidade">
             <div class="kpi-ref-left">
-              <div class="kpi-ref-label">Menor crime/população</div>
-              <div class="kpi-ref-name">Rio Grande do sul</div>
+              <div class="kpi-ref-label">Maior longevidade</div>
+              <div class="kpi-ref-name">…</div>
             </div>
             <div class="kpi-ref-right">
-              <div class="kpi-ref-val val-green">0,324</div>
+              <div class="kpi-ref-val val-green">…</div>
               <div class="kpi-ref-badge badge-green">#1 Brasil</div>
             </div>
           </div>
-          <div class="kpi-ref-card">
+          <div class="kpi-ref-card" data-ref="educacao" role="link" tabindex="0" aria-label="Ver município com maior educação">
+            <div class="kpi-ref-left">
+              <div class="kpi-ref-label">Maior educação</div>
+              <div class="kpi-ref-name">…</div>
+            </div>
+            <div class="kpi-ref-right">
+              <div class="kpi-ref-val val-green">…</div>
+              <div class="kpi-ref-badge badge-green">#1 Brasil</div>
+            </div>
+          </div>
+          <div class="kpi-ref-card" data-ref="renda" role="link" tabindex="0" aria-label="Ver município com maior renda">
             <div class="kpi-ref-left">
               <div class="kpi-ref-label">Maior renda</div>
-              <div class="kpi-ref-name">São Paulo</div>
+              <div class="kpi-ref-name">…</div>
             </div>
             <div class="kpi-ref-right">
-              <div class="kpi-ref-val val-green">0,800</div>
+              <div class="kpi-ref-val val-green">…</div>
               <div class="kpi-ref-badge badge-green">#1 Brasil</div>
             </div>
           </div>
@@ -1282,20 +1382,26 @@
 
       <div class="divider"></div>
       <div>
-        <div class="sidebar-section-label">Top 5 · maior população / residência</div>
+        <div class="sidebar-section-label">Top 5 · maior população</div>
         <div class="rank-list" id="rank-top"></div>
+        <div style="font-size:10px;color:var(--text-3);margin-top:6px;padding:0 4px;line-height:1.4">
+          *Estimativas de 2025 com base no IBGE
+        </div>
       </div>
 
       <div class="divider"></div>
       <div>
-        <div class="sidebar-section-label">Top 5 · maior poder aquisitivo</div>
+        <div class="sidebar-section-label">Top 5 · maior qualidade de vida</div>
         <div class="rank-list" id="rank-bot"></div>
+        <div style="font-size:10px;color:var(--text-3);margin-top:6px;padding:0 4px;line-height:1.4">
+          *Municípios com pontuações mais altas no IPS Brasil 2026
+        </div>
       </div>
 
       <div class="divider"></div>
 
       <div style="font-size:10px;color:var(--text-3);text-align:center;padding-bottom:4px">
-        Dados: PNUD · IBGE · 2021
+        Dados: PNUD · IBGE · IPS Brasil 2026
       </div>
 
     </aside>
@@ -1312,24 +1418,26 @@
         </header>
 
         <div class="wrapper-mapa">
-          <div class="mapa_conteudo" id="mapa_brasil" aria-label="Mapa interativo do Brasil" role="region"></div>
+          <div class="mapa_conteudo" id="mapa_brasil" aria-label="Mapa interativo do Brasil" role="region">
+            <div id="mapa_tooltip" class="mapa-tooltip" role="tooltip" aria-hidden="true" hidden></div>
+          </div>
 
-          <footer class="mapa_legenda" aria-label="Legenda do IDHM">
+          <footer class="mapa_legenda" aria-label="Legenda de atratividade imobiliária">
             <div class="tooltip-container">
               <button class="tooltip-btn" aria-describedby="tooltip-kpi">
                 ?
               </button>
 
               <div class="tooltip-content" id="tooltip-kpi">
-                É calculado com base em:
+                Índice composto (0 a 1), média ponderada pela população de cada estado:
                 <br><br>
-                • IDH (qualidade de vida)
+                • IDH municipal — 25%
                 <br>
-                • Segurança (nível de risco)
+                • Renda per capita — 25%
                 <br>
-                • Densidade (demanda urbana)
+                • Segurança (inverso de latrocínio + homicídio por 100 mil hab.) — 25%
                 <br>
-                • Renda (poder de compra)
+                • Densidade urbana (população municipal) — 25%
               </div>
             </div>
             <span class="mapa_leg-label">ATRATIVIDADE <br> IMOBILIÁRIA:</span>
@@ -1359,7 +1467,7 @@
       <div class="painel-cols">
         <span>Cidade</span>
         <span>IDHM</span>
-        <span></span>
+        <span style="text-align:right">Ações</span>
       </div>
       <div class="painel-lista" id="fixadas-lista">
         <div class="painel-empty">Nenhuma cidade fixada ainda.<br>Use ★ nos painéis estaduais.</div>
@@ -1369,7 +1477,7 @@
   <script src="public/js/dashboard.js"></script>
   <script>
     // ─── DATA ───
-    const STATES_DATA = [
+    const STATES_DATA_FALLBACK = [
       { sig: 'AC', name: 'Acre', idh: 0.663, rank: 22 },
       { sig: 'AL', name: 'Alagoas', idh: 0.631, rank: 27 },
       { sig: 'AP', name: 'Amapá', idh: 0.708, rank: 13 },
@@ -1399,12 +1507,23 @@
       { sig: 'TO', name: 'Tocantins', idh: 0.699, rank: 15 },
     ];
 
+    let STATES_DATA = STATES_DATA_FALLBACK.map(function (s) {
+      return Object.assign({}, s);
+    });
+    let NAT = 0.754;
+    let colorirEstadosMapa = null;
+
     function atribuirRanksPorIdh() {
-      const sorted = [...STATES_DATA].sort(function (a, b) {
+      const sorted = STATES_DATA.filter(function (s) {
+        return s.idh != null;
+      }).sort(function (a, b) {
         return b.idh - a.idh;
       });
       let pos = 0;
       let ultimoIdh = null;
+      STATES_DATA.forEach(function (s) {
+        if (s.idh == null) s.rank = null;
+      });
       sorted.forEach(function (s, i) {
         if (s.idh !== ultimoIdh) {
           pos = i + 1;
@@ -1417,9 +1536,43 @@
       });
     }
 
-    atribuirRanksPorIdh();
+    function aplicarDadosAtratividade(dados) {
+      if (!dados || !Array.isArray(dados.estados) || !dados.estados.length) return false;
 
-    const NAT = 0.754;
+      STATES_DATA = dados.estados.map(function (e) {
+        return {
+          sig: e.sig,
+          name: e.name,
+          idh: e.idh == null ? null : Number(e.idh),
+          rank: e.rank == null ? null : Number(e.rank),
+          municipios: e.municipios || 0,
+        };
+      });
+
+      if (dados.media_nacional != null && !isNaN(Number(dados.media_nacional))) {
+        NAT = Number(dados.media_nacional);
+      }
+
+      if (colorirEstadosMapa) colorirEstadosMapa();
+      return true;
+    }
+
+    function carregarAtratividadeEstados() {
+      return fetch('/municipios/atratividade-estados')
+        .then(function (res) {
+          return res.ok ? res.json() : null;
+        })
+        .catch(function () {
+          return null;
+        })
+        .then(function (dados) {
+          if (aplicarDadosAtratividade(dados)) return;
+          atribuirRanksPorIdh();
+          if (colorirEstadosMapa) colorirEstadosMapa();
+        });
+    }
+
+    atribuirRanksPorIdh();
 
     function idhColor(v) {
       if (!v) return '#CBD0D8';
@@ -1492,34 +1645,149 @@
     }
     function fmtIDH(v) { return v ? v.toFixed(3).replace('.', ',') : '—'; }
 
-    // ─── RANKING ───
-    function buildRankings() {
-      const sorted = [...STATES_DATA].sort((a, b) => b.idh - a.idh);
-      const top5 = sorted.slice(0, 5);
-      const bot5 = sorted.slice(-5).reverse();
-      const maxIDH = sorted[0].idh;
+    // ─── DADOS DE RANKING DE MUNICÍPIOS ───
+    // Top 5 municípios por população (IBGE - estimativa)
+    const TOP_POPULACAO = [
+      { sig: 'SP', name: 'São Paulo', val: 11451999, fmt: '11,45M' },
+      { sig: 'RJ', name: 'Rio de Janeiro', val: 6211423, fmt: '6,21M' },
+      { sig: 'DF', name: 'Brasília', val: 2817068, fmt: '2,82M' },
+      { sig: 'CE', name: 'Fortaleza', val: 2428708, fmt: '2,43M' },
+      { sig: 'BA', name: 'Salvador', val: 2418005, fmt: '2,42M' },
+    ];
 
-      function renderList(containerId, list, colorFn) {
-        const el = document.getElementById(containerId);
-        el.innerHTML = '';
-        list.forEach((s, i) => {
-          const pct = Math.round((s.idh / maxIDH) * 100);
-          const c = colorFn(s.idh);
-          const li = document.createElement('div');
-          li.className = 'rank-item';
-          li.dataset.sig = s.sig;
-          li.innerHTML = `
-        <span class="rank-num">${sorted.indexOf(s) + 1}</span>
-        <span class="rank-sig">${s.sig}</span>
-        <span class="rank-name">${s.name.length > 14 ? s.name.substring(0, 13) + '…' : s.name}</span>
-        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%;background:${c}"></div></div>
-        <span class="rank-val" style="color:${c}">${fmtIDH(s.idh)}</span>`;
-          li.addEventListener('click', () => selectState(s.sig));
-          el.appendChild(li);
-        });
+    // Top 5 municípios com maiores pontuações no IPS Brasil 2026
+    const TOP_IPS = [
+      { sig: 'SP', name: 'Gavião Peixoto', val: 73.10 },
+      { sig: 'SP', name: 'Jundiaí', val: 71.80 },
+      { sig: 'SP', name: 'Osvaldo Cruz', val: 71.76 },
+      { sig: 'SP', name: 'Pompéia', val: 71.76 },
+      { sig: 'PR', name: 'Curitiba', val: 71.29 },
+    ];
+
+    function fmtIPS(v) {
+      return v.toFixed(2).replace('.', ',');
+    }
+
+    function urlDashMunicipio(sig, nomeMunicipio) {
+      const estado = STATES_DATA.find(x => x.sig === sig);
+      const params = new URLSearchParams({ uf: sig });
+      if (estado && estado.name) params.set('estado', estado.name);
+      if (nomeMunicipio) params.set('nome', nomeMunicipio);
+      return '/dados.html?' + params.toString();
+    }
+
+    function selectMunicipio(sig, nomeMunicipio) {
+      window.location.href = urlDashMunicipio(sig, nomeMunicipio);
+    }
+
+    // ─── RANKING ───
+    function fmtRefNome(item) {
+      if (!item || !item.nome) return '—';
+      var uf = item.uf ? ' (' + item.uf + ')' : '';
+      return item.nome + uf;
+    }
+
+    function preencherRefCard(chave, item) {
+      var card = document.querySelector('.kpi-ref-card[data-ref="' + chave + '"]');
+      if (!card) return;
+      var nomeEl = card.querySelector('.kpi-ref-name');
+      var valEl = card.querySelector('.kpi-ref-val');
+      if (!item) {
+        if (nomeEl) nomeEl.textContent = '—';
+        if (valEl) valEl.textContent = '—';
+        delete card.dataset.uf;
+        delete card.dataset.nome;
+        delete card.dataset.id;
+        return;
       }
-      renderList('rank-top', top5, idhColor);
-      renderList('rank-bot', top5, idhColor);
+      if (nomeEl) nomeEl.textContent = fmtRefNome(item);
+      if (valEl) valEl.textContent = fmtIDH(Number(item.valor));
+      card.dataset.uf = item.uf || '';
+      card.dataset.nome = item.nome || '';
+      if (item.id != null) card.dataset.id = String(item.id);
+      else delete card.dataset.id;
+    }
+
+    function irParaRefCard(card) {
+      if (!card || !card.dataset.uf || !card.dataset.nome) return;
+      var params = new URLSearchParams({
+        uf: card.dataset.uf,
+        nome: card.dataset.nome,
+      });
+      if (card.dataset.id) params.set('id', card.dataset.id);
+      var estado = STATES_DATA.find(function (x) {
+        return x.sig === card.dataset.uf;
+      });
+      if (estado && estado.name) params.set('estado', estado.name);
+      window.location.href = '/dados.html?' + params.toString();
+    }
+
+    function carregarReferenciasNacionais() {
+      fetch('/municipios/referencias-nacionais')
+        .then(function (res) {
+          return res.ok ? res.json() : null;
+        })
+        .catch(function () {
+          return null;
+        })
+        .then(function (dados) {
+          if (!dados) return;
+          preencherRefCard('idhm_geral', dados.idhm_geral);
+          preencherRefCard('longevidade', dados.longevidade);
+          preencherRefCard('educacao', dados.educacao);
+          preencherRefCard('renda', dados.renda);
+        });
+    }
+
+    function buildRankings() {
+      renderRankPopulacao();
+      renderRankIPS();
+    }
+
+    function renderRankPopulacao() {
+      const el = document.getElementById('rank-top');
+      if (!el) return;
+      el.innerHTML = '';
+      const maxVal = TOP_POPULACAO[0].val;
+      const cor = '#1A5FAD';
+      TOP_POPULACAO.forEach((m, i) => {
+        const pct = Math.round((m.val / maxVal) * 100);
+        const li = document.createElement('div');
+        li.className = 'rank-item';
+        li.dataset.sig = m.sig;
+        li.dataset.municipio = m.name;
+        li.innerHTML = `
+        <span class="rank-num">${i + 1}</span>
+        <span class="rank-sig">${m.sig}</span>
+        <span class="rank-name">${m.name.length > 14 ? m.name.substring(0, 13) + '…' : m.name}</span>
+        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%;background:${cor}"></div></div>
+        <span class="rank-val" style="color:${cor}">${m.fmt}</span>`;
+        li.addEventListener('click', () => selectMunicipio(m.sig, m.name));
+        el.appendChild(li);
+      });
+    }
+
+    function renderRankIPS() {
+      const el = document.getElementById('rank-bot');
+      if (!el) return;
+      el.innerHTML = '';
+      const maxVal = TOP_IPS[0].val;
+      const cor = '#1D6A3A';
+      TOP_IPS.forEach((m, i) => {
+        const pct = Math.round((m.val / maxVal) * 100);
+        const li = document.createElement('div');
+        li.className = 'rank-item';
+        li.dataset.sig = m.sig;
+        li.dataset.municipio = m.name;
+        li.innerHTML = `
+        <span class="rank-num">${i + 1}</span>
+        <span class="rank-sig">${m.sig}</span>
+        <span class="rank-name">${m.name.length > 14 ? m.name.substring(0, 13) + '…' : m.name}</span>
+        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%;background:${cor}"></div></div>
+        <span class="rank-val" style="color:${cor}">${fmtIPS(m.val)}</span>`;
+        li.addEventListener('click', () => selectMunicipio(m.sig, m.name));
+        el.appendChild(li);
+      });
     }
 
     function urlDashEstado(sig, name) {
@@ -1537,7 +1805,7 @@
 
     function selectStateHover(sig) {
       const s = STATES_DATA.find(x => x.sig === sig);
-      if (!s) return;
+      if (!s || s.idh == null) return;
       const diff = (s.idh - NAT);
       const diffStr = (diff >= 0 ? '+' : '') + diff.toFixed(3).replace('.', ',');
       const diffClass = diff >= 0 ? 'delta-up' : diff > -0.05 ? 'delta-nt' : 'delta-dn';
@@ -1583,9 +1851,80 @@
     const MAPA_HOVER_FILL = '#4DA3D9';
     const MAPA_HOVER_STROKE = '#0C3B6E';
     let estadoHoverAtivo = null;
+    let mapaTooltipEl = null;
 
     function sigEstado(el) {
       return (el.dataset.uf || el.dataset.id || el.id || '').toUpperCase();
+    }
+
+    function dadosEstado(sig) {
+      return STATES_DATA.find(function (x) {
+        return x.sig === sig;
+      });
+    }
+
+    function garantirTooltipMapa(container) {
+      if (mapaTooltipEl && container.contains(mapaTooltipEl)) return mapaTooltipEl;
+      mapaTooltipEl = container.querySelector('#mapa_tooltip');
+      if (!mapaTooltipEl) {
+        mapaTooltipEl = document.createElement('div');
+        mapaTooltipEl.id = 'mapa_tooltip';
+        mapaTooltipEl.className = 'mapa-tooltip';
+        mapaTooltipEl.setAttribute('role', 'tooltip');
+        mapaTooltipEl.hidden = true;
+        mapaTooltipEl.setAttribute('aria-hidden', 'true');
+        container.appendChild(mapaTooltipEl);
+      }
+      return mapaTooltipEl;
+    }
+
+    function conteudoTooltip(sig) {
+      const s = dadosEstado(sig);
+      if (!s) return '';
+      var rankHtml = s.rank != null
+        ? '<span class="mapa-tooltip-rank">#' + s.rank + ' no Brasil</span>'
+        : '';
+      return (
+        '<strong>' + s.name + ' (' + s.sig + ')</strong>' +
+        '<span class="mapa-tooltip-val">' + fmtIDH(s.idh) + ' · ' + idhCat(s.idh) + '</span>' +
+        rankHtml
+      );
+    }
+
+    function posicionarTooltip(tooltip, container, x, y) {
+      tooltip.style.left = '0';
+      tooltip.style.top = '0';
+      tooltip.hidden = false;
+      tooltip.classList.add('visible');
+      tooltip.setAttribute('aria-hidden', 'false');
+
+      const cRect = container.getBoundingClientRect();
+      const tRect = tooltip.getBoundingClientRect();
+      const pad = 12;
+      let left = x + 14;
+      let top = y - tRect.height - 8;
+
+      if (left + tRect.width > cRect.width - pad) left = x - tRect.width - 14;
+      if (left < pad) left = pad;
+      if (top < pad) top = y + 18;
+      if (top + tRect.height > cRect.height - pad) top = cRect.height - tRect.height - pad;
+
+      tooltip.style.left = left + 'px';
+      tooltip.style.top = top + 'px';
+    }
+
+    function mostrarTooltipMapa(container, sig, x, y) {
+      const tooltip = garantirTooltipMapa(container);
+      tooltip.innerHTML = conteudoTooltip(sig);
+      posicionarTooltip(tooltip, container, x, y);
+    }
+
+    function esconderTooltipMapa(container) {
+      const tooltip = garantirTooltipMapa(container);
+      tooltip.classList.remove('visible');
+      tooltip.hidden = true;
+      tooltip.setAttribute('aria-hidden', 'true');
+      tooltip.innerHTML = '';
     }
 
     function aplicarHoverEstado(state) {
@@ -1611,6 +1950,7 @@
       container.querySelectorAll('.state').forEach(function (state) {
         if (state.dataset.hoverBound === '1') return;
         state.dataset.hoverBound = '1';
+
         state.addEventListener('mouseenter', function () {
           if (estadoHoverAtivo && estadoHoverAtivo !== state) {
             limparHoverEstado(estadoHoverAtivo);
@@ -1620,9 +1960,18 @@
           const sig = sigEstado(state);
           if (sig) selectStateHover(sig);
         });
+
+        state.addEventListener('mousemove', function (e) {
+          const sig = sigEstado(state);
+          if (!sig) return;
+          const rect = container.getBoundingClientRect();
+          mostrarTooltipMapa(container, sig, e.clientX - rect.left, e.clientY - rect.top);
+        });
+
         state.addEventListener('mouseleave', function () {
           limparHoverEstado(state);
           if (estadoHoverAtivo === state) estadoHoverAtivo = null;
+          esconderTooltipMapa(container);
           limparPreviewEstado();
         });
       });
@@ -1632,16 +1981,19 @@
       const container = document.getElementById('mapa_brasil');
       if (!container) return;
 
+      garantirTooltipMapa(container);
+
       container.addEventListener('mouseleave', function (e) {
         if (e.relatedTarget && container.contains(e.relatedTarget)) return;
         if (estadoHoverAtivo) {
           limparHoverEstado(estadoHoverAtivo);
           estadoHoverAtivo = null;
         }
+        esconderTooltipMapa(container);
         limparPreviewEstado();
       });
 
-      container.addEventListener('click', e => {
+      container.addEventListener('click', function (e) {
         const state = e.target.closest('.state');
         if (!state) return;
         const sig = sigEstado(state);
@@ -1649,9 +2001,9 @@
       });
 
       function colorirEstados() {
-        STATES_DATA.forEach(s => {
+        STATES_DATA.forEach(function (s) {
           const el = container.querySelector(
-            `[data-uf="${s.sig}"], [data-id="${s.sig}"], #${s.sig}, .state-${s.sig}`
+            '[data-uf="' + s.sig + '"], [data-id="' + s.sig + '"], #' + s.sig + ', .state-' + s.sig
           );
           if (el) {
             const cor = idhColor(s.idh);
@@ -1663,10 +2015,12 @@
         atualizarRotulosMapa(container);
       }
 
+      colorirEstadosMapa = colorirEstados;
+
       if (container.querySelector('.state')) {
         colorirEstados();
       } else {
-        const mo = new MutationObserver(() => {
+        const mo = new MutationObserver(function () {
           if (container.querySelector('.state')) {
             colorirEstados();
             mo.disconnect();
@@ -1719,8 +2073,56 @@
     }
 
 
+    function escapeHtmlFix(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function fmtIdhmFix(v) {
+      if (v == null || v === '' || isNaN(Number(v))) return '—';
+      return Number(v).toFixed(3).replace('.', ',');
+    }
+
+    function renderizarFixadas() {
+      const lista = document.getElementById('fixadas-lista');
+      if (!lista) return;
+      const fixadas = window.CidadesFixadas ? window.CidadesFixadas.listar() : [];
+      if (!fixadas.length) {
+        lista.innerHTML =
+          '<div class="painel-empty">Nenhuma cidade fixada ainda.<br>Use ★ nos painéis estaduais.</div>';
+        return;
+      }
+      lista.innerHTML = fixadas
+        .map(function (c) {
+          const chave = window.CidadesFixadas.chaveDe(c);
+          const nome = escapeHtmlFix(c.nome);
+          const uf = escapeHtmlFix(c.uf || '');
+          const estado = escapeHtmlFix(c.estado || '');
+          const local = uf ? (estado ? estado + ' (' + uf + ')' : uf) : estado;
+          return (
+            '<div class="painel-item" data-fix-chave="' + escapeHtmlFix(chave) + '">' +
+              '<div>' +
+                '<div class="painel-cidade">' + nome + '</div>' +
+                (local ? '<div class="painel-cidade-uf">' + local + '</div>' : '') +
+              '</div>' +
+              '<div class="painel-idh">' + fmtIdhmFix(c.idhm) + '</div>' +
+              '<div class="painel-acoes">' +
+                '<button type="button" class="painel-btn" data-fix-acao="abrir">↗ Ver</button>' +
+                '<button type="button" class="painel-remover" data-fix-acao="remover" title="Remover" aria-label="Remover">×</button>' +
+              '</div>' +
+            '</div>'
+          );
+        })
+        .join('');
+    }
+
     document.getElementById('btn-fixadas').addEventListener('click', () => {
       const p = document.getElementById('painel-fixadas');
+      renderizarFixadas();
       p.hidden = false;
       p.removeAttribute('aria-hidden');
     });
@@ -1735,9 +2137,56 @@
       }
     });
 
+    document.getElementById('fixadas-lista').addEventListener('click', function (e) {
+      const btn = e.target.closest('[data-fix-acao]');
+      if (!btn) return;
+      const item = btn.closest('.painel-item');
+      if (!item) return;
+      const chave = item.getAttribute('data-fix-chave');
+      if (!chave || !window.CidadesFixadas) return;
+      const cidade = window.CidadesFixadas
+        .listar()
+        .find(function (c) { return window.CidadesFixadas.chaveDe(c) === chave; });
+      if (!cidade) return;
+
+      const acao = btn.getAttribute('data-fix-acao');
+      if (acao === 'abrir') {
+        window.location.href = window.CidadesFixadas.url(cidade);
+        return;
+      }
+      if (acao === 'remover') {
+        window.CidadesFixadas.remover(cidade);
+        renderizarFixadas();
+      }
+    });
+
+    if (window.CidadesFixadas && typeof window.CidadesFixadas.aoMudar === 'function') {
+      window.CidadesFixadas.aoMudar(function () {
+        const p = document.getElementById('painel-fixadas');
+        if (p && !p.hidden) renderizarFixadas();
+      });
+    }
+
     hookMapaReal();
+    carregarAtratividadeEstados();
     buildRankings();
+    carregarReferenciasNacionais();
     buildSearch();
+
+    var refsNacionais = document.getElementById('kpi-refs-nacionais');
+    if (refsNacionais) {
+      refsNacionais.addEventListener('click', function (e) {
+        var card = e.target.closest('.kpi-ref-card');
+        if (card) irParaRefCard(card);
+      });
+      refsNacionais.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        var card = e.target.closest('.kpi-ref-card');
+        if (!card) return;
+        e.preventDefault();
+        irParaRefCard(card);
+      });
+    }
   </script>
 
 </body>

@@ -3,9 +3,14 @@ var municipioS3Service = require("../services/municipioS3Service");
 var populacaoS3Service = require("../services/populacaoS3Service");
 var segurancaS3Service = require("../services/segurancaS3Service");
 var indicadoresSegurancaService = require("../services/indicadoresSegurancaService");
+var atratividadeService = require("../services/atratividadeService");
 
 function limparNome(nome) {
   return municipioS3Service.limparNome(nome);
+}
+
+function chaveNome(nome) {
+  return populacaoS3Service.chaveNome(nome);
 }
 
 function parseNumero(valor) {
@@ -20,6 +25,7 @@ function mapFromDb(rows) {
 
     return {
       id: row.id,
+      uf: row.uf || null,
       nome: limparNome(row.nome),
       idhm_geral: idhmGeral,
       idhm: idhmGeral,
@@ -31,10 +37,72 @@ function mapFromDb(rows) {
   });
 }
 
+function mapFromS3(lista) {
+  return lista.map(function (row) {
+    return {
+      id: row.id || null,
+      uf: row.uf || null,
+      nome: limparNome(row.nome),
+      idhm_geral: parseNumero(row.idhm_geral),
+      idhm: parseNumero(row.idhm),
+      renda: parseNumero(row.renda),
+      educacao: parseNumero(row.educacao),
+      longevidade: parseNumero(row.longevidade),
+      pop: row.pop != null ? row.pop : null,
+    };
+  });
+}
+
 function obterUfQuery(req) {
   return String(req.query.uf || "SP")
     .trim()
     .toUpperCase();
+}
+
+function aplicarIdhmNaLista(lista, idhmLista) {
+  var mapa = {};
+  idhmLista.forEach(function (item) {
+    mapa[chaveNome(item.nome)] = item;
+  });
+
+  var matched = 0;
+  var merged = lista.map(function (m) {
+    var idhm = mapa[chaveNome(m.nome)];
+    if (!idhm) return m;
+    matched++;
+    return Object.assign({}, m, {
+      id: m.id != null ? m.id : idhm.id,
+      idhm_geral: idhm.idhm_geral,
+      idhm: idhm.idhm != null ? idhm.idhm : idhm.idhm_geral,
+      renda: idhm.renda,
+      educacao: idhm.educacao,
+      longevidade: idhm.longevidade,
+    });
+  });
+
+  console.log(
+    "\nIDHM: " + matched + "/" + lista.length + " municípios com indicadores."
+  );
+  return merged;
+}
+
+function carregarIdhmPorUf(uf) {
+  return municipioModel
+    .listarPorUf(uf)
+    .then(function (rows) {
+      if (rows && rows.length) {
+        return mapFromDb(rows);
+      }
+      return municipioS3Service.carregarPorUf(uf).then(mapFromS3);
+    })
+    .catch(function () {
+      return municipioS3Service
+        .carregarPorUf(uf)
+        .then(mapFromS3)
+        .catch(function () {
+          return [];
+        });
+    });
 }
 
 function enviarLista(res, municipios, uf) {
@@ -43,31 +111,25 @@ function enviarLista(res, municipios, uf) {
   });
 }
 
-function listarPorIdhmSp(res) {
-  municipioModel
-    .listar()
-    .then(function (resultado) {
-      if (resultado && resultado.length > 0) {
-        enviarLista(res, mapFromDb(resultado), "SP");
-        return;
-      }
-      return municipioS3Service.carregar().then(function (dados) {
-        enviarLista(res, dados, "SP");
+function listarPorUf(res, uf) {
+  populacaoS3Service
+    .listarMunicipiosPorUf(uf)
+    .then(function (listaPop) {
+      return carregarIdhmPorUf(uf).then(function (idhmLista) {
+        return aplicarIdhmNaLista(listaPop, idhmLista);
       });
     })
-    .catch(function () {
-      municipioS3Service
-        .carregar()
-        .then(function (dados) {
-          enviarLista(res, dados, "SP");
-        })
-        .catch(function (erro) {
-          console.log("\nErro ao carregar municípios:", erro.message || erro);
-          res.status(500).json({
-            mensagem:
-              "Não foi possível carregar os municípios. Verifique o banco, as credenciais AWS ou coloque data_idhm.xlsx na raiz do projeto.",
-          });
-        });
+    .then(function (lista) {
+      res.status(200).json(lista);
+    })
+    .catch(function (erro) {
+      console.log("\nErro ao listar municípios (" + uf + "):", erro.message || erro);
+      res.status(500).json({
+        mensagem:
+          "Não foi possível carregar os municípios de " +
+          uf +
+          ". Verifique o banco, o JAR (idhm_municipios.xlsx) ou populacao_municipios_2025.xls.",
+      });
     });
 }
 
@@ -78,32 +140,21 @@ function listar(req, res) {
     return;
   }
 
-  if (uf !== "SP") {
-    populacaoS3Service
-      .listarMunicipiosPorUf(uf)
-      .then(function (lista) {
-        res.status(200).json(lista);
-      })
-      .catch(function (erro) {
-        console.log("\nErro ao listar municípios (" + uf + "):", erro.message || erro);
-        res.status(500).json({
-          mensagem:
-            "Não foi possível carregar os municípios de " +
-            uf +
-            ". Verifique a planilha populacao_municipios_2025.xls.",
-        });
-      });
-    return;
-  }
-
-  listarPorIdhmSp(res);
+  listarPorUf(res, uf);
 }
 
 function enviarUm(res, row, uf) {
-  var lista = mapFromDb([row]);
-  populacaoS3Service.mesclarPopulacao(lista, uf || "SP").then(function (merged) {
-    res.status(200).json(merged[0]);
-  });
+  var lista = [row];
+  carregarIdhmPorUf(uf)
+    .then(function (idhmLista) {
+      return aplicarIdhmNaLista(lista, idhmLista);
+    })
+    .then(function (merged) {
+      return populacaoS3Service.mesclarPopulacao(merged, uf || "SP");
+    })
+    .then(function (finalLista) {
+      res.status(200).json(finalLista[0]);
+    });
 }
 
 function detalhe(req, res) {
@@ -120,62 +171,23 @@ function detalhe(req, res) {
     return;
   }
 
-  if (uf !== "SP") {
-    function tryPopulacaoNomeNonSp() {
-      if (nome == null || nome === "") return Promise.resolve(null);
-      return populacaoS3Service.buscarPorNomeUf(nome, uf).then(function (m) {
-        if (!m) return null;
-        return {
-          id: m.id,
-          nome: m.nome,
-          idhm_geral: m.idhm_geral,
-          renda: m.renda,
-          educacao: m.educacao,
-          longevidade: m.longevidade,
-          pop: m.pop,
-        };
-      });
-    }
-
-    tryPopulacaoNomeNonSp()
-      .catch(function () {
-        return null;
-      })
-      .then(function (row) {
-        if (!row || !row.nome) {
-          res.status(404).json({ mensagem: "Município não encontrado." });
-          return;
-        }
-        if (row.pop != null) {
-          res.status(200).json(row);
-          return;
-        }
-        enviarUm(res, row, uf);
-      })
-      .catch(function (erro) {
-        console.log("\nErro em /municipios/detalhe:", erro.message || erro);
-        res.status(500).json({ mensagem: "Erro ao buscar município." });
-      });
-    return;
-  }
-
   function tryDbId() {
     if (id == null || id === "") return Promise.resolve(null);
     return municipioModel.buscarPorId(id).then(function (rows) {
-      return rows && rows.length ? rows[0] : null;
+      return rows && rows.length ? mapFromDb([rows[0]])[0] : null;
     });
   }
 
   function tryDbNome() {
     if (nome == null || nome === "") return Promise.resolve(null);
-    return municipioModel.buscarPorNome(nome).then(function (rows) {
-      return rows && rows.length ? rows[0] : null;
+    return municipioModel.buscarPorNomeUf(nome, uf).then(function (rows) {
+      return rows && rows.length ? mapFromDb([rows[0]])[0] : null;
     });
   }
 
   function tryS3Nome() {
     if (nome == null || nome === "") return Promise.resolve(null);
-    return municipioS3Service.buscarPorNome(nome);
+    return municipioS3Service.buscarPorNome(nome, uf);
   }
 
   function tryPopulacaoNome() {
@@ -184,8 +196,10 @@ function detalhe(req, res) {
       if (!m) return null;
       return {
         id: m.id,
+        uf: uf,
         nome: m.nome,
         idhm_geral: m.idhm_geral,
+        idhm: m.idhm,
         renda: m.renda,
         educacao: m.educacao,
         longevidade: m.longevidade,
@@ -259,10 +273,6 @@ function resolverNomeLatrocinio(req) {
   var id = req.query.id;
   var uf = obterUfQuery(req);
   if (id == null || id === "") {
-    return Promise.resolve(null);
-  }
-
-  if (uf !== "SP") {
     return Promise.resolve(null);
   }
 
@@ -341,7 +351,15 @@ function statusLatrocinio(req, res) {
     res.status(400).json({ mensagem: "UF inválida." });
     return;
   }
-  res.status(200).json(segurancaS3Service.obterStatusUf(uf));
+  segurancaS3Service
+    .obterStatusUf(uf)
+    .then(function (status) {
+      res.status(200).json(status);
+    })
+    .catch(function (erro) {
+      console.log("\nErro em /municipios/seguranca/status:", erro.message || erro);
+      res.status(500).json({ mensagem: "Erro ao consultar status." });
+    });
 }
 
 function latrocinioEstado(req, res) {
@@ -423,6 +441,78 @@ function furtoVeiculoEstado(req, res) {
     });
 }
 
+var NOMES_ESTADOS = {
+  AC: "Acre",
+  AL: "Alagoas",
+  AP: "Amapá",
+  AM: "Amazonas",
+  BA: "Bahia",
+  CE: "Ceará",
+  DF: "Distrito Federal",
+  ES: "Espírito Santo",
+  GO: "Goiás",
+  MA: "Maranhão",
+  MT: "Mato Grosso",
+  MS: "Mato Grosso do Sul",
+  MG: "Minas Gerais",
+  PA: "Pará",
+  PB: "Paraíba",
+  PR: "Paraná",
+  PE: "Pernambuco",
+  PI: "Piauí",
+  RJ: "Rio de Janeiro",
+  RN: "Rio Grande do Norte",
+  RS: "Rio Grande do Sul",
+  RO: "Rondônia",
+  RR: "Roraima",
+  SC: "Santa Catarina",
+  SP: "São Paulo",
+  SE: "Sergipe",
+  TO: "Tocantins",
+};
+
+function atribuirRanksEstados(estados) {
+  var sorted = estados.slice().sort(function (a, b) {
+    var av = a.idh == null ? -1 : a.idh;
+    var bv = b.idh == null ? -1 : b.idh;
+    return bv - av;
+  });
+  var pos = 0;
+  var ultimoIdh = null;
+  sorted.forEach(function (s, i) {
+    if (s.idh !== ultimoIdh) {
+      pos = i + 1;
+      ultimoIdh = s.idh;
+    }
+    s.rank = s.idh == null ? null : pos;
+  });
+  return estados;
+}
+
+function atratividadeEstados(req, res) {
+  atratividadeService
+    .calcularAtratividadeEstados()
+    .then(function (dados) {
+      res.status(200).json(dados);
+    })
+    .catch(function (erro) {
+      console.log("\nErro em /municipios/atratividade-estados:", erro.message || erro);
+      res.status(500).json({ mensagem: "Erro ao buscar atratividade por estado." });
+    });
+}
+
+function referenciasNacionais(req, res) {
+  municipioModel
+    .buscarReferenciasNacionais()
+    .then(function (dados) {
+      res.status(200).json(dados);
+    })
+    .catch(function (erro) {
+      console.log("\nErro em /municipios/referencias-nacionais:", erro.message || erro);
+      res.status(500).json({ mensagem: "Erro ao buscar referências nacionais." });
+    });
+}
+
 module.exports = {
   listar,
   detalhe,
@@ -433,4 +523,6 @@ module.exports = {
   rouboVeiculoEstado,
   furtoVeiculoEstado,
   statusLatrocinio,
+  referenciasNacionais,
+  atratividadeEstados,
 };

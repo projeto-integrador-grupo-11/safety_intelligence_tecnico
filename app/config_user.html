@@ -1080,6 +1080,169 @@
         grid-template-columns: 1fr;
       }
     }
+
+    .modal {
+      display: none;
+
+      position: fixed;
+      top: 0;
+      left: 0;
+
+      width: 100%;
+      height: 100%;
+
+      background-color: rgba(0, 0, 0, 0.5);
+
+      justify-content: center;
+      align-items: center;
+
+      z-index: 999;
+    }
+
+    .modal-content {
+      background: white;
+
+      padding: 30px;
+
+      border-radius: 12px;
+
+      width: 400px;
+
+      text-align: center;
+    }
+
+    .modal-buttons {
+      margin-top: 20px;
+
+      display: flex;
+      gap: 10px;
+
+      justify-content: center;
+    }
+
+    .btn-confirmar {
+      background-color: red;
+      color: white;
+
+      border: none;
+
+      padding: 10px 20px;
+
+      border-radius: 8px;
+
+      cursor: pointer;
+    }
+
+    .btn-cancelar {
+      background-color: gray;
+      color: white;
+
+      border: none;
+
+      padding: 10px 20px;
+
+      border-radius: 8px;
+
+      cursor: pointer;
+    }
+
+    .switch {
+      position: relative;
+
+      display: inline-block;
+
+      width: 52px;
+      height: 28px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+
+      cursor: pointer;
+
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+
+      background-color: #ccc;
+
+      transition: .3s;
+
+      border-radius: 30px;
+    }
+
+    .slider:before {
+      position: absolute;
+
+      content: "";
+
+      height: 22px;
+      width: 22px;
+
+      left: 3px;
+      bottom: 3px;
+
+      background-color: white;
+
+      transition: .3s;
+
+      border-radius: 50%;
+    }
+
+    input:checked+.slider {
+      background-color: #22c55e;
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(24px);
+    }
+
+    .slack-box {
+      margin-top: 10px;
+    }
+
+    .slack-link {
+      color: #2563eb;
+
+      text-decoration: none;
+
+      font-weight: bold;
+    }
+
+    .btn-save-slack {
+      margin-top: 20px;
+
+      background: #2563eb;
+
+      color: white;
+
+      border: none;
+
+      padding: 10px 18px;
+
+      border-radius: 8px;
+
+      cursor: pointer;
+    }
+
+    .avatar img {
+
+      width: 100%;
+
+      height: 100%;
+
+      object-fit: cover;
+
+      border-radius: 50%;
+
+    }
   </style>
 </head>
 
@@ -1171,11 +1334,25 @@
 
               <!-- Avatar -->
               <div class="avatar-block">
-                <div class="avatar">
-                  U
-                  <div class="avatar-overlay">📷</div>
+
+                <input type="file" id="ipt_foto" accept="image/*" style="display: none;" onchange="uploadFoto()">
+
+                <div class="avatar" onclick="document.getElementById('ipt_foto').click()">
+
+                  <img id="fotoPerfil" src="/assets/default-user.png">
+
+                  <div class="avatar-overlay">
+                    📷
+                  </div>
+
                 </div>
-                <div class="avatar-hint">Clique para<br>alterar foto</div>
+
+                <div class="avatar-hint" onclick="document.getElementById('ipt_foto').click()">
+
+                  Clique para<br>alterar foto
+
+                </div>
+
               </div>
 
               <!-- Inputs -->
@@ -1371,38 +1548,61 @@
 
         <!-- CARD: SESSÕES ATIVAS -->
         <div class="card">
+
           <div class="card-header">
+
             <div class="card-header-body">
-              <div class="card-title">Sessões Ativas</div>
-              <div class="card-sub">Dispositivos com acesso à sua conta no momento</div>
-            </div>
-            <span class="card-badge badge-blue">3 sessões</span>
-          </div>
-          <div class="card-body">
-            <div class="session-list">
-              <div class="session-item">
-                <div class="session-info">
-                  <div class="session-device">Chrome — Windows 11</div>
-                  <div class="session-meta">São Paulo, BR · Agora mesmo</div>
-                </div>
-                <span class="session-current">Sessão atual</span>
-              </div>
-              <div class="session-item">
-                <div class="session-info">
-                  <div class="session-device">Safari — iPhone 15</div>
-                  <div class="session-meta">São Paulo, BR · Há 2 horas</div>
-                </div>
-                <button class="session-revoke">Revogar</button>
-              </div>
-              <div class="session-item">
-                <div class="session-info">
-                  <div class="session-device">Firefox — macOS Sonoma</div>
-                  <div class="session-meta">Rio de Janeiro, BR · Ontem às 14h</div>
-                </div>
-                <button class="session-revoke">Revogar</button>
+              <div class="card-title">Notificações Slack</div>
+
+              <div class="card-sub">
+                Receba alertas e notificações diretamente no Slack
               </div>
             </div>
+
+            <label class="switch">
+              <input type="checkbox" id="switchSlack" onchange="toggleSlackNotif()">
+              <span class="slider"></span>
+            </label>
+
           </div>
+
+          <div class="card-body" id="slackOptions" style="display: none;">
+
+            <div class="slack-box">
+
+              <p class="slack-text">
+                Entre no workspace da empresa:
+              </p>
+
+              <a href="https://join.slack.com/t/safetyintelligenceco/shared_invite/zt-3xzhtk2h3-e09KwFvPOaU_NQnsHJPFDw"
+                target="_blank" class="slack-link">
+                Entrar no Slack Workspace
+              </a>
+
+              <div class="field">
+
+                <label>Seu nome</label>
+
+                <input type="text" id="ipt_nomeSlack" class="slack-input" placeholder="Digite seu nome">
+
+              </div>
+
+              <div class="field" style="margin-top:20px;">
+
+                <label>ID do usuário Slack</label>
+
+                <input type="text" id="ipt_slackId" placeholder="Digite seu ID do Slack">
+
+              </div>
+
+              <button class="btn-save-slack" onclick="salvarSlackNotif()">
+                Salvar configurações
+              </button>
+
+            </div>
+
+          </div>
+
         </div>
 
         <!-- ZONA DE PERIGO -->
@@ -1433,8 +1633,37 @@
               <div class="danger-info-title">Excluir conta permanentemente</div>
               <div class="danger-info-sub">Remove todos os dados. Esta ação não pode ser desfeita.</div>
             </div>
-            <button class="btn btn-danger btn-sm">Excluir conta</button>
+            <button class="btn btn-danger btn-sm" onclick="abrirModalExcluir()" class="btn-excluir">Excluir
+              conta</button>
           </div>
+        </div>
+
+        <!-- MODAL -->
+        <div id="modalExcluir" class="modal">
+
+          <div class="modal-content">
+
+            <h2>Cuidado!</h2>
+
+            <p>
+              Essa ação não pode ser revertida! <br>
+              Você tem certeza disso?
+            </p>
+
+            <div class="modal-buttons">
+
+              <button class="btn-confirmar" onclick="excluirConta()">
+                Sim, quero excluir!
+              </button>
+
+              <button class="btn-cancelar" onclick="fecharModalExcluir()">
+                Não, quero permanecer!
+              </button>
+
+            </div>
+
+          </div>
+
         </div>
 
         <!-- ACTIONS BAR -->
@@ -1539,60 +1768,319 @@
     }
 
     function alterarSenha() {
-  var senhaAtual = ipt_senhaAtual.value.trim()
-  var novaSenha = ipt_novaSenha.value.trim()
-  var corfirmarNovaSenha = ipt_confirmarNovaSenha.value.trim()
-  var emailSessao = sessionStorage.EMAIL_USUARIO;
+      var senhaAtual = ipt_senhaAtual.value.trim()
+      var novaSenha = ipt_novaSenha.value.trim()
+      var corfirmarNovaSenha = ipt_confirmarNovaSenha.value.trim()
+      var emailSessao = sessionStorage.EMAIL_USUARIO;
 
-  if (senhaAtual == "" || novaSenha == "" || corfirmarNovaSenha == "") {
-    alert('Preencha todos os campos!!');
-    return;
-  }
+      if (senhaAtual == "" || novaSenha == "" || corfirmarNovaSenha == "") {
+        alert('Preencha todos os campos!!');
+        return;
+      }
 
-  if (novaSenha != corfirmarNovaSenha) {
-    alert('Senhas precisam ser iguais');
-    return;
-  }
+      if (novaSenha != corfirmarNovaSenha) {
+        alert('Senhas precisam ser iguais');
+        return;
+      }
 
-  fetch("/usuarios/trocarSenha", {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      senhaServer: senhaAtual,
-      novaSenhaServer: novaSenha,
-      confirmarSenhaServer: corfirmarNovaSenha,
-      emailServer: emailSessao,
-    }),
-  })
-    .then(function (resposta) {
-      console.log("resposta: ", resposta);
+      fetch("/usuarios/trocarSenha", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          senhaServer: senhaAtual,
+          novaSenhaServer: novaSenha,
+          confirmarSenhaServer: corfirmarNovaSenha,
+          emailServer: emailSessao,
+        }),
+      })
+        .then(function (resposta) {
+          console.log("resposta: ", resposta);
 
-      if (resposta.ok) {
+          if (resposta.ok) {
 
-        alert("Senha atualizada com sucesso!!");
+            alert("Senha atualizada com sucesso!!");
 
-        ipt_novaSenha.value = ""
-        ipt_senhaAtual.value = ""
-        ipt_confirmarNovaSenha.value = ""
+            ipt_novaSenha.value = ""
+            ipt_senhaAtual.value = ""
+            ipt_confirmarNovaSenha.value = ""
 
-      } else if (resposta.status == 401) {
+          } else if (resposta.status == 401) {
 
-        alert("Senha atual incorreta");
+            alert("Senha atual incorreta");
+
+          } else {
+
+            throw "Houve um erro ao tentar troca de senha";
+          }
+        })
+        .catch(function (resposta) {
+          console.log(`#ERRO: ${resposta}`);
+        });
+
+      return false;
+    }
+
+
+
+    function abrirModalExcluir() {
+      modalExcluir.style.display = "flex";
+    }
+
+    function fecharModalExcluir() {
+      modalExcluir.style.display = "none";
+    }
+
+    function excluirConta() {
+
+      const idUsuario = sessionStorage.ID_USUARIO;
+
+      fetch(`/usuarios/excluir/${idUsuario}`, {
+        method: "DELETE"
+      })
+        .then(function (resposta) {
+
+          if (resposta.ok) {
+
+            alert("Conta excluída com sucesso!");
+
+            sessionStorage.clear();
+
+            window.location = "../login.html";
+
+          } else {
+
+            alert("Erro ao excluir conta");
+
+          }
+
+        })
+        .catch(function (erro) {
+          console.log(erro);
+        });
+
+    }
+
+    function toggleSlackNotif() {
+
+      const switchSlack =
+        document.getElementById("switchSlack");
+
+      const slackOptions =
+        document.getElementById("slackOptions");
+
+      if (switchSlack.checked) {
+
+        slackOptions.style.display = "block";
 
       } else {
 
-        throw "Houve um erro ao tentar troca de senha";
+        slackOptions.style.display = "none";
+
+        fetch("/usuarios/desativarSlack", {
+
+          method: "PUT",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            idUsuario: sessionStorage.ID_USUARIO
+          })
+
+        });
+
       }
-    })
-    .catch(function (resposta) {
-      console.log(`#ERRO: ${resposta}`);
-    });
 
-  return false;
-}
 
+    }
+
+
+    function salvarSlackNotif() {
+
+      const slackId =
+        document.getElementById("ipt_slackId").value;
+
+      fetch("/usuarios/configSlack", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+          idUsuario: sessionStorage.ID_USUARIO,
+
+          nome: document.getElementById("ipt_nomeSlack").value,
+
+          slackId: slackId,
+
+          notificacao: true
+
+        })
+
+      })
+        .then(function (resposta) {
+
+          if (resposta.ok) {
+
+            alert("Configuração salva!");
+
+          } else {
+
+            alert("Erro ao salvar");
+
+          }
+
+        });
+
+    }
+
+
+    function carregarSlack() {
+
+      console.log("Testando...")
+      fetch(`/usuarios/buscarSlack/${sessionStorage.ID_USUARIO}`)
+
+        .then(function (resposta) {
+
+          return resposta.json();
+
+        })
+
+        .then(function (dados) {
+
+          if (dados.length > 0) {
+
+            const config = dados[0];
+
+            if (config.notificacao == 1) {
+
+              document.getElementById("switchSlack").checked = true;
+
+              document.getElementById("slackOptions").style.display = "block";
+
+            }
+
+            document.getElementById("ipt_slackId").value =
+              config.idSlack || "";
+
+            document.getElementById("ipt_nomeSlack").value =
+              config.nomeCompleto || "";
+
+          }
+
+        });
+
+
+    }
+
+    function uploadFoto() {
+
+      const arquivo =
+        document.getElementById("ipt_foto").files[0];
+
+      const formData = new FormData();
+
+      formData.append("foto", arquivo);
+
+      formData.append(
+        "idUsuario",
+        sessionStorage.ID_USUARIO
+      );
+
+      fetch("/usuarios/uploadFoto", {
+
+        method: "POST",
+
+        body: formData
+
+      })
+
+        .then(function (resposta) {
+
+          if (resposta.ok) {
+
+            carregarFoto();
+
+          }
+
+        });
+
+    }
+
+
+
+
+    function uploadFoto() {
+
+      const arquivo =
+        document.getElementById("ipt_foto").files[0];
+
+      const formData = new FormData();
+
+      formData.append("foto", arquivo);
+
+      formData.append(
+        "idUsuario",
+        sessionStorage.ID_USUARIO
+      );
+
+      fetch("/usuarios/uploadFoto", {
+
+        method: "POST",
+
+        body: formData
+
+      })
+
+        .then(function (resposta) {
+
+          if (resposta.ok) {
+
+            carregarFoto();
+
+          }
+
+        });
+
+    }
+
+    function carregarFoto() {
+
+      fetch(`/usuarios/buscarFoto/${sessionStorage.ID_USUARIO}`)
+
+        .then(function (resposta) {
+
+          return resposta.json();
+
+        })
+
+        .then(function (dados) {
+
+          if (dados.length > 0) {
+
+            const foto = dados[0].fotoPerfil;
+
+            if (foto) {
+
+              document.getElementById("fotoPerfil").src =
+                foto;
+
+            }
+
+          }
+
+        });
+
+    }
+
+        carregarSlack();
+        carregarFoto();
   </script>
 </body>
 

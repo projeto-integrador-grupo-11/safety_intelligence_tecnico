@@ -46,7 +46,7 @@ function autenticar(req, res) {
                 res.json({
                     id: usuario.id_usuario,
                     email: usuario.email,
-                    nome: usuario.nome_usuario,
+                    nome: usuario.nome,
                     empresaId: usuario.empresaId,
                     privilegio: usuario.privilegio,
                     token: token
@@ -65,6 +65,7 @@ function autenticar(req, res) {
 function cadastrar(req, res) {
     var email = req.body.emailServer;
     var senha = req.body.senhaServer;
+    var nome = req.body.nomeServer;
 
     if (email == undefined) {
         return res.status(400).send("Seu email está undefined!");
@@ -73,9 +74,13 @@ function cadastrar(req, res) {
         return res.status(400).send("Sua senha está undefined!");
     }
 
+    if (nome == undefined) {
+        return res.status(400).send("Seu nome está undefined!");
+
+    }
     bcrypt.hash(senha, SALT_ROUNDS)
         .then(function (senhaHash) {
-            return usuarioModel.cadastrar(email, senhaHash);
+            return usuarioModel.cadastrar(nome, email, senhaHash);
         })
         .then(function (resultado) {
             res.json({ id: resultado.insertId });
@@ -127,10 +132,166 @@ function trocarSenha(req, res) {
             console.log("\nHouve um erro ao atualizar a senha!", erro.sqlMessage || erro.message || erro);
             res.status(500).json("Erro interno do servidor");
         });
+
+
+
+
+}
+function excluir(req, res) {
+
+    var idUsuario = req.params.idUsuario;
+
+    usuarioModel.excluirConfiguracoes(idUsuario)
+
+        .then(function () {
+            return usuarioModel.excluirFavoritos(idUsuario);
+        })
+
+        .then(function () {
+            return usuarioModel.excluirUsuario(idUsuario);
+        })
+
+        .then(function () {
+            res.status(200).send("Usuário excluído");
+        })
+
+        .catch(function (erro) {
+            console.log(erro);
+            res.status(500).json(erro);
+        });
 }
 
+
+function configSlack(req, res) {
+
+    var idUsuario = req.body.idUsuario;
+    var nome = req.body.nome;
+    var slackId = req.body.slackId;
+    var notificacao = req.body.notificacao;
+
+    usuarioModel.configSlack(
+        idUsuario,
+        nome,
+        slackId,
+        notificacao
+    )
+        .then(function (resultado) {
+
+            res.status(200).send("Configuração salva");
+
+        })
+        .catch(function (erro) {
+
+            console.log(erro);
+
+            res.status(500).json(erro);
+
+        });
+
+}
+
+function desativarSlack(req, res) {
+
+    var idUsuario = req.body.idUsuario;
+
+    usuarioModel.desativarSlack(idUsuario)
+        .then(function (resultado) {
+
+            res.status(200).send("Notificações desativadas");
+
+        })
+        .catch(function (erro) {
+
+            console.log(erro);
+
+            res.status(500).json(erro);
+
+        });
+
+}
+
+function buscarSlack(req, res) {
+
+    var idUsuario = req.params.idUsuario;
+
+    usuarioModel.buscarSlack(idUsuario)
+
+        .then(function (resultado) {
+
+            res.json(resultado);
+
+        })
+
+        .catch(function (erro) {
+
+            console.log(erro);
+
+            res.status(500).json(erro);
+
+        });
+
+}
+
+function uploadFoto(req, res) {
+
+    console.log(req.body);
+    console.log(req.file);
+
+
+    const caminhoFoto = "/uploads/" + req.file.filename;
+    const idUsuario = req.body.idUsuario;
+
+    usuarioModel.uploadFoto(
+        idUsuario,
+        caminhoFoto
+    )
+
+        .then(function () {
+
+            res.sendStatus(200);
+
+        })
+
+        .catch(function (erro) {
+
+            console.log(erro);
+
+            res.status(500).json(erro);
+
+        });
+
+}
+
+function buscarFoto(req, res) {
+
+    const idUsuario = req.params.idUsuario;
+
+    usuarioModel.buscarFoto(idUsuario)
+
+        .then(function (resultado) {
+
+            res.json(resultado);
+
+        })
+
+        .catch(function (erro) {
+
+            console.log(erro);
+
+            res.status(500).json(erro);
+
+        });
+
+}
 module.exports = {
     autenticar,
     cadastrar,
-    trocarSenha
+    trocarSenha,
+    excluir,
+    configSlack,
+    desativarSlack,
+    buscarSlack,
+    uploadFoto,
+    buscarFoto
+
 };

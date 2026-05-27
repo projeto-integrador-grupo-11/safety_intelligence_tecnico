@@ -1,5 +1,5 @@
 
-var ambiente_processo = 'desenvolvimento';
+var ambiente_processo = 'producao';
 
 var caminho_env = ambiente_processo === 'producao' ? '.env' : '.env.dev';
 
@@ -15,33 +15,27 @@ var app = express();
 var indexRouter = require("./app/src/routes/index");
 var usuarioRouter = require("./app/src/routes/usuarios");
 var municipioRouter = require("./app/src/routes/municipios");
-var populacaoS3Service = require("./app/src/services/populacaoS3Service");
+var favoritoRouter = require("./app/src/routes/favoritos");
 var segurancaS3Service = require("./app/src/services/segurancaS3Service");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static(path.join(__dirname, "app")));
+app.use(express.static(path.join(__dirname, "app/public")));
 app.use(express.static(path.join(__dirname, "site", "app", "public")));
+app.use(express.static("public"));
 app.use(cors());
 
 app.use("/", indexRouter);
 app.use("/usuarios", usuarioRouter);
 app.use("/municipios", municipioRouter);
+app.use("/favoritos", favoritoRouter);
 
 
 
 app.listen(PORTA_APP, function () {
-    populacaoS3Service.carregarMapa().catch(function () {});
-
-    console.log("\nPré-carregando índice de segurança (SP) em segundo plano…");
-    segurancaS3Service.precarregar("SP").then(function (mapa) {
-      if (mapa) {
-        console.log("\nÍndice de segurança (SP) pronto.");
-      }
-    }).catch(function (erro) {
-      console.log("\nSegurança (SP):", erro.message || erro);
-    });
+    segurancaS3Service.precarregar("SP").catch(function () {});
 
     console.log(`
     ##   ##  ######   #####             ####       ##     ######     ##              ##  ##    ####    ######  

@@ -6,3 +6,14 @@ node_modules
 package-lock.json
 app/cache/
 safetyintelligence-chave.pem
+
+# Planilhas baixadas do S3 / lidas pelo JAR safety_leitor_excel.
+# Os dados oficiais ficam no bucket 17042026-safety e são carregados no MySQL pelo JAR.
+/data_idhm.xlsx
+/idhm_municipios.xlsx
+/indicadores_seguranca_publica.xlsx
+/populacao_municipios_2025.xls
+/populacao_federacao_2025.xls
+/banco_seguranca_*.xlsx
+/ocorrencia_mensal_criminal.xlsx
+/estimativa_pop_indicadores_esp*.xlsx

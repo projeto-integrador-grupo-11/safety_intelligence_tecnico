@@ -130,7 +130,7 @@
         opcoes = opcoes || {};
         var token = getToken();
 
-        var precisaToken = typeof url === "string" && /^\/?(municipios|usuarios\/trocarSenha)/.test(url);
+        var precisaToken = typeof url === "string" && /^\/?(municipios|favoritos|usuarios\/trocarSenha)/.test(url);
 
         if (token && precisaToken) {
             opcoes.headers = Object.assign({}, opcoes.headers || {}, {
