@@ -7,6 +7,7 @@
 --   • Tabelas alimentadas pelo JAR safety_leitor_excel / scripts S3
 --
 -- Instalação limpa: execute este script inteiro.
+-- Banco legado (criminalidade, idhm, logs_java): veja seção MIGRAÇÃO no final.
 -- =====================================================================
 
 CREATE DATABASE IF NOT EXISTS safety_intelligence;
@@ -131,6 +132,40 @@ CREATE TABLE IF NOT EXISTS log_sistema (
     mensagem VARCHAR(500) NOT NULL,
     data_hora DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- =====================================================================
+-- MIGRAÇÃO (banco criado com versões antigas do script)
+-- Descomente e adapte conforme necessário.
+-- =====================================================================
+
+-- lista_favoritos antiga (sem uf / fkMunicipio):
+-- ALTER TABLE lista_favoritos
+--   ADD COLUMN fkMunicipio BIGINT NULL AFTER fkUsuarios_favoritos,
+--   ADD COLUMN uf CHAR(2) NOT NULL DEFAULT 'SP' AFTER nomeMunicipio,
+--   ADD COLUMN nomeEstado VARCHAR(45) NULL AFTER uf,
+--   MODIFY COLUMN nomeMunicipio VARCHAR(150) NOT NULL,
+--   MODIFY COLUMN idhm_geral DECIMAL(5,3) NULL,
+--   ADD UNIQUE KEY uk_favorito_usuario_cidade (fkUsuarios_favoritos, uf, nomeMunicipio);
+
+-- municipio legado (idMunicipio, Npopulacional) → modelo atual:
+-- ALTER TABLE municipio ADD COLUMN uf CHAR(2) NULL AFTER id;
+-- UPDATE municipio SET uf = 'SP' WHERE uf IS NULL OR uf = '';
+-- ALTER TABLE municipio MODIFY uf CHAR(2) NOT NULL;
+-- ALTER TABLE municipio
+--   ADD COLUMN renda DOUBLE NULL,
+--   ADD COLUMN educacao DOUBLE NULL,
+--   ADD COLUMN longevidade DOUBLE NULL;
+
+-- Tabelas removidas do modelo atual (podem ser dropadas após migrar dados):
+--   criminalidade  → substituída por ocorrencia_seguranca
+--   idhm           → campos incorporados em municipio
+--   logs_java      → substituída por log_sistema
+--   idhm_municipio → legado não utilizado pela aplicação
+--
+-- DROP TABLE IF EXISTS criminalidade;
+-- DROP TABLE IF EXISTS idhm;
+-- DROP TABLE IF EXISTS logs_java;
+-- DROP TABLE IF EXISTS idhm_municipio;
 
 -- =====================================================================
 -- OBSERVAÇÕES (referência — não executar)
