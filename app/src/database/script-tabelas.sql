@@ -29,10 +29,15 @@ CREATE TABLE IF NOT EXISTS unidade_federativa (
 CREATE TABLE usuario (
     idUsuario INT PRIMARY KEY AUTO_INCREMENT,
     nome varchar(50),
+<<<<<<< HEAD
     email VARCHAR(100),
     senha VARCHAR(255),
     token_reset VARCHAR(255) NULL,
     token_reset_expira_em DATETIME NULL
+=======
+    email VARCHAR(100),  -- falta ser unique...
+    senha VARCHAR(255)
+>>>>>>> atualizacao
 );
 =======
 CREATE TABLE IF NOT EXISTS usuario (
