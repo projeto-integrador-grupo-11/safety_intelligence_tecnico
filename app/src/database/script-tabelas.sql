@@ -17,7 +17,7 @@ CREATE TABLE unidade_federativa (
 CREATE TABLE usuario (
     idUsuario INT PRIMARY KEY AUTO_INCREMENT,
     nome varchar(50),
-    email VARCHAR(100),
+    email VARCHAR(100),  -- falta ser unique...
     senha VARCHAR(255)
 );
 
