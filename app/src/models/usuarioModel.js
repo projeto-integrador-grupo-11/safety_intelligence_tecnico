@@ -26,6 +26,33 @@ function atualizarSenha(novaSenhaHash, email) {
     return database.executar(instrucaoSql, [novaSenhaHash, email]);
 }
 
+function salvarTokenReset(email, tokenHash, expiraEm) {
+    var instrucaoSql = `
+        UPDATE usuario
+        SET token_reset = ?, token_reset_expira_em = ?
+        WHERE email = ?
+    `;
+    return database.executar(instrucaoSql, [tokenHash, expiraEm, email]);
+}
+
+function buscarPorTokenReset(tokenHash) {
+    var instrucaoSql = `
+        SELECT idUsuario AS id_usuario, nome, email
+        FROM usuario
+        WHERE token_reset = ? AND token_reset_expira_em > NOW()
+    `;
+    return database.executar(instrucaoSql, [tokenHash]);
+}
+
+function limparTokenReset(idUsuario) {
+    var instrucaoSql = `
+        UPDATE usuario
+        SET token_reset = NULL, token_reset_expira_em = NULL
+        WHERE idUsuario = ?
+    `;
+    return database.executar(instrucaoSql, [idUsuario]);
+}
+
 function excluirFavoritos(idUsuario) {
 
     var instrucaoSql = `
@@ -153,6 +180,9 @@ module.exports = {
     buscarPorEmail,
     cadastrar,
     atualizarSenha,
+    salvarTokenReset,
+    buscarPorTokenReset,
+    limparTokenReset,
     excluirUsuario,
     excluirConfiguracoes,
     excluirFavoritos,

@@ -18,7 +18,9 @@ CREATE TABLE usuario (
     idUsuario INT PRIMARY KEY AUTO_INCREMENT,
     nome varchar(50),
     email VARCHAR(100),
-    senha VARCHAR(255)
+    senha VARCHAR(255),
+    token_reset VARCHAR(255) NULL,
+    token_reset_expira_em DATETIME NULL
 );
 
 -- =====================
@@ -99,6 +101,11 @@ CREATE TABLE logs_java (
 		autenticacao2FA BOOLEAN DEFAULT FALSE,
 		FOREIGN KEY (fkUsuario) REFERENCES usuario(idUsuario)
 	);
+
+-- Migração (banco já existente, adicionar colunas de recuperação de senha):
+-- ALTER TABLE usuario
+--   ADD COLUMN token_reset VARCHAR(255) NULL,
+--   ADD COLUMN token_reset_expira_em DATETIME NULL;
 
 -- Migração (banco já existente com lista_favoritos antiga):
 -- ALTER TABLE lista_favoritos

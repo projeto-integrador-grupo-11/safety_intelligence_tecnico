@@ -22,6 +22,14 @@ router.put("/trocarSenha", function (req, res) {
     usuarioController.trocarSenha(req, res);
 })
 
+router.post("/esqueceuSenha", function (req, res) {
+    usuarioController.esqueceuSenha(req, res);
+});
+
+router.post("/redefinirSenha", function (req, res) {
+    usuarioController.redefinirSenha(req, res);
+});
+
 router.delete("/excluir/:idUsuario", function (req, res) {
     usuarioController.excluir(req, res);
 });
@@ -37,6 +45,10 @@ router.put("/desativarSlack", function (req, res) {
 
 router.get("/buscarSlack/:idUsuario", function (req, res) {
     usuarioController.buscarSlack(req, res);
+});
+
+router.post("/notificarSlack", function (req, res) {
+    usuarioController.notificarSlack(req, res);
 });
 
 

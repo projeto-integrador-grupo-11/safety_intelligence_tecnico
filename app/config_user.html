@@ -1743,12 +1743,30 @@
     }
 
     function testarSlack() {
-      if (!slackConectado) {
-        alert('Conecte sua conta do Slack antes de enviar uma mensagem teste.');
-        return;
-      }
-      const canal = document.getElementById('slack-channel').value;
-      alert('Mensagem teste enviada para ' + canal + ' ✓');
+      fetch("/usuarios/notificarSlack", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          idUsuario: sessionStorage.ID_USUARIO,
+          mensagem: "Mensagem de teste do Safety Intelligence ✅"
+        })
+      })
+        .then(function (resposta) {
+          return resposta.json();
+        })
+        .then(function (dados) {
+          if (dados.enviado) {
+            alert("Mensagem teste enviada ao Slack ✓");
+          } else {
+            alert("Notificações do Slack estão desativadas. Ative o toggle e salve seu ID do Slack.");
+          }
+        })
+        .catch(function (erro) {
+          console.log(erro);
+          alert("Erro ao enviar mensagem teste");
+        });
     }
 
     function salvarSlack() {
