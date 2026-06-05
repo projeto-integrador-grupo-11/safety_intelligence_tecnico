@@ -34,6 +34,14 @@ router.post("/configurar2FA", function (req, res) {
     usuarioController.configurar2FA(req, res);
 });
 
+router.get("/buscarPerfil/:idUsuario", function (req, res) {
+    usuarioController.buscarPerfil(req, res);
+});
+
+router.put("/atualizarPerfil", function (req, res) {
+    usuarioController.atualizarPerfil(req, res);
+});
+
 router.put("/trocarSenha", function (req, res) {
     usuarioController.trocarSenha(req, res);
 })

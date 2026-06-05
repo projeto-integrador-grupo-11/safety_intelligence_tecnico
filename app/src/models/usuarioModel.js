@@ -11,6 +11,39 @@ function buscarPorEmail(email) {
     return database.executar(instrucaoSql, [email]);
 }
 
+// Lê os dados pessoais juntando usuario + configuracoes_usuario.
+function buscarPerfil(idUsuario) {
+    var instrucaoSql = `
+        SELECT u.idUsuario AS id_usuario, u.nome, u.email,
+               c.telefone, c.cargo, c.industria, c.fotoPerfil
+        FROM usuario u
+        LEFT JOIN configuracoes_usuario c ON c.fkUsuario = u.idUsuario
+        WHERE u.idUsuario = ?
+    `;
+    return database.executar(instrucaoSql, [idUsuario]);
+}
+
+// Atualiza o nome (em usuario) e os demais dados (em configuracoes_usuario).
+function atualizarPerfil(idUsuario, nome, telefone, cargo, industria) {
+    var atualizarNome = `
+        UPDATE usuario
+        SET nome = ?
+        WHERE idUsuario = ?
+    `;
+    return database.executar(atualizarNome, [nome, idUsuario]).then(function () {
+        var upsertConfig = `
+            INSERT INTO configuracoes_usuario (fkUsuario, nomeCompleto, telefone, cargo, industria)
+            VALUES (?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                nomeCompleto = VALUES(nomeCompleto),
+                telefone = VALUES(telefone),
+                cargo = VALUES(cargo),
+                industria = VALUES(industria)
+        `;
+        return database.executar(upsertConfig, [idUsuario, nome, telefone, cargo, industria]);
+    });
+}
+
 function cadastrar(nome,email,senhaHash) {
     var instrucaoSql = `
         INSERT INTO usuario (nome,email,senha)
@@ -243,6 +276,8 @@ function buscarFoto(idUsuario) {
 
 module.exports = {
     buscarPorEmail,
+    buscarPerfil,
+    atualizarPerfil,
     cadastrar,
     atualizarSenha,
     salvarTokenReset,

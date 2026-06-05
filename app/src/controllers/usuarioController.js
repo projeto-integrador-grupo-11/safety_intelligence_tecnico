@@ -166,6 +166,52 @@ function cadastrar(req, res) {
         });
 }
 
+function buscarPerfil(req, res) {
+    var idUsuario = req.params.idUsuario;
+
+    usuarioModel.buscarPerfil(idUsuario)
+        .then(function (resultado) {
+            if (!resultado || resultado.length === 0) {
+                return res.status(404).send("Usuário não encontrado");
+            }
+            res.json(resultado[0]);
+        })
+        .catch(function (erro) {
+            console.log("\nHouve um erro ao buscar o perfil!", erro.sqlMessage || erro.message || erro);
+            res.status(500).json("Erro interno do servidor");
+        });
+}
+
+function atualizarPerfil(req, res) {
+    var idUsuario = req.body.idUsuario;
+    var nome = req.body.nome;
+    var telefone = req.body.telefone;
+    var cargo = req.body.cargo;
+    var industria = req.body.industria;
+
+    if (idUsuario == undefined) {
+        return res.status(400).send("idUsuario é obrigatório");
+    }
+    if (!nome || nome.trim() === "") {
+        return res.status(400).send("O nome é obrigatório");
+    }
+
+    usuarioModel.atualizarPerfil(
+        idUsuario,
+        nome.trim(),
+        telefone ? String(telefone).trim() : null,
+        cargo ? String(cargo).trim() : null,
+        industria ? String(industria).trim() : null
+    )
+        .then(function () {
+            res.json({ atualizado: true });
+        })
+        .catch(function (erro) {
+            console.log("\nHouve um erro ao atualizar o perfil!", erro.sqlMessage || erro.message || erro);
+            res.status(500).json("Erro interno do servidor");
+        });
+}
+
 function trocarSenha(req, res) {
     var senhaAtual = req.body.senhaServer;
     var novaSenha = req.body.novaSenhaServer;
@@ -636,6 +682,8 @@ module.exports = {
     buscar2FA,
     configurar2FA,
     cadastrar,
+    buscarPerfil,
+    atualizarPerfil,
     trocarSenha,
     esqueceuSenha,
     verificarCodigoRecuperacao,
