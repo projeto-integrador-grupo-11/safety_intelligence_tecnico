@@ -52,6 +52,23 @@ function dispararCodigo2Fa(usuario) {
         });
 }
 
+// Aciona o servico Java para postar uma mensagem no canal do Slack.
+// slackId (opcional) faz o servico mencionar o usuario: <@U123>.
+// Retorna a Promise do fetch (quem chama decide se trata o erro).
+function enviarNotificacaoSlack(slackId, mensagem) {
+    return fetch(process.env.EMAIL_SERVICE_URL + "/slack/notificar", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": process.env.EMAIL_SERVICE_API_KEY
+        },
+        body: JSON.stringify({
+            slackId: slackId || null,
+            mensagem: mensagem
+        })
+    });
+}
+
 function autenticar(req, res) {
     var email = req.body.emailServer;
     var senha = req.body.senhaServer;
@@ -131,6 +148,17 @@ function cadastrar(req, res) {
         })
         .then(function (resultado) {
             res.json({ id: resultado.insertId });
+
+            // Notifica o canal do time sobre o novo cadastro (best-effort: nao bloqueia o cadastro).
+            enviarNotificacaoSlack(null, "🆕 Novo usuário cadastrado: " + nome + " (" + email + ")")
+                .then(function (respostaSlack) {
+                    if (!respostaSlack.ok) {
+                        console.log("\nSlack (novo cadastro) retornou status", respostaSlack.status);
+                    }
+                })
+                .catch(function (erroSlack) {
+                    console.log("\nFalha ao notificar Slack sobre novo cadastro:", erroSlack.message || erroSlack);
+                });
         })
         .catch(function (erro) {
             console.log("\nHouve um erro ao realizar o cadastro!", erro.sqlMessage || erro.message || erro);
@@ -346,11 +374,24 @@ function configSlack(req, res) {
     var slackId = req.body.slackId;
     var notificacao = req.body.notificacao;
 
+    if (idUsuario == undefined) {
+        return res.status(400).send("idUsuario é obrigatório");
+    }
+
+    // Normaliza o flag de notificacao para 0/1.
+    var ativar = (notificacao === true || notificacao == 1) ? 1 : 0;
+
+    // Para ativar a notificacao no Slack o ID do usuario é obrigatório
+    // (é ele que permite mencionar a pessoa no canal).
+    if (ativar === 1 && (!slackId || String(slackId).trim() === "")) {
+        return res.status(400).send("Informe seu ID do Slack para ativar as notificações.");
+    }
+
     usuarioModel.configSlack(
         idUsuario,
         nome,
-        slackId,
-        notificacao
+        slackId ? String(slackId).trim() : "",
+        ativar
     )
         .then(function (resultado) {
 
@@ -480,17 +521,7 @@ function notificarSlack(req, res) {
                 return res.json({ enviado: false, motivo: "slack desativado" });
             }
 
-            return fetch(process.env.EMAIL_SERVICE_URL + "/slack/notificar", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-API-Key": process.env.EMAIL_SERVICE_API_KEY
-                },
-                body: JSON.stringify({
-                    slackId: config.idSlack,
-                    mensagem: mensagem
-                })
-            })
+            return enviarNotificacaoSlack(config.idSlack, mensagem)
                 .then(function (respostaSlack) {
                     if (!respostaSlack.ok) {
                         console.log("\nServico de Slack retornou status", respostaSlack.status);
