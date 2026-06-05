@@ -2026,6 +2026,21 @@
       return textoVariacaoAnos(total2025, total2024, '2025', '2024');
     }
 
+    // Converte a variação percentual (dado bruto) em leitura qualitativa
+    // com 3 cenários: queda = bom, estável/baixa = médio, alta = ruim.
+    function consequenciaSeguranca(pct) {
+      if (pct === null) {
+        return 'Sem base comparável — <strong>cenário indefinido</strong> na região.';
+      }
+      if (pct < 0) {
+        return '✓ Ocorrências em queda — <strong>região mais segura</strong>.';
+      }
+      if (pct >= 15) {
+        return '⚠ Ocorrências em forte alta — <strong>região perigosa</strong>.';
+      }
+      return 'Variação contida — <strong>a região está na média</strong>.';
+    }
+
     function nivelVariacaoKpi(totalAtual, totalAnterior, dados, anoAtual) {
       var pct = variacaoPctAnos(totalAtual, totalAnterior);
       var barBase = 50;
@@ -2148,7 +2163,7 @@
         var dados = await res.json();
         var total2025 = totalAnoLatrocinio(dados, '2025');
         var total2024 = totalAnoLatrocinio(dados, '2024');
-        elCtx.innerHTML = textoVariacaoLatrocinio(total2025, total2024);
+        elCtx.innerHTML = consequenciaSeguranca(variacaoPctLatrocinio(total2025, total2024));
         aplicarVisualLatrocinio(total2025, total2024, dados);
         countUp(elVal, total2025, false, 1200);
       } catch (erro) {
@@ -2183,11 +2198,8 @@
         var dados = await res.json();
         var totalAtual = Number(dados.total) || 0;
         var totalAnterior = Number(dados.totalAnterior) || 0;
-        elCtx.innerHTML = textoVariacaoAnos(
-          totalAtual,
-          totalAnterior,
-          String(anoRef),
-          String(anoAnt)
+        elCtx.innerHTML = consequenciaSeguranca(
+          variacaoPctAnos(totalAtual, totalAnterior)
         );
         var nivel = nivelVariacaoKpi(
           totalAtual,
@@ -2235,11 +2247,8 @@
         var dados = await res.json();
         var totalAtual = Number(dados.total) || 0;
         var totalAnterior = Number(dados.totalAnterior) || 0;
-        elCtx.innerHTML = textoVariacaoAnos(
-          totalAtual,
-          totalAnterior,
-          String(anoRef),
-          String(anoAnt)
+        elCtx.innerHTML = consequenciaSeguranca(
+          variacaoPctAnos(totalAtual, totalAnterior)
         );
         var nivel = nivelVariacaoKpi(
           totalAtual,
@@ -2413,36 +2422,15 @@
       };
     }
 
+    // Leitura qualitativa do mercado (3 cenários), sem expor o dado bruto.
     function textoMercadoImobiliario(dados) {
-      var pct = dados.pctPopGrandes.toFixed(1).replace('.', ',');
-      var idhm =
-        dados.idhmMedio != null
-          ? dados.idhmMedio.toFixed(3).replace('.', ',')
-          : null;
-
       if (dados.nivel === 'ALTA') {
-        return (
-          '<strong>' +
-          pct +
-          '%</strong> da população está em cidades grandes ou metrópoles' +
-          (idhm ? ', com IDHM médio de <strong>' + idhm + '</strong>.' : '.') +
-          ' Indica <strong>forte</strong> procura por novos imóveis.'
-        );
+        return '✓ Mercado aquecido — <strong>boa oportunidade de investimento</strong>.';
       }
       if (dados.nivel === 'MÉDIA') {
-        return (
-          '<strong>' +
-          pct +
-          '%</strong> da população em cidades acima de 200 mil habitantes' +
-          (dados.qtdGrandes ? ' (<strong>' + dados.qtdGrandes + '</strong> municípios)' : '') +
-          '. Mercado com potencial <strong>moderado</strong> de expansão.'
-        );
+        return 'Demanda moderada — <strong>mercado na média</strong>.';
       }
-      return (
-        'Predominância de cidades menores' +
-        (idhm ? ', IDHM médio <strong>' + idhm + '</strong>' : '') +
-        '. Demanda habitacional tende a ser mais <strong>localizada</strong>.'
-      );
+      return '⚠ Demanda fraca — <strong>mercado pouco atrativo</strong>.';
     }
 
     function renderizarKpiMercadoImobiliario(lista) {

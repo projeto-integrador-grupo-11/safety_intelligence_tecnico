@@ -32,7 +32,9 @@ CREATE TABLE usuario (
     email VARCHAR(100),
     senha VARCHAR(255),
     token_reset VARCHAR(255) NULL,
-    token_reset_expira_em DATETIME NULL
+    token_reset_expira_em DATETIME NULL,
+    codigo_2fa VARCHAR(255) NULL,
+    codigo_2fa_expira_em DATETIME NULL
 );
 =======
 CREATE TABLE IF NOT EXISTS usuario (
@@ -111,6 +113,12 @@ CREATE TABLE IF NOT EXISTS populacao_municipio (
 -- ALTER TABLE usuario
 --   ADD COLUMN token_reset VARCHAR(255) NULL,
 --   ADD COLUMN token_reset_expira_em DATETIME NULL;
+
+-- Migração (banco já existente, adicionar colunas do código 2FA):
+-- ALTER TABLE usuario
+--   ADD COLUMN codigo_2fa VARCHAR(255) NULL,
+--   ADD COLUMN codigo_2fa_expira_em DATETIME NULL;
+-- A preferência de 2FA usa configuracoes_usuario.autenticacao2FA (já no schema).
 
 -- Migração (banco já existente com lista_favoritos antiga):
 =======

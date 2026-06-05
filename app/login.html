@@ -139,6 +139,13 @@
         }).then(function (resposta) {
             if (resposta.ok) {
                 resposta.json().then(function (json) {
+                    // Usuário com 2FA ativo: ainda não há token, vai para a tela do código.
+                    if (json.requer2FA) {
+                        sessionStorage.setItem("EMAIL_2FA", json.email || emailVar);
+                        window.location = "/verificacao-2fa.html";
+                        return;
+                    }
+
                     sessionStorage.EMAIL_USUARIO = json.email;
                     sessionStorage.NOME_USUARIO = json.nome;
                     sessionStorage.ID_USUARIO = json.id;

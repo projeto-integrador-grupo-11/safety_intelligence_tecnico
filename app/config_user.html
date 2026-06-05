@@ -1438,7 +1438,7 @@
                   <div class="twofa-sub">Adicione uma camada extra de segurança ao seu login</div>
                 </div>
                 <label class="toggle">
-                  <input type="checkbox">
+                  <input type="checkbox" id="toggle-2fa" onchange="salvar2FA(this.checked)">
                   <div class="toggle-track"></div>
                 </label>
               </div>
@@ -1680,6 +1680,40 @@
   </div>
 
   <script>
+    // ===== Autenticação em dois fatores (2FA) =====
+    function carregar2FA() {
+      var idUsuario = sessionStorage.ID_USUARIO;
+      var toggle = document.getElementById('toggle-2fa');
+      if (!idUsuario || !toggle) return;
+
+      fetch(`/usuarios/buscar2FA/${idUsuario}`)
+        .then(function (resposta) { return resposta.json(); })
+        .then(function (json) {
+          toggle.checked = (json && json.autenticacao2FA == 1);
+        })
+        .catch(function (erro) { console.log('Falha ao carregar 2FA:', erro); });
+    }
+
+    function salvar2FA(ativo) {
+      var idUsuario = sessionStorage.ID_USUARIO;
+      var toggle = document.getElementById('toggle-2fa');
+
+      fetch('/usuarios/configurar2FA', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idUsuario: idUsuario, ativo: ativo ? 1 : 0 })
+      }).then(function (resposta) {
+        if (!resposta.ok) {
+          if (toggle) toggle.checked = !ativo; // reverte em caso de erro
+        }
+      }).catch(function (erro) {
+        console.log('Falha ao salvar 2FA:', erro);
+        if (toggle) toggle.checked = !ativo;
+      });
+    }
+
+    carregar2FA();
+
     // Sidebar active item
     document.querySelectorAll('.sb-item').forEach(item => {
       item.addEventListener('click', () => {
