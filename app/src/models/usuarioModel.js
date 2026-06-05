@@ -55,6 +55,17 @@ function limparTokenReset(idUsuario) {
     return database.executar(instrucaoSql, [idUsuario]);
 }
 
+// Recuperacao de senha por CODIGO: o hash do codigo fica em token_reset.
+// Exige o e-mail para que o codigo so valha para a conta que o solicitou.
+function buscarPorCodigoRecuperacao(email, codigoHash) {
+    var instrucaoSql = `
+        SELECT idUsuario AS id_usuario, nome, email
+        FROM usuario
+        WHERE email = ? AND token_reset = ? AND token_reset_expira_em > NOW()
+    `;
+    return database.executar(instrucaoSql, [email, codigoHash]);
+}
+
 // ===== Autenticacao em dois fatores (2FA) =====
 
 // Guarda o hash do codigo 2FA e sua validade para o e-mail informado.
@@ -237,6 +248,7 @@ module.exports = {
     salvarTokenReset,
     buscarPorTokenReset,
     limparTokenReset,
+    buscarPorCodigoRecuperacao,
     salvarCodigo2Fa,
     buscarPorCodigo2Fa,
     limparCodigo2Fa,
