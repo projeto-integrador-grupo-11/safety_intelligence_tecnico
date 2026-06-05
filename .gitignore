@@ -6,6 +6,9 @@ node_modules
 package-lock.json
 app/cache/
 safetyintelligence-chave.pem
+.env
+.env.dev
+env.dev
 
 # Planilhas baixadas do S3 / lidas pelo JAR safety_leitor_excel.
 # Os dados oficiais ficam no bucket 17042026-safety e são carregados no MySQL pelo JAR.

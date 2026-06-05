@@ -111,14 +111,14 @@ CREATE TABLE IF NOT EXISTS populacao_municipio (
     KEY idx_pop_mun_uf_nome (uf, nome_municipio)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-<<<<<<< HEAD
+
 -- Migração (banco já existente, adicionar colunas de recuperação de senha):
 -- ALTER TABLE usuario
 --   ADD COLUMN token_reset VARCHAR(255) NULL,
 --   ADD COLUMN token_reset_expira_em DATETIME NULL;
 
 -- Migração (banco já existente com lista_favoritos antiga):
-=======
+
 -- =====================
 -- INDICADORES DE SEGURANÇA POR UF (planilha indicadores_seguranca_publica.xlsx)
 -- =====================
@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS log_sistema (
 -- =====================================================================
 
 -- lista_favoritos antiga (sem uf / fkMunicipio):
->>>>>>> 8823c8ae7622372e7988ffc3a9cd5f2888dfa672
+
 -- ALTER TABLE lista_favoritos
 --   ADD COLUMN fkMunicipio BIGINT NULL AFTER fkUsuarios_favoritos,
 --   ADD COLUMN uf CHAR(2) NOT NULL DEFAULT 'SP' AFTER nomeMunicipio,
