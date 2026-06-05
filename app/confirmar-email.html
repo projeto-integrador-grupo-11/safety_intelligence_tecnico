@@ -72,8 +72,42 @@
     </div>
 
     <script>
+        function mostrarErro(msg) {
+            var cardErro = document.getElementById('cardErro');
+            var span = document.getElementById('mensagem_erro');
+            cardErro.style.display = 'block';
+            cardErro.style.color = '#dc2626';
+            span.textContent = msg;
+        }
+
         document.getElementById('btn-confirmar-email').addEventListener('click', function () {
-            window.location.href = '/codigo-verificacao.html';
+            var btn = this;
+            var email = document.getElementById('email-recuperacao').value.trim();
+            document.getElementById('cardErro').style.display = 'none';
+
+            if (!email || !email.includes('@') || !email.includes('.')) {
+                mostrarErro('Informe um e-mail válido.');
+                return;
+            }
+
+            btn.disabled = true;
+            fetch('/usuarios/esqueceuSenha', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ emailServer: email })
+            }).then(function (resposta) {
+                if (!resposta.ok) {
+                    btn.disabled = false;
+                    mostrarErro('Não foi possível enviar o código. Tente novamente.');
+                    return;
+                }
+                // Guarda o e-mail para os próximos passos do fluxo.
+                sessionStorage.setItem('EMAIL_RECUPERACAO', email);
+                window.location.href = '/codigo-verificacao.html';
+            }).catch(function () {
+                btn.disabled = false;
+                mostrarErro('Não foi possível conectar ao servidor.');
+            });
         });
     </script>
 

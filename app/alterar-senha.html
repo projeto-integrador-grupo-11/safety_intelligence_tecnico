@@ -33,6 +33,10 @@
 
             <h1 class="titulo-pagina">Alterar senha</h1>
 
+            <div id="cardErro" style="display:none; color:#dc2626; text-align:center; margin:8px 0;">
+                <span id="mensagem_erro"></span>
+            </div>
+
             <label for="nova-senha">Nova senha</label>
             <input id="nova-senha" type="password" placeholder="Digite a nova senha" autocomplete="new-password">
 
@@ -47,9 +51,65 @@
     </div>
 
     <script>
-        document.getElementById('btn-alterar-senha').addEventListener('click', function () {
-            window.location.href = '/login.html';
-        });
+        (function () {
+            var email = sessionStorage.getItem('EMAIL_RECUPERACAO');
+            var codigo = sessionStorage.getItem('CODIGO_RECUPERACAO');
+            if (!email || !codigo) {
+                // Sem contexto válido: recomeça o fluxo.
+                window.location.href = '/confirmar-email.html';
+                return;
+            }
+
+            var btn = document.getElementById('btn-alterar-senha');
+            var cardErro = document.getElementById('cardErro');
+            var mensagemErro = document.getElementById('mensagem_erro');
+
+            function mostrarErro(msg) {
+                cardErro.style.display = 'block';
+                mensagemErro.textContent = msg;
+            }
+
+            btn.addEventListener('click', function () {
+                cardErro.style.display = 'none';
+                var nova = document.getElementById('nova-senha').value;
+                var confirmar = document.getElementById('confirmar-senha').value;
+
+                if (!nova || nova.length < 8) {
+                    mostrarErro('A nova senha precisa ter ao menos 8 caracteres.');
+                    return;
+                }
+                if (nova !== confirmar) {
+                    mostrarErro('As senhas não coincidem.');
+                    return;
+                }
+
+                btn.disabled = true;
+                fetch('/usuarios/redefinirSenha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        emailServer: email,
+                        codigoServer: codigo,
+                        novaSenhaServer: nova
+                    })
+                }).then(function (resposta) {
+                    if (resposta.ok) {
+                        sessionStorage.removeItem('EMAIL_RECUPERACAO');
+                        sessionStorage.removeItem('CODIGO_RECUPERACAO');
+                        alert('Senha alterada com sucesso! Faça login com a nova senha.');
+                        window.location.href = '/login.html';
+                    } else {
+                        btn.disabled = false;
+                        resposta.text().then(function (texto) {
+                            mostrarErro(texto || 'Não foi possível alterar a senha.');
+                        });
+                    }
+                }).catch(function () {
+                    btn.disabled = false;
+                    mostrarErro('Não foi possível conectar ao servidor.');
+                });
+            });
+        })();
     </script>
 
 </body>

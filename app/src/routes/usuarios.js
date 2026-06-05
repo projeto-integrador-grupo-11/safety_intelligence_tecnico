@@ -42,6 +42,10 @@ router.post("/esqueceuSenha", function (req, res) {
     usuarioController.esqueceuSenha(req, res);
 });
 
+router.post("/verificarCodigoRecuperacao", function (req, res) {
+    usuarioController.verificarCodigoRecuperacao(req, res);
+});
+
 router.post("/redefinirSenha", function (req, res) {
     usuarioController.redefinirSenha(req, res);
 });

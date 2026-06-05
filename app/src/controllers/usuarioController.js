@@ -185,7 +185,34 @@ function trocarSenha(req, res) {
 
 }
 
-// Passo 1: usuário esqueceu a senha -> gera token, salva e pede para o serviço Java enviar o e-mail.
+// Pede ao servico Java uma chave aleatoria de recuperacao, guarda o hash
+// (nas colunas token_reset) com validade e dispara o e-mail.
+function dispararCodigoRecuperacao(usuario) {
+    return fetch(process.env.EMAIL_SERVICE_URL + "/emails/codigo-2fa", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": process.env.EMAIL_SERVICE_API_KEY
+        },
+        body: JSON.stringify({
+            destinatario: usuario.email,
+            nome: usuario.nome
+        })
+    })
+        .then(function (resposta) {
+            if (!resposta.ok) {
+                throw new Error("Servico de e-mail retornou status " + resposta.status);
+            }
+            return resposta.json();
+        })
+        .then(function (json) {
+            var codigoHash = crypto.createHash("sha256").update(String(json.codigo)).digest("hex");
+            var expiraEm = new Date(Date.now() + RESET_EXPIRA_MS);
+            return usuarioModel.salvarTokenReset(usuario.email, codigoHash, expiraEm);
+        });
+}
+
+// Passo 1: usuário esqueceu a senha -> gera um código, salva o hash e envia por e-mail.
 function esqueceuSenha(req, res) {
     var email = req.body.emailServer;
 
@@ -200,39 +227,13 @@ function esqueceuSenha(req, res) {
                 return res.json({ enviado: true });
             }
 
-            var usuario = resultado[0];
-            var token = crypto.randomBytes(32).toString("hex");
-            var tokenHash = crypto.createHash("sha256").update(token).digest("hex");
-            var expiraEm = new Date(Date.now() + RESET_EXPIRA_MS);
-
-            return usuarioModel.salvarTokenReset(email, tokenHash, expiraEm)
+            return dispararCodigoRecuperacao(resultado[0])
                 .then(function () {
-                    var base = process.env.RESET_URL_BASE;
-                    var link = base + (base.indexOf("?") >= 0 ? "&" : "?") + "token=" + token;
-
-                    return fetch(process.env.EMAIL_SERVICE_URL + "/emails/recuperacao-senha", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-API-Key": process.env.EMAIL_SERVICE_API_KEY
-                        },
-                        body: JSON.stringify({
-                            destinatario: email,
-                            nome: usuario.nome,
-                            link: link
-                        })
-                    });
-                })
-                .then(function (respostaEmail) {
-                    if (!respostaEmail.ok) {
-                        console.log("\nServiço de e-mail retornou status", respostaEmail.status);
-                    }
+                    res.json({ enviado: true });
                 })
                 .catch(function (erroEmail) {
                     // Falha no envio é registrada, mas a resposta ao cliente continua genérica
                     console.log("\nFalha ao acionar o serviço de e-mail:", erroEmail.message || erroEmail);
-                })
-                .then(function () {
                     res.json({ enviado: true });
                 });
         })
@@ -242,24 +243,56 @@ function esqueceuSenha(req, res) {
         });
 }
 
-// Passo 2: usuário abre o link do e-mail e define a nova senha usando o token.
+// Passo 2: valida o código de recuperação digitado (sem ainda trocar a senha).
+function verificarCodigoRecuperacao(req, res) {
+    var email = req.body.emailServer;
+    var codigo = req.body.codigoServer;
+
+    if (email == undefined) {
+        return res.status(400).send("Seu email está undefined!");
+    }
+    if (codigo == undefined) {
+        return res.status(400).send("O código está undefined!");
+    }
+
+    var codigoHash = crypto.createHash("sha256").update(String(codigo)).digest("hex");
+
+    usuarioModel.buscarPorCodigoRecuperacao(email, codigoHash)
+        .then(function (resultado) {
+            if (!resultado || resultado.length === 0) {
+                return res.status(401).send("Código inválido ou expirado");
+            }
+            res.json({ valido: true });
+        })
+        .catch(function (erro) {
+            console.log("\nHouve um erro ao verificar o código de recuperação!", erro.sqlMessage || erro.message || erro);
+            res.status(500).json("Erro interno do servidor");
+        });
+}
+
+// Passo 3: revalida o código e define a nova senha. O código é checado de novo
+// no servidor (nunca confia só na tela anterior) e limpo após o uso.
 function redefinirSenha(req, res) {
-    var token = req.body.tokenServer;
+    var email = req.body.emailServer;
+    var codigo = req.body.codigoServer;
     var novaSenha = req.body.novaSenhaServer;
 
-    if (token == undefined) {
-        return res.status(400).send("Token está undefined!");
+    if (email == undefined) {
+        return res.status(400).send("Seu email está undefined!");
+    }
+    if (codigo == undefined) {
+        return res.status(400).send("O código está undefined!");
     }
     if (novaSenha == undefined) {
         return res.status(400).send("Sua nova senha está undefined!");
     }
 
-    var tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+    var codigoHash = crypto.createHash("sha256").update(String(codigo)).digest("hex");
 
-    usuarioModel.buscarPorTokenReset(tokenHash)
+    usuarioModel.buscarPorCodigoRecuperacao(email, codigoHash)
         .then(function (resultado) {
             if (!resultado || resultado.length === 0) {
-                return res.status(400).send("Token inválido ou expirado");
+                return res.status(401).send("Código inválido ou expirado");
             }
 
             var usuario = resultado[0];
@@ -574,6 +607,7 @@ module.exports = {
     cadastrar,
     trocarSenha,
     esqueceuSenha,
+    verificarCodigoRecuperacao,
     redefinirSenha,
     excluir,
     configSlack,

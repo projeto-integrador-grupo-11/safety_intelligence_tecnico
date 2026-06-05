@@ -28,6 +28,13 @@
         <div class="container container--codigo">
 
             <h1 class="titulo-pagina">Código</h1>
+            <p class="form-subtitle" style="text-align:center; margin-top:-8px;">
+                Digite o código de 6 dígitos enviado para <strong id="email-destino">seu e-mail</strong>.
+            </p>
+
+            <div id="cardErro" style="display:none; color:#dc2626; text-align:center; margin:8px 0;">
+                <span id="mensagem_erro"></span>
+            </div>
 
             <div class="codigo-row" role="group" aria-label="Código de 6 dígitos">
                 <input class="codigo-digit" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]*" aria-label="Dígito 1" autocomplete="one-time-code">
@@ -47,7 +54,30 @@
 
     <script>
         (function () {
+            var email = sessionStorage.getItem('EMAIL_RECUPERACAO');
+            if (!email) {
+                // Sem contexto: volta ao início do fluxo de recuperação.
+                window.location.href = '/confirmar-email.html';
+                return;
+            }
+            document.getElementById('email-destino').textContent = email;
+
             var inputs = document.querySelectorAll('.codigo-digit');
+            var cardErro = document.getElementById('cardErro');
+            var mensagemErro = document.getElementById('mensagem_erro');
+            var btnConfirmar = document.getElementById('btn-codigo-confirmar');
+
+            function mostrarErro(msg) {
+                cardErro.style.display = 'block';
+                mensagemErro.textContent = msg;
+            }
+
+            function lerCodigo() {
+                var codigo = '';
+                inputs.forEach(function (i) { codigo += i.value; });
+                return codigo;
+            }
+
             inputs.forEach(function (input, i) {
                 input.addEventListener('input', function (e) {
                     e.target.value = e.target.value.replace(/\D/g, '').slice(0, 1);
@@ -58,6 +88,9 @@
                 input.addEventListener('keydown', function (e) {
                     if (e.key === 'Backspace' && !e.target.value && i > 0) {
                         inputs[i - 1].focus();
+                    }
+                    if (e.key === 'Enter') {
+                        confirmar();
                     }
                 });
             });
@@ -76,9 +109,39 @@
                     inputs[digits.length].focus();
                 }
             });
-            document.getElementById('btn-codigo-confirmar').addEventListener('click', function () {
-                window.location.href = '/alterar-senha.html';
-            });
+
+            function confirmar() {
+                cardErro.style.display = 'none';
+                var codigo = lerCodigo();
+                if (codigo.length < 6) {
+                    mostrarErro('Digite os 6 dígitos do código.');
+                    return;
+                }
+
+                btnConfirmar.disabled = true;
+                fetch('/usuarios/verificarCodigoRecuperacao', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ emailServer: email, codigoServer: codigo })
+                }).then(function (resposta) {
+                    if (resposta.ok) {
+                        // Guarda o código validado para o passo de troca de senha.
+                        sessionStorage.setItem('CODIGO_RECUPERACAO', codigo);
+                        window.location.href = '/alterar-senha.html';
+                    } else {
+                        btnConfirmar.disabled = false;
+                        resposta.text().then(function (texto) {
+                            mostrarErro(texto || 'Código inválido ou expirado.');
+                        });
+                    }
+                }).catch(function () {
+                    btnConfirmar.disabled = false;
+                    mostrarErro('Não foi possível conectar ao servidor.');
+                });
+            }
+
+            btnConfirmar.addEventListener('click', confirmar);
+            inputs[0].focus();
         })();
     </script>
 
