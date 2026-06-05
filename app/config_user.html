@@ -1360,32 +1360,32 @@
                 <div class="input-row">
                   <div class="field">
                     <label class="field-label">Nome completo</label>
-                    <input type="text" placeholder="Ex.: João da Silva">
+                    <input type="text" id="ipt_nome" placeholder="Ex.: João da Silva">
                   </div>
                   <div class="field">
                     <label class="field-label">Email</label>
-                    <input type="email" placeholder="joao@empresa.com">
+                    <input type="email" id="ipt_email" placeholder="joao@empresa.com" readonly
+                      title="O e-mail é o seu login e não pode ser alterado aqui.">
                   </div>
                 </div>
                 <div class="input-row">
                   <div class="field">
                     <label class="field-label">Cargo</label>
-                    <input type="text" placeholder="Ex.: Analista de Dados">
+                    <input type="text" id="ipt_cargo" placeholder="Ex.: Analista de Dados">
                   </div>
                   <div class="field">
                     <label class="field-label">Indústria</label>
-                    <input type="text" placeholder="Ex.: Segurança Pública">
+                    <input type="text" id="ipt_industria" placeholder="Ex.: Segurança Pública">
                   </div>
                 </div>
                 <div class="input-row">
                   <div class="field">
                     <label class="field-label">Telefone</label>
-                    <input type="tel" placeholder="+55 (11) 99999-0000">
+                    <input type="tel" id="ipt_telefone" placeholder="+55 (11) 99999-0000">
                   </div>
-                  <div class="field">
-                    <label class="field-label">Organização</label>
-                    <input type="text" placeholder="Ex.: Prefeitura de SP">
-                  </div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;margin-top:8px">
+                  <button class="btn btn-secondary btn-sm" onclick="salvarPerfil()">Salvar alterações</button>
                 </div>
               </div>
             </div>
@@ -1935,41 +1935,59 @@
 
     }
 
-
-
-
-    function uploadFoto() {
-
-      const arquivo =
-        document.getElementById("ipt_foto").files[0];
-
-      const formData = new FormData();
-
-      formData.append("foto", arquivo);
-
-      formData.append(
-        "idUsuario",
-        sessionStorage.ID_USUARIO
-      );
-
-      fetch("/usuarios/uploadFoto", {
-
-        method: "POST",
-
-        body: formData
-
-      })
-
+    // Carrega os dados pessoais (nome/email/cargo/indústria/telefone) ao abrir a página.
+    function carregarPerfil() {
+      fetch(`/usuarios/buscarPerfil/${sessionStorage.ID_USUARIO}`)
         .then(function (resposta) {
-
-          if (resposta.ok) {
-
-            carregarFoto();
-
-          }
-
+          if (!resposta.ok) return null;
+          return resposta.json();
+        })
+        .then(function (dados) {
+          if (!dados) return;
+          document.getElementById("ipt_nome").value = dados.nome || "";
+          document.getElementById("ipt_email").value = dados.email || "";
+          document.getElementById("ipt_cargo").value = dados.cargo || "";
+          document.getElementById("ipt_industria").value = dados.industria || "";
+          document.getElementById("ipt_telefone").value = dados.telefone || "";
+        })
+        .catch(function (erro) {
+          console.log("Falha ao carregar perfil:", erro);
         });
+    }
 
+    function salvarPerfil() {
+      const nome = document.getElementById("ipt_nome").value.trim();
+      if (!nome) {
+        alert("O nome é obrigatório.");
+        return;
+      }
+
+      fetch("/usuarios/atualizarPerfil", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          idUsuario: sessionStorage.ID_USUARIO,
+          nome: nome,
+          cargo: document.getElementById("ipt_cargo").value.trim(),
+          industria: document.getElementById("ipt_industria").value.trim(),
+          telefone: document.getElementById("ipt_telefone").value.trim()
+        })
+      })
+        .then(function (resposta) {
+          if (resposta.ok) {
+            // Mantém o nome exibido na sessão em sincronia.
+            sessionStorage.NOME_USUARIO = nome;
+            alert("Dados atualizados com sucesso!");
+          } else {
+            resposta.text().then(function (texto) {
+              alert(texto || "Não foi possível salvar.");
+            });
+          }
+        })
+        .catch(function (erro) {
+          console.log(erro);
+          alert("Não foi possível conectar ao servidor.");
+        });
     }
 
     function carregarFoto() {
@@ -2001,9 +2019,10 @@
 
     }
 
+        carregarPerfil();
         carregarSlack();
         carregarFoto();
-  </script>
+</script>
 </body>
 
 </html>
