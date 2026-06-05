@@ -1447,104 +1447,8 @@
           </div>
         </div>
 
-        <!-- CARD: INTEGRAÇÃO SLACK -->
+        <!-- CARD: NOTIFICAÇÕES SLACK -->
         <div class="card" id="card-slack">
-          <div class="card-header">
-            <div class="card-header-body">
-              <div class="card-title">Integração com Slack</div>
-              <div class="card-sub">Conecte sua conta para receber alertas e relatórios diretamente no Slack</div>
-            </div>
-           
-          </div>
-          <div class="card-body">
-
-            <!-- Connect block -->
-            <div class="slack-connect">
-              <div class="slack-connect-info">
-                <div class="slack-logo">#</div>
-                <div class="slack-connect-text">
-                  <div class="t1" id="slack-workspace">Workspace: Safety Intelligence</div>
-                </div>
-              </div>
-              <button class="btn btn-secondary btn-sm" id="btn-slack-toggle" onclick="toggleSlackConnection()">Desconectar</button>
-            </div>
-
-            <!-- Channel + mention -->
-            <div class="input-row" style="margin-top:16px">
-              <div class="field">
-                <label class="field-label">Canal padrão</label>
-                <select id="slack-channel">
-                  <option value="#alertas-seguranca">#alertas-seguranca</option>
-                  <option value="#operacoes">#operacoes</option>
-                  <option value="#geral">#geral</option>
-                  <option value="dm">Mensagem direta</option>
-                </select>
-              </div>
-              <div class="field">
-                <label class="field-label">Mencionar (@usuário)</label>
-                <input type="text" id="slack-mention" placeholder="@gustavo.santiago">
-              </div>
-            </div>
-
-            <div class="divider" style="margin-top:18px"></div>
-
-            <!-- Notification types -->
-            <div class="field" style="margin-top:14px">
-              <label class="field-label">Notificações no Slack</label>
-            </div>
-            <div class="notif-list">
-              <div class="notif-item">
-                <div class="notif-item-text">
-                  <div class="t1">Alertas críticos de segurança</div>
-                  <div class="t2">Incidentes de alta prioridade detectados em tempo real</div>
-                </div>
-                <label class="toggle">
-                  <input type="checkbox" checked>
-                  <div class="toggle-track"></div>
-                </label>
-              </div>
-              <div class="notif-item">
-                <div class="notif-item-text">
-                  <div class="t1">Relatórios diários</div>
-                  <div class="t2">Resumo das ocorrências do dia, enviado às 18h</div>
-                </div>
-                <label class="toggle">
-                  <input type="checkbox" checked>
-                  <div class="toggle-track"></div>
-                </label>
-              </div>
-              <div class="notif-item">
-                <div class="notif-item-text">
-                  <div class="t1">Menções e comentários</div>
-                  <div class="t2">Quando alguém te marca em uma ocorrência ou painel</div>
-                </div>
-                <label class="toggle">
-                  <input type="checkbox">
-                  <div class="toggle-track"></div>
-                </label>
-              </div>
-              <div class="notif-item">
-                <div class="notif-item-text">
-                  <div class="t1">Novos cadastros</div>
-                  <div class="t2">Notificar quando um novo usuário for adicionado à organização</div>
-                </div>
-                <label class="toggle">
-                  <input type="checkbox">
-                  <div class="toggle-track"></div>
-                </label>
-              </div>
-            </div>
-
-            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px">
-              <button class="btn btn-secondary btn-sm" onclick="testarSlack()">Enviar mensagem teste</button>
-              <button class="btn btn-slack btn-sm" onclick="salvarSlack()">Salvar integração</button>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- CARD: SESSÕES ATIVAS -->
-        <div class="card">
 
           <div class="card-header">
 
@@ -1588,13 +1492,21 @@
 
                 <label>ID do usuário Slack</label>
 
-                <input type="text" id="ipt_slackId" placeholder="Digite seu ID do Slack">
+                <input type="text" id="ipt_slackId" placeholder="Ex.: U0XXXXXXX">
+                <small style="display:block;margin-top:6px;color:#7b8794;">
+                  No Slack: seu perfil → ⋮ Mais → Copiar ID de membro. Obrigatório para ativar as notificações.
+                </small>
 
               </div>
 
-              <button class="btn-save-slack" onclick="salvarSlackNotif()">
-                Salvar configurações
-              </button>
+              <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+                <button class="btn-save-slack" onclick="salvarSlackNotif()">
+                  Salvar configurações
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="testarSlack()">
+                  Enviar mensagem teste
+                </button>
+              </div>
 
             </div>
 
@@ -1730,35 +1642,7 @@
       label.style.color = lvl.color;
     }
 
-    // Slack
-    let slackConectado = true;
-
-    function toggleSlackConnection() {
-      const badge = document.getElementById('slack-badge');
-      const dot = document.getElementById('slack-dot');
-      const btn = document.getElementById('btn-slack-toggle');
-      const ws = document.getElementById('slack-workspace');
-      const user = document.getElementById('slack-user');
-
-      slackConectado = !slackConectado;
-
-      if (slackConectado) {
-        badge.className = 'card-badge badge-green';
-        badge.innerHTML = '<span class="slack-status-dot" id="slack-dot"></span>Conectado';
-        btn.textContent = 'Desconectar';
-        btn.className = 'btn btn-secondary btn-sm';
-        ws.textContent = 'Workspace: Safety Intelligence';
-        user.textContent = 'conectado como @gustavo.santiago';
-      } else {
-        badge.className = 'card-badge badge-red';
-        badge.innerHTML = '<span class="slack-status-dot off" id="slack-dot"></span>Desconectado';
-        btn.textContent = 'Conectar com Slack';
-        btn.className = 'btn btn-slack btn-sm';
-        ws.textContent = 'Nenhum workspace conectado';
-        user.textContent = 'autorize o app para receber notificações';
-      }
-    }
-
+    // Slack — envia uma mensagem de teste ao canal usando o ID salvo do usuario.
     function testarSlack() {
       fetch("/usuarios/notificarSlack", {
         method: "POST",
@@ -1777,25 +1661,13 @@
           if (dados.enviado) {
             alert("Mensagem teste enviada ao Slack ✓");
           } else {
-            alert("Notificações do Slack estão desativadas. Ative o toggle e salve seu ID do Slack.");
+            alert("Notificações do Slack estão desativadas. Ative o toggle e salve seu ID do Slack primeiro.");
           }
         })
         .catch(function (erro) {
           console.log(erro);
           alert("Erro ao enviar mensagem teste");
         });
-    }
-
-    function salvarSlack() {
-      if (!slackConectado) {
-        alert('Conecte sua conta do Slack para salvar a integração.');
-        return;
-      }
-      const canal = document.getElementById('slack-channel').value;
-      const mention = document.getElementById('slack-mention').value;
-      // TODO: integrar com backend
-      console.log('Slack config:', { canal, mention });
-      alert('Configurações do Slack salvas com sucesso!');
     }
 
     function handleSair() {
@@ -1936,7 +1808,16 @@
     function salvarSlackNotif() {
 
       const slackId =
-        document.getElementById("ipt_slackId").value;
+        document.getElementById("ipt_slackId").value.trim();
+
+      const nome =
+        document.getElementById("ipt_nomeSlack").value.trim();
+
+      // Para ativar a notificacao o ID do Slack é obrigatório.
+      if (!slackId) {
+        alert("Informe seu ID do Slack para ativar as notificações.");
+        return;
+      }
 
       fetch("/usuarios/configSlack", {
 
@@ -1950,7 +1831,7 @@
 
           idUsuario: sessionStorage.ID_USUARIO,
 
-          nome: document.getElementById("ipt_nomeSlack").value,
+          nome: nome,
 
           slackId: slackId,
 
@@ -1963,14 +1844,20 @@
 
           if (resposta.ok) {
 
-            alert("Configuração salva!");
+            alert("Configuração salva! Você será notificado no Slack.");
 
           } else {
 
-            alert("Erro ao salvar");
+            resposta.text().then(function (texto) {
+              alert(texto || "Erro ao salvar");
+            });
 
           }
 
+        })
+        .catch(function (erro) {
+          console.log(erro);
+          alert("Não foi possível conectar ao servidor.");
         });
 
     }
