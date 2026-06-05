@@ -116,6 +116,13 @@
         if (cardErro) cardErro.style.display = "none";
     }
 
+    function togglePw(btn) {
+        var input = btn.parentElement.querySelector('input');
+        var aberto = input.type === 'password';
+        input.type = aberto ? 'text' : 'password';
+        btn.setAttribute('aria-label', aberto ? 'Ocultar senha' : 'Mostrar senha');
+    }
+
     function entrar() {
         limparErro();
 

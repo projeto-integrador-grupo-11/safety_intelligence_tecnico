@@ -81,7 +81,7 @@
                         <circle cx="12" cy="8" r="4" />
                         <path d="M4 21a8 8 0 0 1 16 0" />
                     </svg>
-                    <input type="text" id="ipt_nome" placeholder="Como devemos te chamar?">
+                    <input type="text" oninput="validarNome()" id="ipt_nome" placeholder="Como devemos te chamar?">
                 </div>
             </div>
 
@@ -140,7 +140,7 @@
             </div>
 
             <p class="login">Já tem uma conta? <a href="/login.html">Entrar</a></p>
-            <button onclick="cadastrar()" class="cadastrar">Criar conta</button>
+            <button onclick="cadastrar()" id="btn_cadastrar" class="cadastrar">Criar conta</button>
 
         </section>
     </div>
