@@ -6,9 +6,50 @@ var autenticacao = require("../middlewares/autenticarJwt");
 
 var SALT_ROUNDS = 10;
 var RESET_EXPIRA_MS = 60 * 60 * 1000; // 1 hora
+var CODIGO_2FA_EXPIRA_MS = 10 * 60 * 1000; // 10 minutos
 
 function isBcryptHash(valor) {
     return typeof valor === "string" && /^\$2[aby]\$/.test(valor);
+}
+
+// Monta a resposta de login bem-sucedido com o token JWT.
+function responderComToken(res, usuario) {
+    var token = autenticacao.gerarToken(usuario);
+    res.json({
+        id: usuario.id_usuario,
+        email: usuario.email,
+        nome: usuario.nome,
+        empresaId: usuario.empresaId,
+        privilegio: usuario.privilegio,
+        token: token
+    });
+}
+
+// Pede ao servico Java uma chave aleatoria, guarda o hash com validade
+// e dispara o e-mail. Retorna uma Promise que resolve quando o codigo foi salvo.
+function dispararCodigo2Fa(usuario) {
+    return fetch(process.env.EMAIL_SERVICE_URL + "/emails/codigo-2fa", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": process.env.EMAIL_SERVICE_API_KEY
+        },
+        body: JSON.stringify({
+            destinatario: usuario.email,
+            nome: usuario.nome
+        })
+    })
+        .then(function (resposta) {
+            if (!resposta.ok) {
+                throw new Error("Servico de e-mail retornou status " + resposta.status);
+            }
+            return resposta.json();
+        })
+        .then(function (json) {
+            var codigoHash = crypto.createHash("sha256").update(String(json.codigo)).digest("hex");
+            var expiraEm = new Date(Date.now() + CODIGO_2FA_EXPIRA_MS);
+            return usuarioModel.salvarCodigo2Fa(usuario.email, codigoHash, expiraEm);
+        });
 }
 
 function autenticar(req, res) {
@@ -43,16 +84,20 @@ function autenticar(req, res) {
                     return res.status(403).send("Email e/ou senha inválido(s)");
                 }
 
-                var token = autenticacao.gerarToken(usuario);
+                // 2FA desativado: login direto com token.
+                if (usuario.autenticacao2FA != 1) {
+                    return responderComToken(res, usuario);
+                }
 
-                res.json({
-                    id: usuario.id_usuario,
-                    email: usuario.email,
-                    nome: usuario.nome,
-                    empresaId: usuario.empresaId,
-                    privilegio: usuario.privilegio,
-                    token: token
-                });
+                // 2FA ativado: gera/envia o codigo e exige a verificacao antes do token.
+                dispararCodigo2Fa(usuario)
+                    .then(function () {
+                        res.json({ requer2FA: true, email: usuario.email });
+                    })
+                    .catch(function (erroCodigo) {
+                        console.log("\nFalha ao enviar codigo 2FA:", erroCodigo.message || erroCodigo);
+                        res.status(500).json("Não foi possível enviar o código de verificação");
+                    });
             }).catch(function (erro) {
                 console.log("\nHouve um erro ao verificar a senha!", erro.message || erro);
                 res.status(500).json("Erro interno do servidor");
@@ -428,8 +473,104 @@ function notificarSlack(req, res) {
 
 }
 
+// Passo 2 do login: valida o codigo 2FA digitado e, se correto, emite o token.
+function verificar2FA(req, res) {
+    var email = req.body.emailServer;
+    var codigo = req.body.codigoServer;
+
+    if (email == undefined) {
+        return res.status(400).send("Seu email está undefined!");
+    }
+    if (codigo == undefined) {
+        return res.status(400).send("O código está undefined!");
+    }
+
+    var codigoHash = crypto.createHash("sha256").update(String(codigo)).digest("hex");
+
+    usuarioModel.buscarPorCodigo2Fa(email, codigoHash)
+        .then(function (resultado) {
+            if (!resultado || resultado.length === 0) {
+                return res.status(401).send("Código inválido ou expirado");
+            }
+
+            var usuario = resultado[0];
+
+            return usuarioModel.limparCodigo2Fa(usuario.id_usuario)
+                .then(function () {
+                    responderComToken(res, usuario);
+                });
+        })
+        .catch(function (erro) {
+            console.log("\nHouve um erro ao verificar o código 2FA!", erro.sqlMessage || erro.message || erro);
+            res.status(500).json("Erro interno do servidor");
+        });
+}
+
+// Reenvia o codigo 2FA. Resposta sempre generica para nao expor quais e-mails existem.
+function reenviar2FA(req, res) {
+    var email = req.body.emailServer;
+
+    if (email == undefined) {
+        return res.status(400).send("Seu email está undefined!");
+    }
+
+    usuarioModel.buscarPorEmail(email)
+        .then(function (resultado) {
+            if (!resultado || resultado.length === 0 || resultado[0].autenticacao2FA != 1) {
+                return res.json({ enviado: true });
+            }
+
+            return dispararCodigo2Fa(resultado[0])
+                .then(function () {
+                    res.json({ enviado: true });
+                });
+        })
+        .catch(function (erro) {
+            console.log("\nFalha ao reenviar código 2FA:", erro.sqlMessage || erro.message || erro);
+            res.status(500).json("Erro interno do servidor");
+        });
+}
+
+// Le a preferencia de 2FA do usuario (para o toggle na tela de configuracoes).
+function buscar2FA(req, res) {
+    var idUsuario = req.params.idUsuario;
+
+    usuarioModel.buscar2FA(idUsuario)
+        .then(function (resultado) {
+            var ativo = resultado && resultado.length > 0 ? resultado[0].autenticacao2FA : 0;
+            res.json({ autenticacao2FA: ativo });
+        })
+        .catch(function (erro) {
+            console.log("\nFalha ao buscar configuração de 2FA:", erro.sqlMessage || erro.message || erro);
+            res.status(500).json("Erro interno do servidor");
+        });
+}
+
+// Ativa ou desativa o 2FA do usuario.
+function configurar2FA(req, res) {
+    var idUsuario = req.body.idUsuario;
+    var ativo = (req.body.ativo === true || req.body.ativo === 1 || req.body.ativo === "1") ? 1 : 0;
+
+    if (idUsuario == undefined) {
+        return res.status(400).send("idUsuario está undefined!");
+    }
+
+    usuarioModel.configurar2FA(idUsuario, ativo)
+        .then(function () {
+            res.json({ autenticacao2FA: ativo });
+        })
+        .catch(function (erro) {
+            console.log("\nFalha ao configurar 2FA:", erro.sqlMessage || erro.message || erro);
+            res.status(500).json("Erro interno do servidor");
+        });
+}
+
 module.exports = {
     autenticar,
+    verificar2FA,
+    reenviar2FA,
+    buscar2FA,
+    configurar2FA,
     cadastrar,
     trocarSenha,
     esqueceuSenha,

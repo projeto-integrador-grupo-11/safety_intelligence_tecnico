@@ -2,9 +2,11 @@ var database = require("../database/config");
 
 function buscarPorEmail(email) {
     var instrucaoSql = `
-        SELECT idUsuario AS id_usuario,nome, email, senha
-        FROM usuario
-        WHERE email = ?
+        SELECT u.idUsuario AS id_usuario, u.nome, u.email, u.senha,
+               COALESCE(c.autenticacao2FA, 0) AS autenticacao2FA
+        FROM usuario u
+        LEFT JOIN configuracoes_usuario c ON c.fkUsuario = u.idUsuario
+        WHERE u.email = ?
     `;
     return database.executar(instrucaoSql, [email]);
 }
@@ -51,6 +53,58 @@ function limparTokenReset(idUsuario) {
         WHERE idUsuario = ?
     `;
     return database.executar(instrucaoSql, [idUsuario]);
+}
+
+// ===== Autenticacao em dois fatores (2FA) =====
+
+// Guarda o hash do codigo 2FA e sua validade para o e-mail informado.
+function salvarCodigo2Fa(email, codigoHash, expiraEm) {
+    var instrucaoSql = `
+        UPDATE usuario
+        SET codigo_2fa = ?, codigo_2fa_expira_em = ?
+        WHERE email = ?
+    `;
+    return database.executar(instrucaoSql, [codigoHash, expiraEm, email]);
+}
+
+// Busca o usuario cujo codigo 2FA bate com o hash e ainda nao expirou.
+function buscarPorCodigo2Fa(email, codigoHash) {
+    var instrucaoSql = `
+        SELECT idUsuario AS id_usuario, nome, email
+        FROM usuario
+        WHERE email = ? AND codigo_2fa = ? AND codigo_2fa_expira_em > NOW()
+    `;
+    return database.executar(instrucaoSql, [email, codigoHash]);
+}
+
+// Limpa o codigo 2FA depois de usado (ou ao reenviar).
+function limparCodigo2Fa(idUsuario) {
+    var instrucaoSql = `
+        UPDATE usuario
+        SET codigo_2fa = NULL, codigo_2fa_expira_em = NULL
+        WHERE idUsuario = ?
+    `;
+    return database.executar(instrucaoSql, [idUsuario]);
+}
+
+// Le a preferencia de 2FA do usuario (0/1).
+function buscar2FA(idUsuario) {
+    var instrucaoSql = `
+        SELECT COALESCE(autenticacao2FA, 0) AS autenticacao2FA
+        FROM configuracoes_usuario
+        WHERE fkUsuario = ?
+    `;
+    return database.executar(instrucaoSql, [idUsuario]);
+}
+
+// Ativa/desativa o 2FA, criando a linha de configuracao se ainda nao existir.
+function configurar2FA(idUsuario, ativo) {
+    var instrucaoSql = `
+        INSERT INTO configuracoes_usuario (fkUsuario, autenticacao2FA)
+        VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE autenticacao2FA = ?
+    `;
+    return database.executar(instrucaoSql, [idUsuario, ativo, ativo]);
 }
 
 function excluirFavoritos(idUsuario) {
@@ -183,6 +237,11 @@ module.exports = {
     salvarTokenReset,
     buscarPorTokenReset,
     limparTokenReset,
+    salvarCodigo2Fa,
+    buscarPorCodigo2Fa,
+    limparCodigo2Fa,
+    buscar2FA,
+    configurar2FA,
     excluirUsuario,
     excluirConfiguracoes,
     excluirFavoritos,

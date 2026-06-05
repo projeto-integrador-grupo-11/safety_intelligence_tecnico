@@ -18,6 +18,22 @@ router.post("/autenticar", function (req, res) {
     usuarioController.autenticar(req, res);
 });
 
+router.post("/verificar2FA", function (req, res) {
+    usuarioController.verificar2FA(req, res);
+});
+
+router.post("/reenviar2FA", function (req, res) {
+    usuarioController.reenviar2FA(req, res);
+});
+
+router.get("/buscar2FA/:idUsuario", function (req, res) {
+    usuarioController.buscar2FA(req, res);
+});
+
+router.post("/configurar2FA", function (req, res) {
+    usuarioController.configurar2FA(req, res);
+});
+
 router.put("/trocarSenha", function (req, res) {
     usuarioController.trocarSenha(req, res);
 })
