@@ -25,27 +25,19 @@ CREATE TABLE IF NOT EXISTS unidade_federativa (
 -- =====================
 -- USUÁRIO
 -- =====================
-<<<<<<< HEAD
-CREATE TABLE usuario (
-    idUsuario INT PRIMARY KEY AUTO_INCREMENT,
-    nome varchar(50),
-<<<<<<< HEAD
-    email VARCHAR(100),
-    senha VARCHAR(255),
-    token_reset VARCHAR(255) NULL,
-    token_reset_expira_em DATETIME NULL,
-    codigo_2fa VARCHAR(255) NULL,
-    codigo_2fa_expira_em DATETIME NULL
 
-);
-=======
+
 CREATE TABLE IF NOT EXISTS usuario (
     idUsuario INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(50) DEFAULT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
-    senha VARCHAR(255) NOT NULL
+    senha VARCHAR(255) NOT NULL,
+	token_reset VARCHAR(255) NULL,
+    token_reset_expira_em DATETIME NULL,
+	codigo_2fa VARCHAR(255) NULL,
+    codigo_2fa_expira_em DATETIME NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
->>>>>>> 8823c8ae7622372e7988ffc3a9cd5f2888dfa672
+
 
 -- =====================
 -- FAVORITOS
@@ -110,17 +102,10 @@ CREATE TABLE IF NOT EXISTS populacao_municipio (
     KEY idx_pop_mun_uf_nome (uf, nome_municipio)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
 -- Migração (banco já existente, adicionar colunas de recuperação de senha):
 -- ALTER TABLE usuario
 --   ADD COLUMN token_reset VARCHAR(255) NULL,
 --   ADD COLUMN token_reset_expira_em DATETIME NULL;
-
--- Migração (banco já existente, adicionar colunas do código 2FA):
--- ALTER TABLE usuario
---   ADD COLUMN codigo_2fa VARCHAR(255) NULL,
---   ADD COLUMN codigo_2fa_expira_em DATETIME NULL;
--- A preferência de 2FA usa configuracoes_usuario.autenticacao2FA (já no schema).
 
 -- Migração (banco já existente com lista_favoritos antiga):
 
