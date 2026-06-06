@@ -51,7 +51,8 @@
         st.textContent = [
             ".auth-user{position:relative;display:flex;align-items:center;gap:10px;background:var(--card,#fff);border:1px solid var(--border2,#e5e7eb);border-radius:999px;padding:4px 12px 4px 4px;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;color:var(--t1,#111);transition:all .2s;user-select:none}",
             ".auth-user:hover{border-color:var(--border3,#cbd5e1)}",
-            ".auth-user .auth-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;letter-spacing:.5px}",
+            ".auth-user .auth-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;letter-spacing:.5px;overflow:hidden}",
+            ".auth-user .auth-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}",
             ".auth-user .auth-nome{max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
             ".auth-user .auth-caret{font-size:9px;opacity:.6;margin-left:2px}",
             ".auth-menu{position:absolute;top:calc(100% + 8px);right:0;min-width:220px;background:var(--card,#fff);border:1px solid var(--border2,#e5e7eb);border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.12);padding:8px;z-index:9999;display:none}",
@@ -66,6 +67,33 @@
             ".auth-menu-item svg{width:14px;height:14px;flex-shrink:0}"
         ].join("\n");
         document.head.appendChild(st);
+    }
+
+    // Substitui as iniciais pela foto de perfil do usuário, quando houver.
+    // Sem foto (ou em caso de erro), mantém as iniciais como fallback.
+    function carregarFotoAvatar(avatarEl) {
+        var id = sessionStorage.getItem("ID_USUARIO");
+        if (!id || !avatarEl) return;
+
+        fetchOriginal("/usuarios/buscarFoto/" + id)
+            .then(function (resposta) {
+                return resposta.ok ? resposta.json() : null;
+            })
+            .then(function (dados) {
+                var foto = (dados && dados.length > 0) ? dados[0].fotoPerfil : null;
+                if (!foto) return;
+
+                var img = document.createElement("img");
+                img.src = foto;
+                img.alt = "Foto de perfil";
+                // Se a foto falhar ao carregar, volta para as iniciais.
+                img.onerror = function () {
+                    avatarEl.innerHTML = iniciais(nomeUsuario());
+                };
+                avatarEl.innerHTML = "";
+                avatarEl.appendChild(img);
+            })
+            .catch(function () { /* mantém as iniciais */ });
     }
 
     function montarUserMenu() {
@@ -102,6 +130,8 @@
             '</div>';
 
         alvo.insertBefore(wrap, alvo.firstChild);
+
+        carregarFotoAvatar(wrap.querySelector(".auth-avatar"));
 
         var menu = wrap.querySelector(".auth-menu");
 
