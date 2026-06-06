@@ -259,6 +259,26 @@ body {
     animation: cardIn .6s var(--ease) both;
 }
 
+.container-esqueceu{
+    width: 100%;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   height: 80vh;
+}
+
+.container-alterar{
+    width:  35%;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   height: 80vh;
+   margin: auto;
+}
+
+
 @keyframes cardIn {
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -603,7 +623,7 @@ body {
 
 .texto-ajuda + .texto-ajuda { margin-top: 6px; }
 
-.container--codigo { width: min(100%, 420px); }
+
 
 .codigo-row {
     display: flex;
