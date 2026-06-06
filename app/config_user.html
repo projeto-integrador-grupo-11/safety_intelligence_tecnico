@@ -1291,6 +1291,13 @@
           <div class="tb-title">Configurações</div>
           <div class="tb-crumb">/ <span>Conta</span> / <span>Perfil</span></div>
         </div>
+        <div class="tb-r">
+          <div class="tb-avatar" title="Usuário">
+            <img id="tbAvatarFoto" src="public/img/default-user.svg" alt="Usuário"
+              style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;"
+              onerror="this.onerror=null;this.src='public/img/default-user.svg';">
+          </div>
+        </div>
       </div>
 
       <!-- MAIN -->
@@ -1336,7 +1343,8 @@
 
                 <div class="avatar" onclick="document.getElementById('ipt_foto').click()">
 
-                  <img id="fotoPerfil" src="/assets/default-user.png">
+                  <img id="fotoPerfil" src="public/img/default-user.svg"
+                    onerror="this.onerror=null;this.src='public/img/default-user.svg';">
 
                   <div class="avatar-overlay">
                     
@@ -1987,6 +1995,17 @@
         });
     }
 
+    var FOTO_PADRAO = "public/img/default-user.svg";
+
+    // Atualiza todos os locais que exibem a foto do usuário nesta tela.
+    function definirFoto(src) {
+      var alvos = ["fotoPerfil", "tbAvatarFoto"];
+      alvos.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.src = src;
+      });
+    }
+
     function carregarFoto() {
 
       fetch(`/usuarios/buscarFoto/${sessionStorage.ID_USUARIO}`)
@@ -1999,21 +2018,16 @@
 
         .then(function (dados) {
 
-          if (dados.length > 0) {
-            
-            if(dados[0].fotoPerfil != null){
-            const foto = dados[0].fotoPerfil;
-            
+          var foto = (dados && dados.length > 0) ? dados[0].fotoPerfil : null;
 
-            if (foto) {
+          // Sem foto cadastrada: mantém o avatar padrão.
+          definirFoto(foto ? foto : FOTO_PADRAO);
 
-              document.getElementById("fotoPerfil").src =
-                foto;
+        })
 
-            }
-          }
+        .catch(function () {
 
-          }
+          definirFoto(FOTO_PADRAO);
 
         });
 
